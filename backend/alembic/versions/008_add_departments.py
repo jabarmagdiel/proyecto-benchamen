@@ -19,8 +19,20 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    pass
+    op.create_table(
+        'departments',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('name', sa.String(length=100), nullable=False),
+        sa.Column('description', sa.String(length=500), nullable=True),
+        sa.Column('is_active', sa.Boolean(), nullable=False, server_default='true'),
+        sa.PrimaryKeyConstraint('id'),
+        sa.UniqueConstraint('name')
+    )
+    op.create_index(op.f('ix_departments_id'), 'departments', ['id'], unique=False)
+    op.create_index(op.f('ix_departments_name'), 'departments', ['name'], unique=False)
 
 
 def downgrade() -> None:
-    pass
+    op.drop_index(op.f('ix_departments_name'), table_name='departments')
+    op.drop_index(op.f('ix_departments_id'), table_name='departments')
+    op.drop_table('departments')
