@@ -38,6 +38,7 @@ export default function LoginPage() {
     }
   };
 
+  return (
     <div className="min-h-screen flex bg-[#07060B] text-white selection:bg-[#20CDFE]/30">
       {/* ─── Panel izquierdo decorativo ─── */}
       <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden bg-gradient-to-br from-[#07060B] to-[#2E455C]/40 border-r border-[#2E455C]/30">
