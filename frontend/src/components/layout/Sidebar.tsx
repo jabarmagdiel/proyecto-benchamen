@@ -56,16 +56,21 @@ export default function Sidebar() {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className={cn(
-        "flex items-center gap-3 px-4 py-5 border-b border-slate-700/50",
+        "flex items-center gap-3 px-4 py-5 border-b border-[#2E455C]/30",
         collapsed && "justify-center px-0"
       )}>
-        <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center shrink-0">
-          <BarChart3 size={18} className="text-white" />
+        <div className="flex flex-col items-center justify-center shrink-0 w-10 h-10 bg-[#2E455C]/20 border border-[#20CDFE]/20 rounded-xl shadow-[0_0_15px_rgba(32,205,254,0.1)]">
+          <span className="text-[8px] font-bold tracking-[0.2em] text-white/80 -mb-1 ml-[-12px]">TU</span>
+          <span className="text-[16px] font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] leading-none tracking-tighter">C</span>
         </div>
         {!collapsed && (
           <div>
-            <p className="font-bold text-white text-sm leading-none">TuCreatega</p>
-            <p className="text-slate-400 text-xs mt-0.5">Project Manager</p>
+            <div className="flex flex-col">
+              <span className="text-[8px] font-bold tracking-[0.2em] text-white/80 -mb-1 ml-[-30px]">TU</span>
+              <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] leading-none tracking-tighter">CREA</span>
+              <span className="text-[8px] font-bold tracking-[0.3em] text-white ml-[30px] -mt-1">TEGA</span>
+            </div>
+            <p className="text-slate-400 text-[10px] mt-1 font-medium tracking-wide">Project Manager</p>
           </div>
         )}
       </div>
@@ -82,15 +87,15 @@ export default function Sidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative",
                 active
-                  ? "bg-violet-600 text-white shadow-lg shadow-violet-900/30"
-                  : "text-slate-400 hover:text-white hover:bg-slate-700/50",
+                  ? "bg-gradient-to-r from-[#20CDFE]/20 to-[#1ED1B4]/10 text-[#20CDFE] border border-[#20CDFE]/20 shadow-[0_0_20px_rgba(32,205,254,0.1)]"
+                  : "text-slate-400 hover:text-white hover:bg-[#2E455C]/20",
                 collapsed && "justify-center px-0"
               )}
             >
-              <Icon size={18} className="shrink-0" />
+              <Icon size={18} className={cn("shrink-0 transition-colors", active ? "text-[#20CDFE]" : "text-slate-400 group-hover:text-[#1ED1B4]")} />
               {!collapsed && <span className="text-sm font-medium">{label}</span>}
               {active && !collapsed && (
-                <div className="ml-auto w-1.5 h-1.5 bg-white rounded-full" />
+                <div className="ml-auto w-1.5 h-1.5 bg-[#1ED1B4] rounded-full shadow-[0_0_10px_#1ED1B4]" />
               )}
             </Link>
           );
@@ -98,22 +103,22 @@ export default function Sidebar() {
       </nav>
 
       {/* User info + logout */}
-      <div className="border-t border-slate-700/50 p-3">
+      <div className="border-t border-[#2E455C]/30 p-3">
         <Link
           href="/perfil"
           title={collapsed ? "Mi Perfil" : undefined}
           className={cn(
-            "flex items-center gap-3 px-2 py-2 mb-2 rounded-xl hover:bg-slate-800 transition-all group",
+            "flex items-center gap-3 px-2 py-2 mb-2 rounded-xl hover:bg-[#2E455C]/20 transition-all group border border-transparent hover:border-[#2E455C]/50",
             collapsed && "justify-center",
-            pathname === "/perfil" && "bg-slate-800"
+            pathname === "/perfil" && "bg-[#2E455C]/20 border-[#2E455C]/50"
           )}
         >
-          <div className="w-8 h-8 rounded-xl bg-violet-600/30 group-hover:bg-violet-600/40 flex items-center justify-center shrink-0 transition-colors">
-            <User size={15} className="text-violet-300" />
+          <div className="w-8 h-8 rounded-xl bg-[#2E455C]/40 group-hover:bg-[#2E455C]/60 border border-[#2E455C]/50 flex items-center justify-center shrink-0 transition-colors">
+            <User size={15} className="text-[#20CDFE]" />
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <p className="text-white text-xs font-medium truncate group-hover:text-violet-200 transition-colors">{user?.name}</p>
+              <p className="text-white text-xs font-medium truncate group-hover:text-[#20CDFE] transition-colors">{user?.name}</p>
               <p className="text-slate-400 text-[10px] capitalize">{user?.role}</p>
             </div>
           )}
@@ -134,7 +139,7 @@ export default function Sidebar() {
       {/* Collapse button (desktop) */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-slate-700 border border-slate-600 rounded-full items-center justify-center text-slate-400 hover:text-white transition-colors z-10"
+        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-[#07060B] border border-[#2E455C]/50 rounded-full items-center justify-center text-slate-400 hover:text-[#20CDFE] transition-colors z-10 hover:border-[#20CDFE]/50"
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
@@ -146,7 +151,7 @@ export default function Sidebar() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-slate-800 text-white rounded-xl flex items-center justify-center shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-[#07060B] border border-[#2E455C]/50 text-white rounded-xl flex items-center justify-center shadow-lg"
       >
         {mobileOpen ? <X size={18} /> : <Menu size={18} />}
       </button>
@@ -154,7 +159,7 @@ export default function Sidebar() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -162,7 +167,7 @@ export default function Sidebar() {
       {/* Sidebar desktop */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col sticky top-0 h-screen bg-slate-900 border-r border-slate-700/50 transition-all duration-300 z-30 shrink-0",
+          "hidden lg:flex flex-col sticky top-0 h-screen bg-[#07060B]/80 backdrop-blur-2xl border-r border-[#2E455C]/30 transition-all duration-300 z-30 shrink-0",
           collapsed ? "w-[72px]" : "w-[260px]"
         )}
       >
@@ -172,7 +177,7 @@ export default function Sidebar() {
       {/* Sidebar mobile */}
       <aside
         className={cn(
-          "lg:hidden flex flex-col fixed left-0 top-0 h-full w-[260px] bg-slate-900 border-r border-slate-700/50 transition-all duration-300 z-50",
+          "lg:hidden flex flex-col fixed left-0 top-0 h-full w-[260px] bg-[#07060B] border-r border-[#2E455C]/30 transition-all duration-300 z-50",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

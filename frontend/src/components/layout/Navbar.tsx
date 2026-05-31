@@ -92,9 +92,9 @@ export default function Navbar() {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-100 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
+    <header className="h-16 bg-[#07060B]/80 backdrop-blur-xl border-b border-[#2E455C]/30 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
       {/* Título de la página */}
-      <h1 className="text-lg font-semibold text-slate-800 pl-8 lg:pl-0">{title}</h1>
+      <h1 className="text-lg font-bold text-white pl-8 lg:pl-0 tracking-wide">{title}</h1>
 
       {/* Acciones */}
       <div className="flex items-center gap-3">
@@ -103,26 +103,26 @@ export default function Navbar() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={cn(
-              "relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700 cursor-pointer",
-              isOpen && "bg-slate-100 text-slate-800"
+              "relative w-9 h-9 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/40 transition-all text-slate-400 hover:text-[#20CDFE] cursor-pointer",
+              isOpen && "bg-[#2E455C]/40 text-[#20CDFE]"
             )}
           >
             <Bell size={18} />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-violet-600 rounded-full" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#1ED1B4] rounded-full shadow-[0_0_8px_#1ED1B4]" />
             )}
           </button>
 
           {/* Dropdown de Notificaciones */}
           {isOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white border border-slate-100 rounded-2xl shadow-xl z-50 animate-fade-in flex flex-col max-h-[80vh] overflow-hidden">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#07060B]/95 backdrop-blur-2xl border border-[#2E455C]/50 rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.1)] z-50 animate-fade-in flex flex-col max-h-[80vh] overflow-hidden">
               {/* Encabezado */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 shrink-0">
-                <span className="font-bold text-slate-800 text-sm">Notificaciones</span>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[#2E455C]/30 shrink-0">
+                <span className="font-bold text-white text-sm">Notificaciones</span>
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllAsRead}
-                    className="text-xs text-violet-600 hover:text-violet-700 hover:underline font-semibold cursor-pointer"
+                    className="text-xs text-[#20CDFE] hover:text-[#1ED1B4] transition-colors font-semibold cursor-pointer"
                   >
                     Marcar todo como leído
                   </button>
@@ -132,33 +132,33 @@ export default function Navbar() {
               {/* Lista */}
               <div className="flex-1 overflow-y-auto max-h-[350px]">
                 {notifications.length === 0 ? (
-                  <div className="py-12 text-center text-slate-400">
+                  <div className="py-12 text-center text-slate-500">
                     <Bell size={28} className="mx-auto mb-2 opacity-30" />
                     <p className="text-xs font-medium">No tienes notificaciones</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-[#2E455C]/20">
                     {notifications.map((n) => (
                       <button
                         key={n.id}
                         onClick={() => handleNotificationClick(n)}
                         className={cn(
-                          "w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors flex flex-col gap-0.5 cursor-pointer",
-                          !n.is_read && "bg-violet-50/20"
+                          "w-full text-left px-4 py-3 hover:bg-[#2E455C]/30 transition-colors flex flex-col gap-0.5 cursor-pointer",
+                          !n.is_read && "bg-[#20CDFE]/5"
                         )}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <span className={cn("text-xs font-semibold text-slate-800", !n.is_read && "text-violet-900")}>
+                          <span className={cn("text-xs font-semibold text-white", !n.is_read && "text-[#20CDFE]")}>
                             {n.title}
                           </span>
                           {!n.is_read && (
-                            <span className="w-1.5 h-1.5 bg-violet-600 rounded-full shrink-0 mt-1" />
+                            <span className="w-1.5 h-1.5 bg-[#1ED1B4] shadow-[0_0_8px_#1ED1B4] rounded-full shrink-0 mt-1" />
                           )}
                         </div>
-                        <p className="text-xs text-slate-600 line-clamp-2 leading-normal">
+                        <p className="text-xs text-slate-400 line-clamp-2 leading-normal">
                           {n.message}
                         </p>
-                        <span className="text-[10px] text-slate-400 mt-1">
+                        <span className="text-[10px] text-slate-500 mt-1">
                           {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: es })}
                         </span>
                       </button>
@@ -171,15 +171,15 @@ export default function Navbar() {
         </div>
 
         {/* Usuario */}
-        <div className="flex items-center gap-2 pl-2 border-l border-slate-100">
-          <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center">
-            <span className="text-white text-xs font-bold">
+        <div className="flex items-center gap-3 pl-3 border-l border-[#2E455C]/30 ml-1">
+          <div className="w-9 h-9 bg-gradient-to-br from-[#20CDFE] to-[#1ED1B4] rounded-lg flex items-center justify-center shadow-[0_0_10px_rgba(32,205,254,0.3)]">
+            <span className="text-[#07060B] text-sm font-black">
               {user?.name?.charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-medium text-slate-700 leading-none">{user?.name}</p>
-            <p className="text-xs text-slate-400 capitalize mt-0.5">{user?.role}</p>
+            <p className="text-sm font-bold text-white leading-none">{user?.name}</p>
+            <p className="text-xs text-[#1ED1B4] font-medium capitalize mt-1 tracking-wide">{user?.role}</p>
           </div>
         </div>
       </div>

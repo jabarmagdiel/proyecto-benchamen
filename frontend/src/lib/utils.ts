@@ -39,21 +39,21 @@ export function formatFileSize(bytes?: number | null): string {
 }
 
 export const STATUS_COLORS: Record<ActivityStatus, string> = {
-  pendiente:    "bg-slate-100 text-slate-700 border-slate-200",
-  bloqueada:    "bg-stone-100 text-stone-600 border-stone-200",
-  asignada:     "bg-indigo-100 text-indigo-700 border-indigo-200",
-  en_proceso:   "bg-violet-100 text-violet-700 border-violet-200",
-  en_revision:  "bg-blue-100 text-blue-700 border-blue-200",
-  observada:    "bg-amber-100 text-amber-700 border-amber-200",
-  aprobada:     "bg-green-100 text-green-700 border-green-200",
-  cancelada:    "bg-red-100 text-red-700 border-red-200",
+  pendiente:    "bg-slate-500/20 text-slate-300 border-slate-500/30",
+  bloqueada:    "bg-stone-500/20 text-stone-300 border-stone-500/30",
+  asignada:     "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+  en_proceso:   "bg-[#20CDFE]/20 text-[#20CDFE] border-[#20CDFE]/30",
+  en_revision:  "bg-blue-500/20 text-blue-300 border-blue-500/30",
+  observada:    "bg-amber-500/20 text-amber-300 border-amber-500/30",
+  aprobada:     "bg-[#1ED1B4]/20 text-[#1ED1B4] border-[#1ED1B4]/30",
+  cancelada:    "bg-red-500/20 text-red-300 border-red-500/30",
 };
 
 export const PRIORITY_COLORS: Record<Priority, string> = {
-  baja:    "bg-slate-100 text-slate-600",
-  media:   "bg-blue-100 text-blue-700",
-  alta:    "bg-orange-100 text-orange-700",
-  urgente: "bg-red-100 text-red-700",
+  baja:    "bg-slate-500/20 text-slate-300",
+  media:   "bg-blue-500/20 text-blue-300",
+  alta:    "bg-orange-500/20 text-orange-300",
+  urgente: "bg-red-500/20 text-red-300",
 };
 
 export const STATUS_DOT_COLORS: Record<ActivityStatus, string> = {
