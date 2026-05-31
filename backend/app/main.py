@@ -1,11 +1,13 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
+from app.core.database import SessionLocal
+from sqlalchemy import text
 from app.routes import auth, users, companies, projects, activities, evidences, comments, dashboard, reports, notifications, appointments, workflows, departments
-
 
 # ─── Crear carpeta de uploads si no existe ────────────────────────────────────
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
@@ -18,6 +20,44 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+@app.on_event("startup")
+def run_migrations():
+    """Ejecuta las migraciones de BD necesarias automáticamente al iniciar el servidor en Render"""
+    db = SessionLocal()
+    try:
+        # 1. Crear tabla user_departments
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS user_departments (
+                user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                department_id INT NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+                PRIMARY KEY (user_id, department_id)
+            );
+        """))
+        # 2. Migrar datos antiguos de department_id si es posible (ignoramos si falla)
+        try:
+            db.execute(text("""
+                INSERT INTO user_departments (user_id, department_id)
+                SELECT id, department_id FROM users WHERE department_id IS NOT NULL
+                ON CONFLICT DO NOTHING;
+            """))
+        except Exception:
+            pass
+        
+        # 3. Añadir workflow_id a activities
+        db.execute(text("ALTER TABLE activities ADD COLUMN IF NOT EXISTS workflow_id INT REFERENCES workflows(id) ON DELETE SET NULL;"))
+        
+        # 4. Añadir department_id a projects
+        db.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id INT REFERENCES departments(id) ON DELETE SET NULL;"))
+        
+        db.commit()
+        print("✅ Migraciones automáticas ejecutadas con éxito.")
+    except Exception as e:
+        print(f"❌ Error al ejecutar migraciones automáticas: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
 app.add_middleware(
