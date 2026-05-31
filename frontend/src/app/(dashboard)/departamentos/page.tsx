@@ -5,7 +5,7 @@ import { departmentsApi, usersApi } from "@/lib/api";
 import { Department, User } from "@/types";
 import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
 
-export default function Roles OperativosPage() {
+export default function RolesOperativosPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);

@@ -25,7 +25,7 @@ export default function PaquetesPage() {
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
   });
 
   const load = async () => {

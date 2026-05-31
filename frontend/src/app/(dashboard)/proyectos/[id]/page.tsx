@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Plus, Search, Eye, ClipboardList, Calendar,
-  User as UserIcon, Building2, AlertTriangle
+  User as UserIcon, Building2, AlertTriangle, Clock
 } from "lucide-react";
 import { projectsApi, activitiesApi, usersApi, departmentsApi, workflowsApi } from "@/lib/api";
 import type { Project, Activity, User as UserType, Workflow } from "@/types";
@@ -299,7 +299,6 @@ export default function ProjectDetailPage() {
               placeholder="Buscar actividad en este proyecto..."
               className="pl-9 pr-4 py-2.5 rounded-xl border border-[#20CDFE]/10 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200"
             />
-          </div>
           </div>
         </div>
 
