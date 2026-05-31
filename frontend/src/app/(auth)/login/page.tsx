@@ -38,18 +38,17 @@ export default function LoginPage() {
     }
   };
 
-  return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-[#07060B] text-white selection:bg-[#20CDFE]/30">
       {/* ─── Panel izquierdo decorativo ─── */}
-      <div className="hidden lg:flex lg:w-1/2 gradient-primary flex-col items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          {[...Array(12)].map((_, i) => (
+      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden bg-gradient-to-br from-[#07060B] to-[#2E455C]/40 border-r border-[#2E455C]/30">
+        <div className="absolute inset-0 opacity-20">
+          {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="absolute rounded-full border border-white"
+              className="absolute rounded-full border border-[#20CDFE]/20"
               style={{
-                width: `${80 + i * 60}px`,
-                height: `${80 + i * 60}px`,
+                width: `${150 + i * 100}px`,
+                height: `${150 + i * 100}px`,
                 top: `${50 + Math.sin(i) * 20}%`,
                 left: `${50 + Math.cos(i) * 20}%`,
                 transform: "translate(-50%, -50%)",
@@ -57,23 +56,32 @@ export default function LoginPage() {
             />
           ))}
         </div>
-        <div className="relative text-white text-center">
-          <div className="w-14 h-14 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-violet-500/30">
-          <BarChart3 size={32} className="text-white" />
-        </div>
-        <h1 className="text-4xl font-bold mb-4">TuCreatega</h1>
-        <p className="text-indigo-200 text-lg leading-relaxed">
-          Centraliza la gestión de tus clientes, proyectos y actividades en una sola plataforma potente y fácil de usar.
-        </p>
-          <div className="mt-10 grid grid-cols-3 gap-4 text-center">
+        
+        {/* Glow effect */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#20CDFE]/10 blur-[100px] rounded-full pointer-events-none" />
+
+        <div className="relative text-center z-10 flex flex-col items-center">
+          {/* Logo representation */}
+          <div className="flex flex-col items-center justify-center mb-8 bg-[#2E455C]/20 p-6 rounded-3xl border border-[#20CDFE]/20 backdrop-blur-md shadow-[0_0_40px_rgba(32,205,254,0.1)]">
+            <span className="text-sm font-bold tracking-[0.2em] text-white/80 -mb-2 ml-[-60px]">TU</span>
+            <div className="flex items-center">
+              <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] tracking-tighter">CREA</span>
+            </div>
+            <span className="text-sm font-bold tracking-[0.3em] text-white -mt-1 ml-[60px]">TEGA</span>
+          </div>
+
+          <p className="text-slate-300 text-lg leading-relaxed max-w-md font-light">
+            Centraliza la gestión de tus clientes, proyectos y actividades en una sola plataforma potente y fácil de usar.
+          </p>
+          <div className="mt-12 grid grid-cols-3 gap-6 text-center w-full max-w-md">
             {[
               { label: "Proyectos", value: "∞" },
               { label: "Actividades", value: "360°" },
               { label: "Equipos", value: "✓" },
             ].map((s) => (
-              <div key={s.label} className="bg-white/10 rounded-xl p-4 backdrop-blur-sm">
-                <div className="text-2xl font-bold">{s.value}</div>
-                <div className="text-white/70 text-sm">{s.label}</div>
+              <div key={s.label} className="bg-[#2E455C]/30 rounded-2xl p-5 backdrop-blur-md border border-[#2E455C]/50 hover:bg-[#2E455C]/50 transition-colors">
+                <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] mb-1">{s.value}</div>
+                <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold">{s.label}</div>
               </div>
             ))}
           </div>
@@ -81,40 +89,44 @@ export default function LoginPage() {
       </div>
 
       {/* ─── Panel derecho: formulario ─── */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gradient-to-br from-slate-50 to-violet-50/30">
-        <div className="w-full max-w-md animate-fade-in">
+      <div className="flex-1 flex items-center justify-center p-8 relative">
+        {/* Glow effect right side */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#1ED1B4]/5 blur-[120px] rounded-full pointer-events-none" />
+        
+        <div className="w-full max-w-md animate-fade-in relative z-10">
           {/* Logo mobile */}
-          <div className="flex lg:hidden items-center gap-2 mb-8 justify-center">
-            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center">
-              <BarChart3 size={20} className="text-white" />
+          <div className="flex lg:hidden flex-col items-center mb-10">
+            <span className="text-xs font-bold tracking-[0.2em] text-white/80 -mb-1 ml-[-40px]">TU</span>
+            <div className="flex items-center">
+              <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] tracking-tighter">CREA</span>
             </div>
-            <span className="font-bold text-xl text-slate-800">TuCreatega</span>
+            <span className="text-xs font-bold tracking-[0.3em] text-white ml-[40px]">TEGA</span>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/80 p-8 border border-slate-100">
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Bienvenido</h2>
-            <p className="text-slate-500 mb-8">Ingresa tus credenciales para continuar</p>
+          <div className="bg-[#2E455C]/20 rounded-3xl shadow-2xl p-8 lg:p-10 border border-[#2E455C]/50 backdrop-blur-xl">
+            <h2 className="text-3xl font-bold text-white mb-2">Bienvenido</h2>
+            <p className="text-slate-400 mb-8 font-light">Ingresa tus credenciales para continuar</p>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   Correo electrónico
                 </label>
                 <input
                   {...register("email")}
                   type="email"
-                  placeholder="admin@marketing.com"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none transition-all text-slate-800 placeholder:text-slate-400"
+                  placeholder="ejemplo@correo.com"
+                  className="w-full px-5 py-4 rounded-xl border border-[#2E455C] bg-[#07060B]/50 focus:bg-[#07060B] focus:border-[#20CDFE] focus:ring-1 focus:ring-[#20CDFE] outline-none transition-all text-white placeholder:text-slate-600"
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1.5">{errors.email.message}</p>
+                  <p className="text-[#ff5252] text-xs mt-2">{errors.email.message}</p>
                 )}
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
                   Contraseña
                 </label>
                 <div className="relative">
@@ -122,24 +134,24 @@ export default function LoginPage() {
                     {...register("password")}
                     type={showPass ? "text" : "password"}
                     placeholder="••••••••"
-                    className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none transition-all text-slate-800 placeholder:text-slate-400"
+                    className="w-full px-5 py-4 pr-12 rounded-xl border border-[#2E455C] bg-[#07060B]/50 focus:bg-[#07060B] focus:border-[#20CDFE] focus:ring-1 focus:ring-[#20CDFE] outline-none transition-all text-white placeholder:text-slate-600"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-[#20CDFE] transition-colors"
                   >
-                    {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-500 text-xs mt-1.5">{errors.password.message}</p>
+                  <p className="text-[#ff5252] text-xs mt-2">{errors.password.message}</p>
                 )}
               </div>
 
               {/* Error global */}
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
+                <div className="bg-[#ff5252]/10 border border-[#ff5252]/30 text-[#ff5252] px-4 py-3 rounded-xl text-sm backdrop-blur-sm">
                   {error}
                 </div>
               )}
@@ -148,23 +160,18 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full gradient-primary text-white font-semibold py-3.5 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-violet-500/25"
+                className="w-full bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] font-bold py-4 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(32,205,254,0.3)] mt-2"
               >
                 {loading ? (
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-[#07060B]/30 border-t-[#07060B] rounded-full animate-spin" />
                 ) : (
                   <>
-                    <LogIn size={18} />
+                    <LogIn size={20} />
                     Iniciar sesión
                   </>
                 )}
               </button>
             </form>
-
-            <div className="mt-6 text-center text-xs text-slate-400">
-              <p>Credenciales por defecto:</p>
-              <p className="font-mono text-slate-500 mt-1">admin@marketing.com / Admin123!</p>
-            </div>
           </div>
         </div>
       </div>
