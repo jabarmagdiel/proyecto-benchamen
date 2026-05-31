@@ -15,7 +15,7 @@ export default function StageNode({ data }: any) {
       </div>
 
       <div className="bg-[#15233D] rounded-lg p-2 text-xs border border-[#20CDFE]/10 mt-3">
-        <span className="text-slate-400 font-semibold mb-1 block">Departamento Asignado</span>
+        <span className="text-slate-400 font-semibold mb-1 block">Rol Operativo Asignado</span>
         <span className="w-full block bg-[#0A101D]/80 border border-[#20CDFE]/10 rounded-md p-1 text-white text-center truncate">
           {stage.department || "No asignado"}
         </span>

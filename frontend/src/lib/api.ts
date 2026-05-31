@@ -135,6 +135,18 @@ export const appointmentsApi = {
   delete: (id: number) => api.delete(`/api/appointments/${id}`),
 };
 
+// ─── Packages ──────────────────────────────────────────────────────────────────
+export const packagesApi = {
+  list: () => api.get("/api/packages"),
+  create: (data: object) => api.post("/api/packages", data),
+  update: (id: number, data: object) => api.put(`/api/packages/${id}`, data),
+  delete: (id: number) => api.delete(`/api/packages/${id}`),
+
+  getCompanyPackages: (companyId: number) => api.get(`/api/packages/company/${companyId}`),
+  assignToCompany: (data: object) => api.post("/api/packages/company", data),
+  removeFromCompany: (cpId: number) => api.delete(`/api/packages/company/${cpId}`),
+};
+
 // ─── Workflows ────────────────────────────────────────────────────────────────
 export const workflowsApi = {
   list: (params?: object) => api.get("/api/workflows", { params }),

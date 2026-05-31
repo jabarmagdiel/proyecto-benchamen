@@ -508,7 +508,7 @@ export default function ProjectDetailPage() {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Departamento</label>
+                        <label className="block text-xs font-semibold text-slate-300 mb-1">Rol Operativo</label>
                         <select 
                           value={selectedDepartmentId}
                           onChange={(e) => {
@@ -517,7 +517,7 @@ export default function ProjectDetailPage() {
                           }}
                           className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
                         >
-                          <option value="">Cualquier departamento</option>
+                          <option value="">Cualquier rol operativo</option>
                           {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                         </select>
                       </div>

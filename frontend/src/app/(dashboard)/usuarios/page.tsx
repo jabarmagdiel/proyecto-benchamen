@@ -65,7 +65,7 @@ export default function UsuariosPage() {
       setCompanies(compRes.data);
       setDepartments(deptRes.data);
     } catch (e) {
-      console.error("Error al cargar empresas o departamentos", e);
+      console.error("Error al cargar empresas o roles operativos", e);
     }
   };
 
@@ -194,7 +194,7 @@ export default function UsuariosPage() {
             <table className="w-full text-sm">
               <thead className="bg-[#15233D] border-b border-[#20CDFE]/10">
                 <tr>
-                  {["Usuario", "Email", "Departamento / Empresa", "Rol", "Estado", "Creado", "Acciones"].map(h => (
+                  {["Usuario", "Email", "Rol Operativo / Empresa", "Rol", "Estado", "Creado", "Acciones"].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -265,7 +265,7 @@ export default function UsuariosPage() {
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-2">Departamentos</label>
+                  <label className="block text-xs font-medium text-slate-300 mb-2">Roles Operativos</label>
                   <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar p-1">
                     {departments.map(d => (
                       <label key={d.id} className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-white transition-colors">

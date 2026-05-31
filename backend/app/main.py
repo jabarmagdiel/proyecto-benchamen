@@ -64,6 +64,32 @@ def run_migrations():
         print("❌ Error alterando projects:", e)
         db.rollback()
 
+    try:
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS packages (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(150) NOT NULL,
+                description TEXT,
+                base_price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+        """))
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS company_packages (
+                id SERIAL PRIMARY KEY,
+                company_id INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+                package_id INT NOT NULL REFERENCES packages(id) ON DELETE CASCADE,
+                quantity INT NOT NULL DEFAULT 1,
+                discount_percentage NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
+                final_price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
+        """))
+        db.commit()
+    except Exception as e:
+        print("❌ Error creando tablas de paquetes:", e)
+        db.rollback()
+
     print("✅ Migraciones automáticas verificadas/ejecutadas con éxito.")
     db.close()
 
@@ -85,6 +111,8 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 # ─── Registrar routers ────────────────────────────────────────────────────────
+from app.routes import users, companies, projects, activities, evidences, comments, dashboard, reports, notifications, departments, workflows, appointments, auth, packages
+
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(companies.router)
@@ -95,9 +123,10 @@ app.include_router(comments.router)
 app.include_router(dashboard.router)
 app.include_router(reports.router)
 app.include_router(notifications.router)
-app.include_router(appointments.router)
-app.include_router(workflows.router)
 app.include_router(departments.router)
+app.include_router(workflows.router)
+app.include_router(appointments.router)
+app.include_router(packages.router)
 
 
 

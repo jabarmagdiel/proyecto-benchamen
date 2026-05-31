@@ -33,4 +33,5 @@ class Company(Base):
     # Relaciones
     projects: Mapped[list["Project"]] = relationship("Project", back_populates="company")
     users: Mapped[list["User"]] = relationship("User", back_populates="company")
+    packages = relationship("CompanyPackage", back_populates="company", cascade="all, delete-orphan")
 

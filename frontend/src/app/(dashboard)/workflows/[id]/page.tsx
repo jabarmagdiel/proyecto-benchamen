@@ -352,7 +352,7 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
             
             {['task', 'decision'].includes(selectedNode.type || '') && (
               <div>
-                <label className="block text-sm font-medium text-white mb-1">Departamento Asignado</label>
+                <label className="block text-sm font-medium text-white mb-1">Rol Operativo Asignado</label>
                 <select 
                   value={(selectedNode.data as any).stage?.department || ""}
                   onChange={(e) => handleUpdateStageField(parseInt(selectedNode.id), "department", e.target.value)}
@@ -443,7 +443,7 @@ export default function WorkflowBuilderPage() {
       setWorkflow(wfRes.data);
       setDepartments(deptRes.data);
     } catch (err) {
-      showToast("No se pudo cargar el flujo o los departamentos.", "error");
+      showToast("No se pudo cargar el flujo o los roles operativos.", "error");
       router.push("/workflows");
     } finally {
       setLoading(false);

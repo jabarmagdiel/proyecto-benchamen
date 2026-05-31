@@ -5,7 +5,7 @@ import { departmentsApi, usersApi } from "@/lib/api";
 import { Department, User } from "@/types";
 import { Plus, Pencil, Trash2, Building2 } from "lucide-react";
 
-export default function DepartamentosPage() {
+export default function Roles OperativosPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +79,7 @@ export default function DepartamentosPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("¿Estás seguro de eliminar este departamento?")) return;
+    if (!confirm("¿Estás seguro de eliminar este rol operativo?")) return;
     try {
       await departmentsApi.delete(id);
       loadData();
@@ -88,7 +88,7 @@ export default function DepartamentosPage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Cargando departamentos...</div>;
+  if (loading) return <div className="p-8 text-center text-slate-400">Cargando roles operativos...</div>;
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -96,7 +96,7 @@ export default function DepartamentosPage() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Building2 className="text-violet-500" />
-            Departamentos
+            Roles Operativos
           </h1>
           <p className="text-slate-400">Gestiona las áreas encargadas de las etapas del flujo.</p>
         </div>
@@ -104,7 +104,7 @@ export default function DepartamentosPage() {
           onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-[#20CDFE]/20 hover:opacity-90 transition-all"
         >
-          <Plus className="w-4 h-4" /> Nuevo Departamento
+          <Plus className="w-4 h-4" /> Nuevo Rol Operativo
         </button>
       </div>
 
@@ -143,7 +143,7 @@ export default function DepartamentosPage() {
             {departments.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-6 py-8 text-center text-slate-400">
-                  No hay departamentos creados todavía.
+                  No hay roles operativos creados todavía.
                 </td>
               </tr>
             )}
@@ -157,7 +157,7 @@ export default function DepartamentosPage() {
           <div className="bg-[#0A101D]/80 rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
             <div className="px-6 py-4 border-b border-[#20CDFE]/10 flex justify-between items-center bg-[#15233D]">
               <h3 className="font-bold text-white">
-                {editingDept ? "Editar Departamento" : "Nuevo Departamento"}
+                {editingDept ? "Editar Rol Operativo" : "Nuevo Rol Operativo"}
               </h3>
             </div>
             
@@ -192,11 +192,11 @@ export default function DepartamentosPage() {
                     onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
                     className="rounded text-[#20CDFE] focus:ring-violet-500 w-4 h-4"
                   />
-                  <label htmlFor="is_active" className="text-sm font-medium text-white">Departamento activo</label>
+                  <label htmlFor="is_active" className="text-sm font-medium text-white">Rol Operativo activo</label>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">Operadores del Departamento</label>
+                  <label className="block text-sm font-medium text-white mb-2">Operadores del Rol Operativo</label>
                   <div className="bg-[#15233D] border border-[#20CDFE]/10 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
                     {users.map((user) => (
                       <label key={user.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-[#1C2C4D] rounded">
@@ -234,7 +234,7 @@ export default function DepartamentosPage() {
                   type="submit"
                   className="px-4 py-2 bg-slate-900 text-white font-medium rounded-xl hover:bg-slate-800 transition-colors"
                 >
-                  {editingDept ? "Guardar Cambios" : "Crear Departamento"}
+                  {editingDept ? "Guardar Cambios" : "Crear Rol Operativo"}
                 </button>
               </div>
             </form>

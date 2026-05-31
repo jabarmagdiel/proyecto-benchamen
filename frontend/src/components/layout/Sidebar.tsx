@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Building2, FolderKanban, ClipboardList,
   CheckSquare, Users, BarChart3, LogOut, ChevronLeft,
-  ChevronRight, Menu, X, User, Calendar, GitMerge
+  ChevronRight, Menu, X, User, Calendar, GitMerge, Package
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -17,7 +17,8 @@ const adminLinks = [
   { href: "/proyectos",        icon: FolderKanban,    label: "Proyectos" },
   { href: "/actividades",      icon: ClipboardList,   label: "Actividades" },
   { href: "/workflows",        icon: GitMerge,        label: "Flujos" },
-  { href: "/departamentos",    icon: Building2,       label: "Departamentos" },
+  { href: "/departamentos",    icon: Building2,       label: "Roles Operativos" },
+  { href: "/paquetes",         icon: Package,         label: "Paquetes" },
   { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
   { href: "/agenda",           icon: Calendar,        label: "Agenda" },
   { href: "/usuarios",         icon: Users,           label: "Usuarios" },
