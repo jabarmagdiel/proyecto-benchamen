@@ -25,8 +25,8 @@ app = FastAPI(
 def run_migrations():
     """Ejecuta las migraciones de BD necesarias automáticamente al iniciar el servidor en Render"""
     db = SessionLocal()
+    
     try:
-        # 1. Crear tabla user_departments
         db.execute(text("""
             CREATE TABLE IF NOT EXISTS user_departments (
                 user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -34,29 +34,38 @@ def run_migrations():
                 PRIMARY KEY (user_id, department_id)
             );
         """))
-        # 2. Migrar datos antiguos de department_id si es posible (ignoramos si falla)
-        try:
-            db.execute(text("""
-                INSERT INTO user_departments (user_id, department_id)
-                SELECT id, department_id FROM users WHERE department_id IS NOT NULL
-                ON CONFLICT DO NOTHING;
-            """))
-        except Exception:
-            pass
-        
-        # 3. Añadir workflow_id a activities
-        db.execute(text("ALTER TABLE activities ADD COLUMN IF NOT EXISTS workflow_id INT REFERENCES workflows(id) ON DELETE SET NULL;"))
-        
-        # 4. Añadir department_id a projects
-        db.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id INT REFERENCES departments(id) ON DELETE SET NULL;"))
-        
         db.commit()
-        print("✅ Migraciones automáticas ejecutadas con éxito.")
     except Exception as e:
-        print(f"❌ Error al ejecutar migraciones automáticas: {e}")
+        print("❌ Error creando user_departments:", e)
         db.rollback()
-    finally:
-        db.close()
+
+    try:
+        db.execute(text("""
+            INSERT INTO user_departments (user_id, department_id)
+            SELECT id, department_id FROM users WHERE department_id IS NOT NULL
+            ON CONFLICT DO NOTHING;
+        """))
+        db.commit()
+    except Exception as e:
+        print("❌ Error migrando departamentos de usuarios:", e)
+        db.rollback()
+
+    try:
+        db.execute(text("ALTER TABLE activities ADD COLUMN IF NOT EXISTS workflow_id INT REFERENCES workflows(id) ON DELETE SET NULL;"))
+        db.commit()
+    except Exception as e:
+        print("❌ Error alterando activities:", e)
+        db.rollback()
+
+    try:
+        db.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id INT REFERENCES departments(id) ON DELETE SET NULL;"))
+        db.commit()
+    except Exception as e:
+        print("❌ Error alterando projects:", e)
+        db.rollback()
+
+    print("✅ Migraciones automáticas verificadas/ejecutadas con éxito.")
+    db.close()
 
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────

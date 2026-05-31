@@ -49,6 +49,11 @@ class UserProfileUpdate(BaseModel):
     position: Optional[str] = None
 
 
+class DepartmentBasic(BaseModel):
+    id: int
+    name: str
+    model_config = {"from_attributes": True}
+
 class UserResponse(BaseModel):
     id: int
     name: str
@@ -58,7 +63,7 @@ class UserResponse(BaseModel):
     is_active: bool
     avatar_url: Optional[str]
     company_id: Optional[int]
-    departments: list[dict] = []
+    departments: list[DepartmentBasic] = []
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -72,7 +77,7 @@ class UserListResponse(BaseModel):
     position: Optional[str]
     is_active: bool
     company_id: Optional[int]
-    departments: list[dict] = []
+    departments: list[DepartmentBasic] = []
     created_at: datetime
 
     model_config = {"from_attributes": True}
