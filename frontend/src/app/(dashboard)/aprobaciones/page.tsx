@@ -69,47 +69,47 @@ export default function AprobacionesPage() {
       )}
 
       <div>
-        <h2 className="text-xl font-bold text-slate-800">Aprobaciones Pendientes</h2>
-        <p className="text-slate-500 text-sm mt-0.5">Revisa y aprueba el trabajo entregado</p>
+        <h2 className="text-xl font-bold text-white">Aprobaciones Pendientes</h2>
+        <p className="text-slate-400 text-sm mt-0.5">Revisa y aprueba el trabajo entregado</p>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
         </div>
       ) : activities.length === 0 ? (
-        <div className="text-center py-20 bg-white border border-slate-200 rounded-2xl shadow-sm">
-          <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
+        <div className="text-center py-20 bg-[#07060B]/80 border border-[#2E455C]/50 rounded-2xl shadow-sm">
+          <div className="w-16 h-16 bg-[#2E455C]/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#2E455C]/30">
             <CheckSquare size={24} className="text-slate-400" />
           </div>
-          <h3 className="text-lg font-bold text-slate-800">No hay tareas pendientes</h3>
-          <p className="text-slate-500 mt-1 max-w-md mx-auto">
+          <h3 className="text-lg font-bold text-white">No hay tareas pendientes</h3>
+          <p className="text-slate-400 mt-1 max-w-md mx-auto">
             Todo el trabajo ha sido revisado o aún no se ha entregado nuevo material.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activities.map(a => (
-            <div key={a.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col group">
+            <div key={a.id} className="bg-[#07060B]/80 border border-[#2E455C]/50 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col group">
               <div className="flex justify-between items-start mb-3">
-                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                <span className="text-xs font-semibold text-slate-400 bg-[#2E455C]/30 px-2 py-1 rounded-md">
                   {ACTIVITY_TYPE_LABELS[a.activity_type]}
                 </span>
                 <StatusBadge status={a.status} />
               </div>
 
-              <h3 className="font-bold text-slate-800 line-clamp-2 mb-1">{a.title}</h3>
-              <p className="text-slate-500 text-sm mb-4 line-clamp-1">{a.project_name}</p>
+              <h3 className="font-bold text-white line-clamp-2 mb-1">{a.title}</h3>
+              <p className="text-slate-400 text-sm mb-4 line-clamp-1">{a.project_name}</p>
 
               <div className="flex-1" />
 
               <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-2 text-xs text-slate-500">
+                <div className="flex items-center gap-2 text-xs text-slate-400">
                   <CalendarIcon size={14} className="text-slate-400" />
                   Creado: {formatDate(a.created_at)}
                 </div>
                 {a.deadline && (
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
                     <Clock size={14} className="text-slate-400" />
                     Vence: {formatDate(a.deadline)}
                   </div>
@@ -118,14 +118,14 @@ export default function AprobacionesPage() {
               
               {(a.node_type === 'end' || a.current_stage?.node_type === 'end') && a.latest_evidence_url && (
                 <div className="mb-4">
-                  <a href={a.latest_evidence_url.startsWith('http') ? a.latest_evidence_url : `${process.env.NEXT_PUBLIC_API_URL}${a.latest_evidence_url}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-violet-50 text-violet-700 hover:bg-violet-100 font-semibold text-sm rounded-xl transition-colors border border-violet-100">
+                  <a href={a.latest_evidence_url.startsWith('http') ? a.latest_evidence_url : `${process.env.NEXT_PUBLIC_API_URL}${a.latest_evidence_url}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-violet-50 text-[#20CDFE] hover:bg-[#20CDFE]/20 font-semibold text-sm rounded-xl transition-colors border border-violet-100">
                     <span className="text-lg">⭐</span> Ver Producto Final
                   </a>
                 </div>
               )}
 
-              <div className="flex items-center gap-2 mt-auto pt-4 border-t border-slate-100">
-                <Link href={`/actividades/${a.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-slate-600 hover:text-violet-600 bg-slate-100 hover:bg-violet-100 px-3 py-2 rounded-lg transition-colors font-medium">
+              <div className="flex items-center gap-2 mt-auto pt-4 border-t border-[#2E455C]/30">
+                <Link href={`/actividades/${a.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-slate-300 hover:text-[#20CDFE] bg-[#2E455C]/30 hover:bg-[#20CDFE]/20 px-3 py-2 rounded-lg transition-colors font-medium">
                   <Eye size={13} /> Revisar
                 </Link>
                 <button onClick={() => handleObserve(a.id)} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-white bg-amber-500 hover:bg-amber-600 px-3 py-2 rounded-lg transition-colors font-medium">

@@ -191,7 +191,7 @@ export default function AgendaPage() {
 
       {/* ─ Header ─ */}
       <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full blur-3xl -translate-y-8 translate-x-8 pointer-events-none" />
+        <div className="absolute right-0 top-0 w-80 h-80 bg-[#07060B]/80/5 rounded-full blur-3xl -translate-y-8 translate-x-8 pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-3">
             <CalendarCheck size={22} className="text-violet-200" />
@@ -206,15 +206,15 @@ export default function AgendaPage() {
           </p>
           {isAdmin && (
             <div className="flex flex-wrap gap-4 mt-5">
-              <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 text-center">
+              <div className="bg-[#07060B]/80/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 text-center">
                 <p className="text-2xl font-black">{totalSlots}</p>
                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Total Slots</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 text-center">
+              <div className="bg-[#07060B]/80/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 text-center">
                 <p className="text-2xl font-black text-emerald-300">{bookedSlots}</p>
                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Reservadas</p>
               </div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 text-center">
+              <div className="bg-[#07060B]/80/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 text-center">
                 <p className="text-2xl font-black text-sky-300">{availableCount}</p>
                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Disponibles</p>
               </div>
@@ -225,7 +225,7 @@ export default function AgendaPage() {
 
       {loading ? (
         <div className="flex justify-center py-24">
-          <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
         </div>
       ) : isAdmin ? (
 
@@ -236,14 +236,14 @@ export default function AgendaPage() {
           <div className="xl:col-span-1 space-y-4">
 
             {/* Calendario */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
               {/* Nav mes */}
               <div className="flex items-center justify-between mb-4">
-                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
+                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 transition-colors">
                   <ChevronLeft size={16} />
                 </button>
-                <span className="font-bold text-slate-800 text-sm">{MONTHS[calMonth]} {calYear}</span>
-                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
+                <span className="font-bold text-white text-sm">{MONTHS[calMonth]} {calYear}</span>
+                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 transition-colors">
                   <ChevronRight size={16} />
                 </button>
               </div>
@@ -277,10 +277,10 @@ export default function AgendaPage() {
                       onClick={() => setSelectedDay(ds)}
                       className={`relative h-9 w-full rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all duration-200
                         ${isSelected ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25" :
-                          isToday    ? "bg-violet-50 text-violet-700 ring-2 ring-violet-300" :
+                          isToday    ? "bg-violet-50 text-[#20CDFE] ring-2 ring-violet-300" :
                           isPast     ? "text-slate-300 cursor-not-allowed" :
-                          hasSlots   ? "text-slate-800 hover:bg-slate-50" :
-                                       "text-slate-600 hover:bg-slate-50"}
+                          hasSlots   ? "text-white hover:bg-[#2E455C]/20" :
+                                       "text-slate-300 hover:bg-[#2E455C]/20"}
                       `}
                     >
                       {d}
@@ -293,25 +293,25 @@ export default function AgendaPage() {
               </div>
 
               {/* Leyenda */}
-              <div className="flex items-center gap-3 mt-4 pt-3 border-t border-slate-50 text-[10px] font-semibold text-slate-400">
+              <div className="flex items-center gap-3 mt-4 pt-3 border-t border-[#2E455C]/20 text-[10px] font-semibold text-slate-400">
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-violet-400 inline-block" />Disponible</span>
                 <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />Reservada</span>
               </div>
             </div>
 
             {/* Formulario: Publicar Disponibilidad */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <h3 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                <Plus size={16} className="text-violet-600" />
+            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+              <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
+                <Plus size={16} className="text-[#20CDFE]" />
                 Publicar Disponibilidad
               </h3>
               <form onSubmit={handleCreateSlot} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Fecha seleccionada</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Fecha seleccionada</label>
                   <div className={`px-3.5 py-2.5 rounded-xl border text-sm font-semibold flex items-center gap-2
                     ${selectedDay
-                      ? "border-violet-200 bg-violet-50 text-violet-700"
-                      : "border-slate-200 bg-slate-50 text-slate-400"}`}>
+                      ? "border-violet-200 bg-violet-50 text-[#20CDFE]"
+                      : "border-[#2E455C]/50 bg-[#2E455C]/20 text-slate-400"}`}>
                     <CalendarIcon size={14} />
                     {selectedDay ? formatDate(selectedDay) : "Haz clic en un día del calendario"}
                   </div>
@@ -319,21 +319,21 @@ export default function AgendaPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Hora inicio *</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Hora inicio *</label>
                     <select
                       value={adminStart}
                       onChange={e => setAdminStart(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-white"
+                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#07060B]/80"
                     >
                       {HOURS.map(h => <option key={`s-${h}`} value={h}>{h}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1.5">Hora fin *</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Hora fin *</label>
                     <select
                       value={adminEnd}
                       onChange={e => setAdminEnd(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-white"
+                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#07060B]/80"
                     >
                       {HOURS.map(h => <option key={`e-${h}`} value={h}>{h}</option>)}
                     </select>
@@ -357,13 +357,13 @@ export default function AgendaPage() {
 
             {/* Panel del día seleccionado */}
             {selectedDay && (
-              <div className="bg-white rounded-2xl border border-violet-100 shadow-sm p-5">
+              <div className="bg-[#07060B]/80 rounded-2xl border border-violet-100 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                    <CalendarIcon size={16} className="text-violet-600" />
+                  <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                    <CalendarIcon size={16} className="text-[#20CDFE]" />
                     {formatDate(selectedDay)}
                   </h3>
-                  <button onClick={() => setSelectedDay("")} className="text-slate-400 hover:text-slate-600 transition-colors">
+                  <button onClick={() => setSelectedDay("")} className="text-slate-400 hover:text-slate-300 transition-colors">
                     <X size={16} />
                   </button>
                 </div>
@@ -381,18 +381,18 @@ export default function AgendaPage() {
                         key={apt.id}
                         className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all
                           ${apt.status === "booked" ? "border-emerald-100 bg-emerald-50/30" :
-                            apt.status === "cancelled" ? "border-slate-100 bg-slate-50/50 opacity-50" :
-                            "border-slate-100 bg-white hover:border-violet-100"}`}
+                            apt.status === "cancelled" ? "border-[#2E455C]/30 bg-[#2E455C]/10 opacity-50" :
+                            "border-[#2E455C]/30 bg-[#07060B]/80 hover:border-violet-100"}`}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-violet-700 bg-violet-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
+                          <span className="text-xs font-bold text-[#20CDFE] bg-violet-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
                             <Clock size={11} />
                             {apt.start_time} – {apt.end_time}
                           </span>
                           {apt.status === "booked" ? (
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full uppercase">Reservada</span>
                           ) : apt.status === "cancelled" ? (
-                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full uppercase">Cancelada</span>
+                            <span className="text-[10px] font-bold text-slate-400 bg-[#2E455C]/30 px-2 py-0.5 rounded-full uppercase">Cancelada</span>
                           ) : (
                             <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full uppercase">Disponible</span>
                           )}
@@ -400,9 +400,9 @@ export default function AgendaPage() {
 
                         {apt.status === "booked" && (
                           <div className="space-y-1">
-                            {apt.title && <p className="text-xs font-bold text-slate-800 truncate">{apt.title}</p>}
-                            {apt.notes && <p className="text-[11px] text-slate-500 line-clamp-2">{apt.notes}</p>}
-                            <div className="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium pt-1 border-t border-slate-100/60">
+                            {apt.title && <p className="text-xs font-bold text-white truncate">{apt.title}</p>}
+                            {apt.notes && <p className="text-[11px] text-slate-400 line-clamp-2">{apt.notes}</p>}
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-300 font-medium pt-1 border-t border-[#2E455C]/30/60">
                               <User size={11} className="text-slate-400 shrink-0" />
                               <span className="truncate">{apt.client_name} · {apt.company_name}</span>
                             </div>
@@ -435,12 +435,12 @@ export default function AgendaPage() {
             )}
 
             {/* Listado completo de citas */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <h3 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                <CalendarCheck size={16} className="text-violet-600" />
+            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+              <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
+                <CalendarCheck size={16} className="text-[#20CDFE]" />
                 Mi Agenda Completa
                 {appointments.length > 0 && (
-                  <span className="ml-auto text-xs bg-violet-100 text-violet-700 font-bold px-2.5 py-0.5 rounded-full">
+                  <span className="ml-auto text-xs bg-[#20CDFE]/20 text-[#20CDFE] font-bold px-2.5 py-0.5 rounded-full">
                     {appointments.length} slot{appointments.length !== 1 ? "s" : ""}
                   </span>
                 )}
@@ -461,26 +461,26 @@ export default function AgendaPage() {
                         key={apt.id}
                         className={`p-3.5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 transition-all
                           ${apt.status === "booked" ? "border-emerald-100 bg-emerald-50/20" :
-                            apt.status === "cancelled" ? "border-slate-100 bg-slate-50/40 opacity-55" :
-                            "border-slate-100 bg-white hover:bg-slate-50/50"}`}
+                            apt.status === "cancelled" ? "border-[#2E455C]/30 bg-[#2E455C]/20/40 opacity-55" :
+                            "border-[#2E455C]/30 bg-[#07060B]/80 hover:bg-[#2E455C]/10"}`}
                       >
                         <div className="flex flex-wrap items-center gap-2 min-w-0">
-                          <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
+                          <span className="text-xs font-bold text-slate-300 bg-[#2E455C]/30 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
                             <CalendarIcon size={11} />
                             {formatDate(apt.date)}
                           </span>
-                          <span className="text-xs font-bold text-violet-700 bg-violet-50 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
+                          <span className="text-xs font-bold text-[#20CDFE] bg-violet-50 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
                             <Clock size={11} />
                             {apt.start_time} – {apt.end_time}
                           </span>
                           {apt.status === "booked" && apt.client_name && (
-                            <span className="text-xs text-slate-600 flex items-center gap-1 truncate">
+                            <span className="text-xs text-slate-300 flex items-center gap-1 truncate">
                               <User size={11} className="text-slate-400 shrink-0" />
                               {apt.client_name} ({apt.company_name})
                             </span>
                           )}
                           {apt.status === "booked" && apt.title && (
-                            <span className="text-xs text-slate-500 italic truncate max-w-xs">"{apt.title}"</span>
+                            <span className="text-xs text-slate-400 italic truncate max-w-xs">"{apt.title}"</span>
                           )}
                         </div>
 
@@ -496,7 +496,7 @@ export default function AgendaPage() {
                               <button onClick={() => handleDeleteSlot(apt.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><Trash2 size={15} /></button>
                             </>
                           ) : (
-                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full uppercase">Cancelada</span>
+                            <span className="text-[10px] font-bold text-slate-400 bg-[#2E455C]/30 px-2 py-0.5 rounded-full uppercase">Cancelada</span>
                           )}
                         </div>
                       </div>
@@ -516,13 +516,13 @@ export default function AgendaPage() {
           <div className="lg:col-span-2 space-y-4">
 
             {/* Calendario de selección */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
-                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
+                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 transition-colors">
                   <ChevronLeft size={16} />
                 </button>
-                <span className="font-bold text-slate-800 text-sm">{MONTHS[calMonth]} {calYear}</span>
-                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-500 transition-colors">
+                <span className="font-bold text-white text-sm">{MONTHS[calMonth]} {calYear}</span>
+                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 transition-colors">
                   <ChevronRight size={16} />
                 </button>
               </div>
@@ -547,9 +547,9 @@ export default function AgendaPage() {
                       onClick={() => setSelectedDay(ds)}
                       className={`relative h-9 w-full rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all duration-200
                         ${isSelected ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25" :
-                          isToday    ? "bg-violet-50 text-violet-700 ring-2 ring-violet-300" :
+                          isToday    ? "bg-violet-50 text-[#20CDFE] ring-2 ring-violet-300" :
                           !hasAvail || isPast ? "text-slate-300 cursor-not-allowed" :
-                                       "text-slate-700 hover:bg-violet-50 hover:text-violet-700 cursor-pointer"}`}
+                                       "text-white hover:bg-violet-50 hover:text-[#20CDFE] cursor-pointer"}`}
                     >
                       {d}
                       {hasAvail && !isSelected && (
@@ -560,7 +560,7 @@ export default function AgendaPage() {
                 })}
               </div>
               {availableSlots.length === 0 && (
-                <p className="text-center text-xs text-slate-400 mt-4 pt-3 border-t border-slate-50">
+                <p className="text-center text-xs text-slate-400 mt-4 pt-3 border-t border-[#2E455C]/20">
                   No hay días con disponibilidad publicada en este momento.
                 </p>
               )}
@@ -568,9 +568,9 @@ export default function AgendaPage() {
 
             {/* Slots del día seleccionado */}
             {selectedDay && (
-              <div className="bg-white rounded-2xl border border-violet-100 shadow-sm p-5">
-                <h3 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                  <Clock size={15} className="text-violet-600" />
+              <div className="bg-[#07060B]/80 rounded-2xl border border-violet-100 shadow-sm p-5">
+                <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
+                  <Clock size={15} className="text-[#20CDFE]" />
                   Horarios disponibles — {formatDate(selectedDay)}
                 </h3>
                 {daySlots.length === 0 ? (
@@ -581,7 +581,7 @@ export default function AgendaPage() {
                       <button
                         key={slot.id}
                         onClick={() => setSelectedSlot(slot)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 border border-violet-200 bg-violet-50/50 hover:bg-violet-600 hover:text-white hover:border-violet-600 rounded-xl text-xs font-bold text-violet-700 transition-all duration-200 shadow-sm"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 border border-violet-200 bg-violet-50/50 hover:bg-violet-600 hover:text-white hover:border-violet-600 rounded-xl text-xs font-bold text-[#20CDFE] transition-all duration-200 shadow-sm"
                       >
                         <Clock size={12} />
                         {slot.start_time} – {slot.end_time}
@@ -594,21 +594,21 @@ export default function AgendaPage() {
 
             {/* Vista general por fecha */}
             {!selectedDay && Object.keys(slotsByDate).length > 0 && (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                <h3 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                  <Bell size={15} className="text-violet-600" />
+              <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+                <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
+                  <Bell size={15} className="text-[#20CDFE]" />
                   Próximas Disponibilidades
                 </h3>
                 <div className="space-y-4">
                   {Object.entries(slotsByDate).sort(([a], [b]) => a.localeCompare(b)).map(([dateStr, slots]) => (
-                    <div key={dateStr} className="space-y-2 pb-4 border-b border-slate-50 last:border-0 last:pb-0">
+                    <div key={dateStr} className="space-y-2 pb-4 border-b border-[#2E455C]/20 last:border-0 last:pb-0">
                       <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{formatDate(dateStr)}</h4>
                       <div className="flex flex-wrap gap-2">
                         {slots.map(slot => (
                           <button
                             key={slot.id}
                             onClick={() => { setSelectedDay(dateStr); setSelectedSlot(slot); }}
-                            className="flex items-center gap-1.5 px-3 py-2 border border-violet-200 bg-violet-50/50 hover:bg-violet-600 hover:text-white hover:border-violet-600 rounded-xl text-xs font-bold text-violet-700 transition-all duration-200"
+                            className="flex items-center gap-1.5 px-3 py-2 border border-violet-200 bg-violet-50/50 hover:bg-violet-600 hover:text-white hover:border-violet-600 rounded-xl text-xs font-bold text-[#20CDFE] transition-all duration-200"
                           >
                             <Clock size={11} />
                             {slot.start_time} – {slot.end_time}
@@ -622,7 +622,7 @@ export default function AgendaPage() {
             )}
 
             {!selectedDay && Object.keys(slotsByDate).length === 0 && (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 text-center text-slate-400">
+              <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-10 text-center text-slate-400">
                 <HelpCircle size={40} className="mx-auto mb-3 opacity-20" />
                 <p className="font-semibold text-sm">No hay horarios disponibles en este momento.</p>
                 <p className="text-xs mt-1">Por favor, contacta al administrador para coordinar una reunión.</p>
@@ -632,9 +632,9 @@ export default function AgendaPage() {
 
           {/* Panel de citas del cliente */}
           <div className="lg:col-span-1 space-y-4">
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <h3 className="font-bold text-slate-800 text-sm mb-4 flex items-center gap-2">
-                <CalendarCheck size={15} className="text-violet-600" />
+            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+              <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
+                <CalendarCheck size={15} className="text-[#20CDFE]" />
                 Mis Citas Programadas
                 {appointments.filter(a => a.status === "booked").length > 0 && (
                   <span className="ml-auto text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-0.5 rounded-full">
@@ -656,21 +656,21 @@ export default function AgendaPage() {
                       <div
                         key={apt.id}
                         className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all
-                          ${apt.status === "cancelled" ? "border-slate-100 bg-slate-50/50 opacity-60" : "border-emerald-100 bg-emerald-50/20"}`}
+                          ${apt.status === "cancelled" ? "border-[#2E455C]/30 bg-[#2E455C]/10 opacity-60" : "border-emerald-100 bg-emerald-50/20"}`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase
-                            ${apt.status === "booked" ? "text-emerald-700 bg-emerald-100" : "text-slate-500 bg-slate-100"}`}>
+                            ${apt.status === "booked" ? "text-emerald-700 bg-emerald-100" : "text-slate-400 bg-[#2E455C]/30"}`}>
                             {apt.status === "booked" ? "Agendada" : "Cancelada"}
                           </span>
                           <span className="text-[10px] text-slate-400 font-semibold">{formatDate(apt.date)}</span>
                         </div>
-                        <h4 className={`font-bold text-slate-800 text-sm leading-tight ${apt.status === "cancelled" ? "line-through text-slate-400" : ""}`}>
+                        <h4 className={`font-bold text-white text-sm leading-tight ${apt.status === "cancelled" ? "line-through text-slate-400" : ""}`}>
                           {apt.title || "Reunión"}
                         </h4>
-                        {apt.notes && <p className="text-[11px] text-slate-500 line-clamp-2">{apt.notes}</p>}
-                        <div className="flex items-center justify-between border-t border-slate-100/60 pt-2 text-xs">
-                          <span className="text-violet-700 font-bold flex items-center gap-1">
+                        {apt.notes && <p className="text-[11px] text-slate-400 line-clamp-2">{apt.notes}</p>}
+                        <div className="flex items-center justify-between border-t border-[#2E455C]/30/60 pt-2 text-xs">
+                          <span className="text-[#20CDFE] font-bold flex items-center gap-1">
                             <Clock size={11} /> {apt.start_time} – {apt.end_time}
                           </span>
                           {apt.status === "booked" && (
@@ -686,9 +686,9 @@ export default function AgendaPage() {
             </div>
 
             {/* Tip card */}
-            <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl border border-violet-100 p-4 text-xs text-violet-700 space-y-1.5">
+            <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl border border-violet-100 p-4 text-xs text-[#20CDFE] space-y-1.5">
               <p className="font-bold flex items-center gap-1.5"><FileText size={13} />¿Cómo reservar?</p>
-              <ol className="list-decimal list-inside space-y-1 text-violet-600 leading-relaxed">
+              <ol className="list-decimal list-inside space-y-1 text-[#20CDFE] leading-relaxed">
                 <li>Selecciona un día <strong>marcado</strong> en el calendario.</li>
                 <li>Haz clic en el horario que prefieras.</li>
                 <li>Completa el título y notas de la reunión.</li>
@@ -702,49 +702,49 @@ export default function AgendaPage() {
       {/* ── Modal Reservar Cita ── */}
       {selectedSlot && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md animate-fade-in">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+          <div className="bg-[#07060B]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#2E455C]/50 w-full max-w-md animate-fade-in">
+            <div className="flex items-center justify-between p-6 border-b border-[#2E455C]/30">
               <div>
-                <h3 className="text-lg font-bold text-slate-800">Solicitar Cita</h3>
+                <h3 className="text-lg font-bold text-white">Solicitar Cita</h3>
                 <p className="text-xs text-slate-400 mt-0.5">Completa los datos de tu reunión.</p>
               </div>
-              <button onClick={() => setSelectedSlot(null)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+              <button onClick={() => setSelectedSlot(null)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 hover:text-slate-300 transition-colors">
                 <X size={18} />
               </button>
             </div>
 
             <form onSubmit={handleBookSlot} className="p-6 space-y-4">
               <div className="bg-violet-50 border border-violet-100 rounded-xl p-3.5 space-y-2 text-xs">
-                <div className="flex items-center gap-2 text-violet-700 font-semibold">
+                <div className="flex items-center gap-2 text-[#20CDFE] font-semibold">
                   <CalendarIcon size={13} className="shrink-0" />
                   {formatDate(selectedSlot.date)}
                 </div>
-                <div className="flex items-center gap-2 text-violet-700 font-semibold">
+                <div className="flex items-center gap-2 text-[#20CDFE] font-semibold">
                   <Clock size={13} className="shrink-0" />
                   {selectedSlot.start_time} – {selectedSlot.end_time}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Motivo o título de la reunión *</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Motivo o título de la reunión *</label>
                 <input
                   type="text"
                   required
                   placeholder="Ej. Revisión de avance del proyecto"
                   value={bookTitle}
                   onChange={e => setBookTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition-all"
+                  className="w-full px-3.5 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Notas adicionales</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Notas adicionales</label>
                 <textarea
                   placeholder="Ej. Queremos revisar los entregables y el cronograma de la próxima fase."
                   value={bookNotes}
                   onChange={e => setBookNotes(e.target.value)}
                   rows={3}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition-all resize-none"
+                  className="w-full px-3.5 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all resize-none"
                 />
               </div>
 
@@ -752,7 +752,7 @@ export default function AgendaPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedSlot(null)}
-                  className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm text-slate-300 hover:bg-[#2E455C]/20 transition-colors"
                 >
                   Cancelar
                 </button>

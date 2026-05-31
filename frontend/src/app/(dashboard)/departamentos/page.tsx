@@ -88,17 +88,17 @@ export default function DepartamentosPage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-500">Cargando departamentos...</div>;
+  if (loading) return <div className="p-8 text-center text-slate-400">Cargando departamentos...</div>;
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Building2 className="text-violet-500" />
             Departamentos
           </h1>
-          <p className="text-slate-500">Gestiona las áreas encargadas de las etapas del flujo.</p>
+          <p className="text-slate-400">Gestiona las áreas encargadas de las etapas del flujo.</p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
@@ -108,9 +108,9 @@ export default function DepartamentosPage() {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-[#07060B]/80 rounded-2xl shadow-sm border border-[#2E455C]/30 overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase font-semibold">
+          <thead className="bg-[#2E455C]/20 border-b border-[#2E455C]/30 text-slate-400 text-xs uppercase font-semibold">
             <tr>
               <th className="px-6 py-4">Nombre</th>
               <th className="px-6 py-4">Descripción</th>
@@ -120,11 +120,11 @@ export default function DepartamentosPage() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {departments.map((dept) => (
-              <tr key={dept.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-6 py-4 font-medium text-slate-800">{dept.name}</td>
-                <td className="px-6 py-4 text-slate-500">{dept.description || "-"}</td>
+              <tr key={dept.id} className="hover:bg-[#2E455C]/20 transition-colors">
+                <td className="px-6 py-4 font-medium text-white">{dept.name}</td>
+                <td className="px-6 py-4 text-slate-400">{dept.description || "-"}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${dept.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${dept.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-[#2E455C]/30 text-slate-300'}`}>
                     {dept.is_active ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
@@ -142,7 +142,7 @@ export default function DepartamentosPage() {
             ))}
             {departments.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
+                <td colSpan={4} className="px-6 py-8 text-center text-slate-400">
                   No hay departamentos creados todavía.
                 </td>
               </tr>
@@ -154,9 +154,9 @@ export default function DepartamentosPage() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h3 className="font-bold text-slate-800">
+          <div className="bg-[#07060B]/80 rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#2E455C]/30 flex justify-between items-center bg-[#2E455C]/20">
+              <h3 className="font-bold text-white">
                 {editingDept ? "Editar Departamento" : "Nuevo Departamento"}
               </h3>
             </div>
@@ -164,22 +164,22 @@ export default function DepartamentosPage() {
             <form onSubmit={handleSubmit} className="p-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+                  <label className="block text-sm font-medium text-white mb-1">Nombre</label>
                   <input
                     required
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
+                    className="w-full px-3 py-2 border border-[#2E455C]/50 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
                     placeholder="Ej. Diseño Gráfico"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Descripción</label>
+                  <label className="block text-sm font-medium text-white mb-1">Descripción</label>
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
+                    className="w-full px-3 py-2 border border-[#2E455C]/50 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
                     placeholder="Opcional"
                     rows={3}
                   />
@@ -190,19 +190,19 @@ export default function DepartamentosPage() {
                     id="is_active"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({...formData, is_active: e.target.checked})}
-                    className="rounded text-violet-600 focus:ring-violet-500 w-4 h-4"
+                    className="rounded text-[#20CDFE] focus:ring-violet-500 w-4 h-4"
                   />
-                  <label htmlFor="is_active" className="text-sm font-medium text-slate-700">Departamento activo</label>
+                  <label htmlFor="is_active" className="text-sm font-medium text-white">Departamento activo</label>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Operadores del Departamento</label>
-                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                  <label className="block text-sm font-medium text-white mb-2">Operadores del Departamento</label>
+                  <div className="bg-[#2E455C]/20 border border-[#2E455C]/50 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
                     {users.map((user) => (
-                      <label key={user.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-slate-100 rounded">
+                      <label key={user.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-[#2E455C]/30 rounded">
                         <input 
                           type="checkbox"
-                          className="rounded text-violet-600 focus:ring-violet-500 w-4 h-4"
+                          className="rounded text-[#20CDFE] focus:ring-violet-500 w-4 h-4"
                           checked={formData.user_ids.includes(user.id)}
                           onChange={(e) => {
                             if (e.target.checked) {
@@ -212,11 +212,11 @@ export default function DepartamentosPage() {
                             }
                           }}
                         />
-                        <span className="text-sm text-slate-700">{user.name} <span className="text-xs text-slate-400">({user.email})</span></span>
+                        <span className="text-sm text-white">{user.name} <span className="text-xs text-slate-400">({user.email})</span></span>
                       </label>
                     ))}
                     {users.length === 0 && (
-                      <p className="text-xs text-slate-500 text-center py-2">No hay usuarios disponibles.</p>
+                      <p className="text-xs text-slate-400 text-center py-2">No hay usuarios disponibles.</p>
                     )}
                   </div>
                 </div>
@@ -226,7 +226,7 @@ export default function DepartamentosPage() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 font-medium rounded-xl transition-colors"
+                  className="px-4 py-2 text-slate-300 hover:bg-[#2E455C]/30 font-medium rounded-xl transition-colors"
                 >
                   Cancelar
                 </button>

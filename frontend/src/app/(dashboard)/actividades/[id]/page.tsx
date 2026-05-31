@@ -148,7 +148,7 @@ export default function ActivityDetailPage() {
   };
 
   if (loading) return (
-    <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" /></div>
+    <div className="flex justify-center py-20"><div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
   );
   if (!activity) return <div className="text-center py-20 text-slate-400">Actividad no encontrada</div>;
 
@@ -167,17 +167,17 @@ export default function ActivityDetailPage() {
 
       {/* Header */}
       <div className="flex items-start gap-4">
-        <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors mt-1">
+        <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-[#2E455C]/30 text-slate-400 hover:text-slate-300 transition-colors mt-1">
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <StatusBadge status={activity.status} />
             <PriorityBadge priority={activity.priority} />
-            <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded-full">{ACTIVITY_TYPE_LABELS[activity.activity_type]}</span>
+            <span className="text-xs text-slate-400 bg-[#2E455C]/30 px-2 py-1 rounded-full">{ACTIVITY_TYPE_LABELS[activity.activity_type]}</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">{activity.title}</h1>
-          <p className="text-slate-500 text-sm mt-1">{activity.project_name} · {activity.company_name}</p>
+          <h1 className="text-2xl font-bold text-white">{activity.title}</h1>
+          <p className="text-slate-400 text-sm mt-1">{activity.project_name} · {activity.company_name}</p>
         </div>
         
         {/* Botón Producto Final si aplica */}
@@ -192,9 +192,9 @@ export default function ActivityDetailPage() {
         {/* Botones de acción y Timer */}
         <div className="flex flex-col gap-2 items-end">
           {activity.status === "en_proceso" && (isOwner || isAdmin) && (
-            <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-2 rounded-xl">
-              <div className="flex items-center gap-1.5 px-2 text-slate-700 font-mono font-medium">
-                <Timer size={14} className={activity.timer_started_at ? "text-violet-600 animate-pulse" : "text-slate-400"} />
+            <div className="flex items-center gap-3 bg-[#2E455C]/20 border border-[#2E455C]/50 p-2 rounded-xl">
+              <div className="flex items-center gap-1.5 px-2 text-white font-mono font-medium">
+                <Timer size={14} className={activity.timer_started_at ? "text-[#20CDFE] animate-pulse" : "text-slate-400"} />
                 {Math.floor(currentTimerSeconds / 3600).toString().padStart(2, "0")}:
                 {Math.floor((currentTimerSeconds % 3600) / 60).toString().padStart(2, "0")}:
                 {(currentTimerSeconds % 60).toString().padStart(2, "0")}
@@ -230,9 +230,9 @@ export default function ActivityDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 gap-1">
+      <div className="flex border-b border-[#2E455C]/50 gap-1">
         {(["info", "evidencias", "comentarios", "historial"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2.5 text-sm font-medium capitalize rounded-t-lg transition-colors ${tab === t ? "text-violet-600 border-b-2 border-violet-600 bg-violet-50/50" : "text-slate-500 hover:text-slate-700"}`}>
+          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2.5 text-sm font-medium capitalize rounded-t-lg transition-colors ${tab === t ? "text-[#20CDFE] border-b-2 border-violet-600 bg-violet-50/50" : "text-slate-400 hover:text-white"}`}>
             {t === "evidencias" ? `Evidencias (${evidences.length})` : t === "comentarios" ? `Comentarios (${comments.length})` : t}
           </button>
         ))}
@@ -241,9 +241,9 @@ export default function ActivityDetailPage() {
       {/* Tab Info */}
       {tab === "info" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
-            <h3 className="font-semibold text-slate-800">Información general</h3>
-            {activity.description && <p className="text-slate-600 text-sm">{activity.description}</p>}
+          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5 space-y-4">
+            <h3 className="font-semibold text-white">Información general</h3>
+            {activity.description && <p className="text-slate-300 text-sm">{activity.description}</p>}
             <div className="space-y-3 text-sm">
               {[
                 { label: "Responsable", value: activity.assigned_user?.name || "Sin asignar" },
@@ -255,27 +255,27 @@ export default function ActivityDetailPage() {
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between items-start gap-4">
                   <span className="text-slate-400 shrink-0">{label}</span>
-                  <span className="text-slate-700 font-medium text-right">{value}</span>
+                  <span className="text-white font-medium text-right">{value}</span>
                 </div>
               ))}
             </div>
           </div>
           {/* Subir evidencia (operativo) */}
           {(isOwner || isAdmin) && !["aprobada", "cancelada"].includes(activity.status) && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
-              <h3 className="font-semibold text-slate-800">Subir evidencia</h3>
+            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5 space-y-4">
+              <h3 className="font-semibold text-white">Subir evidencia</h3>
               <div>
-                <p className="text-xs text-slate-500 mb-2">Archivo (imagen, PDF, video, etc.)</p>
-                <input type="text" value={fileNote} onChange={e => setFileNote(e.target.value)} placeholder="Nota opcional..." className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                <p className="text-xs text-slate-400 mb-2">Archivo (imagen, PDF, video, etc.)</p>
+                <input type="text" value={fileNote} onChange={e => setFileNote(e.target.value)} placeholder="Nota opcional..." className="w-full px-3 py-2 border border-[#2E455C]/50 rounded-xl text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-violet-200" />
                 <label className="flex items-center gap-2 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer hover:opacity-90 transition-all w-full justify-center">
                   <Upload size={14} /> Subir archivo
                   <input type="file" className="hidden" onChange={handleFileUpload} />
                 </label>
               </div>
-              <div className="border-t border-slate-100 pt-4">
-                <p className="text-xs text-slate-500 mb-2">Link de Google Drive</p>
-                <input type="url" value={driveUrl} onChange={e => setDriveUrl(e.target.value)} placeholder="https://drive.google.com/..." className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-violet-200" />
-                <input type="text" value={driveNote} onChange={e => setDriveNote(e.target.value)} placeholder="Nota del link..." className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-violet-200" />
+              <div className="border-t border-[#2E455C]/30 pt-4">
+                <p className="text-xs text-slate-400 mb-2">Link de Google Drive</p>
+                <input type="url" value={driveUrl} onChange={e => setDriveUrl(e.target.value)} placeholder="https://drive.google.com/..." className="w-full px-3 py-2 border border-[#2E455C]/50 rounded-xl text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                <input type="text" value={driveNote} onChange={e => setDriveNote(e.target.value)} placeholder="Nota del link..." className="w-full px-3 py-2 border border-[#2E455C]/50 rounded-xl text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-violet-200" />
                 <button onClick={handleAddLink} disabled={!driveUrl.trim()} className="flex items-center gap-2 w-full justify-center bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">
                   <LinkIcon size={14} /> Registrar link
                 </button>
@@ -289,25 +289,25 @@ export default function ActivityDetailPage() {
       {tab === "evidencias" && (
         <div className="space-y-3">
           {evidences.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 bg-white rounded-2xl border border-slate-100">
+            <div className="text-center py-12 text-slate-400 bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50">
               <Upload size={36} className="mx-auto mb-3 opacity-30" />
               <p className="font-medium">Sin evidencias en el proyecto</p>
               <p className="text-sm mt-1">Aún no se han subido evidencias en ninguna tarea de este proyecto</p>
             </div>
           ) : evidences.map((ev) => (
-            <div key={ev.id} className="bg-white rounded-xl border border-slate-100 p-4 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+            <div key={ev.id} className="bg-[#07060B]/80 rounded-xl border border-[#2E455C]/30 p-4 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[#20CDFE]/20 flex items-center justify-center shrink-0">
                 {ev.evidence_type === "imagen" ? "🖼️" : ev.evidence_type === "link_drive" ? "📁" : ev.evidence_type === "archivo" ? "📄" : "🔗"}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-slate-700 text-sm">{ev.file_name || ev.drive_url || "Evidencia"}</span>
+                  <span className="font-medium text-white text-sm">{ev.file_name || ev.drive_url || "Evidencia"}</span>
                   {ev.file_size && <span className="text-xs text-slate-400">{formatFileSize(ev.file_size)}</span>}
                 </div>
-                {ev.note && <p className="text-slate-500 text-xs mt-0.5">{ev.note}</p>}
+                {ev.note && <p className="text-slate-400 text-xs mt-0.5">{ev.note}</p>}
                 <p className="text-slate-400 text-xs mt-1">Por {ev.user?.name} · {formatDateTime(ev.created_at)}</p>
                 {ev.file_url && (
-                  <a href={`${process.env.NEXT_PUBLIC_API_URL}${ev.file_url}`} target="_blank" rel="noopener noreferrer" className="text-violet-600 text-xs hover:underline mt-1 inline-block">Ver archivo →</a>
+                  <a href={`${process.env.NEXT_PUBLIC_API_URL}${ev.file_url}`} target="_blank" rel="noopener noreferrer" className="text-[#20CDFE] text-xs hover:underline mt-1 inline-block">Ver archivo →</a>
                 )}
                 {ev.drive_url && (
                   <a href={ev.drive_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs hover:underline mt-1 inline-block">Abrir en Drive →</a>
@@ -323,25 +323,25 @@ export default function ActivityDetailPage() {
         <div className="space-y-4">
           <div className="space-y-3">
             {comments.length === 0 ? (
-              <div className="text-center py-10 text-slate-400 bg-white rounded-2xl border border-slate-100">
+              <div className="text-center py-10 text-slate-400 bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50">
                 <MessageSquare size={32} className="mx-auto mb-2 opacity-30" />
                 <p className="text-sm">Sin comentarios aún</p>
               </div>
             ) : comments.map((c) => (
-              <div key={c.id} className="bg-white rounded-xl border border-slate-100 p-4">
+              <div key={c.id} className="bg-[#07060B]/80 rounded-xl border border-[#2E455C]/30 p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-7 h-7 gradient-primary rounded-lg flex items-center justify-center text-white text-xs font-bold">
                     {c.user.name.charAt(0)}
                   </div>
-                  <span className="font-medium text-slate-700 text-sm">{c.user.name}</span>
+                  <span className="font-medium text-white text-sm">{c.user.name}</span>
                   <span className="text-slate-400 text-xs ml-auto">{formatDateTime(c.created_at)}</span>
                 </div>
-                <p className="text-slate-600 text-sm">{c.content}</p>
+                <p className="text-slate-300 text-sm">{c.content}</p>
               </div>
             ))}
           </div>
-          <div className="bg-white rounded-xl border border-slate-100 p-4">
-            <textarea value={comment} onChange={e => setComment(e.target.value)} rows={3} placeholder="Escribe un comentario..." className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none mb-3" />
+          <div className="bg-[#07060B]/80 rounded-xl border border-[#2E455C]/30 p-4">
+            <textarea value={comment} onChange={e => setComment(e.target.value)} rows={3} placeholder="Escribe un comentario..." className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none mb-3" />
             <button onClick={handleComment} disabled={!comment.trim()} className="gradient-primary text-white px-5 py-2 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50">
               Enviar comentario
             </button>
@@ -353,23 +353,23 @@ export default function ActivityDetailPage() {
       {tab === "historial" && (
         <div className="space-y-3">
           {history.length === 0 ? (
-            <div className="text-center py-10 text-slate-400 bg-white rounded-2xl border border-slate-100">
+            <div className="text-center py-10 text-slate-400 bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50">
               <History size={32} className="mx-auto mb-2 opacity-30" />
               <p className="text-sm">Sin historial</p>
             </div>
           ) : history.map((h) => (
-            <div key={h.id} className="bg-white rounded-xl border border-slate-100 p-4 flex items-start gap-3">
+            <div key={h.id} className="bg-[#07060B]/80 rounded-xl border border-[#2E455C]/30 p-4 flex items-start gap-3">
               <div className="w-2 h-2 bg-violet-400 rounded-full mt-2 shrink-0" />
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-medium text-slate-700 text-sm">{h.user?.name}</span>
+                  <span className="font-medium text-white text-sm">{h.user?.name}</span>
                   <span className="text-slate-400 text-xs">{h.action.replace(/_/g, " ")}</span>
                   {h.previous_status && h.new_status && (
                     <span className="text-xs text-slate-400">{h.previous_status} → {h.new_status}</span>
                   )}
                   <span className="text-slate-400 text-xs ml-auto">{formatDateTime(h.created_at)}</span>
                 </div>
-                {h.description && <p className="text-slate-500 text-xs mt-1">{h.description}</p>}
+                {h.description && <p className="text-slate-400 text-xs mt-1">{h.description}</p>}
               </div>
             </div>
           ))}

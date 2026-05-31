@@ -49,8 +49,8 @@ export default function ReportesPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Reportes</h2>
-          <p className="text-slate-500 text-sm mt-0.5">Análisis de actividades y rendimiento del equipo</p>
+          <h2 className="text-xl font-bold text-white">Reportes</h2>
+          <p className="text-slate-400 text-sm mt-0.5">Análisis de actividades y rendimiento del equipo</p>
         </div>
         <div className="flex gap-2">
           <button onClick={handleExportExcel} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-green-700 transition-colors shadow-lg shadow-green-600/20">
@@ -63,14 +63,14 @@ export default function ReportesPage() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
+      <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-4 flex flex-wrap gap-3 items-center">
         <Filter size={16} className="text-slate-400" />
-        <span className="text-sm text-slate-500 font-medium">Filtrar exportación:</span>
-        <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+        <span className="text-sm text-slate-400 font-medium">Filtrar exportación:</span>
+        <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)} className="px-3 py-2 border border-[#2E455C]/50 rounded-xl bg-[#07060B]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
           <option value="">Todas las empresas</option>
           {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 border border-slate-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 border border-[#2E455C]/50 rounded-xl bg-[#07060B]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
           <option value="">Todos los estados</option>
           {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
@@ -78,12 +78,12 @@ export default function ReportesPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Pie chart estado */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-6">
+            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
               <BarChart2 size={18} className="text-violet-500" />
               Distribución por estado
             </h3>
@@ -99,8 +99,8 @@ export default function ReportesPage() {
           </div>
 
           {/* Bar chart por usuario */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-6">
+            <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
               <BarChart2 size={18} className="text-violet-500" />
               Carga de actividades por usuario
             </h3>
@@ -119,14 +119,14 @@ export default function ReportesPage() {
           </div>
 
           {/* Tabla resumen por estado */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 lg:col-span-2">
-            <h3 className="font-semibold text-slate-800 mb-4">Resumen general</h3>
+          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-6 lg:col-span-2">
+            <h3 className="font-semibold text-white mb-4">Resumen general</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {statusChartData.map((s, i) => (
-                <div key={s.name} className="text-center p-4 rounded-xl bg-slate-50 border border-slate-100">
+                <div key={s.name} className="text-center p-4 rounded-xl bg-[#2E455C]/20 border border-[#2E455C]/30">
                   <div className="w-3 h-3 rounded-full mx-auto mb-2" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                  <p className="text-2xl font-bold text-slate-800">{s.value}</p>
-                  <p className="text-xs text-slate-500 mt-0.5 capitalize">{s.name}</p>
+                  <p className="text-2xl font-bold text-white">{s.value}</p>
+                  <p className="text-xs text-slate-400 mt-0.5 capitalize">{s.name}</p>
                 </div>
               ))}
             </div>

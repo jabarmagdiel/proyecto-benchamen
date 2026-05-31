@@ -105,7 +105,7 @@ export default function PerfilPage() {
   if (!profile) {
     return (
       <div className="flex justify-center py-16">
-        <div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
       </div>
     );
   }
@@ -122,60 +122,60 @@ export default function PerfilPage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold text-slate-800">Mi Perfil</h2>
-        <p className="text-slate-500 text-sm mt-0.5">Gestiona tu información personal y la seguridad de tu cuenta.</p>
+        <h2 className="text-xl font-bold text-white">Mi Perfil</h2>
+        <p className="text-slate-400 text-sm mt-0.5">Gestiona tu información personal y la seguridad de tu cuenta.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Columna Izquierda: Tarjeta de Presentación */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm overflow-hidden">
             {/* Header decorativo */}
             <div className="h-28 gradient-primary relative"></div>
             {/* Avatar & Info Básica */}
             <div className="px-6 pb-6 text-center relative -mt-10">
-              <div className="inline-flex w-20 h-20 rounded-2xl bg-white p-1 shadow-md mb-3">
+              <div className="inline-flex w-20 h-20 rounded-2xl bg-[#07060B]/80 p-1 shadow-md mb-3">
                 <div className="w-full h-full gradient-primary rounded-xl flex items-center justify-center text-white text-3xl font-bold">
                   {profile.name.charAt(0).toUpperCase()}
                 </div>
               </div>
-              <h3 className="font-bold text-slate-800 text-lg leading-tight">{profile.name}</h3>
+              <h3 className="font-bold text-white text-lg leading-tight">{profile.name}</h3>
               <p className="text-slate-400 text-xs mt-1 capitalize">{profile.position || "Miembro del equipo"}</p>
               
               <span className={`inline-block mt-3 px-3 py-1 rounded-full text-xs font-semibold capitalize ${
-                profile.role === "administrador" ? "bg-violet-100 text-violet-700" : "bg-blue-100 text-blue-700"
+                profile.role === "administrador" ? "bg-[#20CDFE]/20 text-[#20CDFE]" : "bg-blue-100 text-blue-700"
               }`}>
                 {profile.role === "administrador" ? "Administrador" : "Operativo"}
               </span>
             </div>
 
             {/* Detalles de la cuenta */}
-            <div className="border-t border-slate-50 px-6 py-4 space-y-3.5 text-sm">
-              <div className="flex items-center gap-3 text-slate-600">
+            <div className="border-t border-[#2E455C]/20 px-6 py-4 space-y-3.5 text-sm">
+              <div className="flex items-center gap-3 text-slate-300">
                 <Mail size={16} className="text-slate-400 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-slate-400">Correo Electrónico</p>
-                  <p className="truncate font-medium text-slate-700">{profile.email}</p>
+                  <p className="truncate font-medium text-white">{profile.email}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-slate-600">
+              <div className="flex items-center gap-3 text-slate-300">
                 <Briefcase size={16} className="text-slate-400 shrink-0" />
                 <div>
                   <p className="text-xs text-slate-400">Cargo</p>
-                  <p className="font-medium text-slate-700 capitalize">{profile.position || "-"}</p>
+                  <p className="font-medium text-white capitalize">{profile.position || "-"}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-slate-600">
+              <div className="flex items-center gap-3 text-slate-300">
                 <Calendar size={16} className="text-slate-400 shrink-0" />
                 <div>
                   <p className="text-xs text-slate-400">Miembro desde</p>
-                  <p className="font-medium text-slate-700">{formatDate(profile.created_at)}</p>
+                  <p className="font-medium text-white">{formatDate(profile.created_at)}</p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-slate-600">
+              <div className="flex items-center gap-3 text-slate-300">
                 <Shield size={16} className="text-slate-400 shrink-0" />
                 <div>
                   <p className="text-xs text-slate-400">Estado de cuenta</p>
@@ -189,12 +189,12 @@ export default function PerfilPage() {
           </div>
 
           {/* Tarjeta de Privilegios/Permisos */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
-            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <Shield size={16} className="text-violet-600" />
+          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-6 space-y-4">
+            <h4 className="text-sm font-bold text-white flex items-center gap-2">
+              <Shield size={16} className="text-[#20CDFE]" />
               Tus Privilegios
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-500">
+            <ul className="space-y-2.5 text-xs text-slate-400">
               {profile.role === "administrador" ? (
                 <>
                   <li className="flex items-start gap-2">
@@ -245,10 +245,10 @@ export default function PerfilPage() {
         {/* Columna Derecha: Formularios de Edición y Cambio de Contraseña */}
         <div className="lg:col-span-2 space-y-6">
           {/* Formulario 1: Datos Personales */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-50">
-              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <User size={16} className="text-violet-600" />
+          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-[#2E455C]/20">
+              <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                <User size={16} className="text-[#20CDFE]" />
                 Información Personal
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">Actualiza tu información de perfil visible para el equipo.</p>
@@ -257,11 +257,11 @@ export default function PerfilPage() {
             <form onSubmit={handleProfileSubmit(onUpdateProfile)} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Nombre Completo *</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Nombre Completo *</label>
                   <input 
                     {...regProfile("name")} 
                     type="text"
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition-all"
+                    className="w-full px-3.5 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                   />
                   {profileErrors.name && (
                     <p className="text-red-500 text-xs mt-1">{profileErrors.name.message as string}</p>
@@ -269,12 +269,12 @@ export default function PerfilPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Cargo o Puesto</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Cargo o Puesto</label>
                   <input 
                     {...regProfile("position")} 
                     placeholder="Ej. Filmmaker, Editora, Diseñador..."
                     type="text"
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition-all"
+                    className="w-full px-3.5 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                   />
                   {profileErrors.position && (
                     <p className="text-red-500 text-xs mt-1">{profileErrors.position.message as string}</p>
@@ -283,11 +283,11 @@ export default function PerfilPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Correo Electrónico *</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Correo Electrónico *</label>
                 <input 
                   {...regProfile("email")} 
                   type="email"
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition-all"
+                  className="w-full px-3.5 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                 />
                 {profileErrors.email && (
                   <p className="text-red-500 text-xs mt-1">{profileErrors.email.message as string}</p>
@@ -295,7 +295,7 @@ export default function PerfilPage() {
                 <p className="text-slate-400 text-[10px] mt-1">Este correo se utiliza para iniciar sesión y para notificaciones del sistema.</p>
               </div>
 
-              <div className="flex justify-end pt-2 border-t border-slate-50">
+              <div className="flex justify-end pt-2 border-t border-[#2E455C]/20">
                 <button 
                   type="submit" 
                   disabled={updatingProfile}
@@ -308,10 +308,10 @@ export default function PerfilPage() {
           </div>
 
           {/* Formulario 2: Cambio de Contraseña */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-50">
-              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-                <KeyRound size={16} className="text-violet-600" />
+          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-[#2E455C]/20">
+              <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                <KeyRound size={16} className="text-[#20CDFE]" />
                 Seguridad de la Cuenta
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">Modifica tu contraseña periódicamente para mantener tu cuenta segura.</p>
@@ -319,18 +319,18 @@ export default function PerfilPage() {
 
             <form onSubmit={handlePasswordSubmit(onUpdatePassword)} className="p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Contraseña Actual *</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Contraseña Actual *</label>
                 <div className="relative">
                   <input 
                     {...regPassword("current_password")} 
                     type={showCurrentPass ? "text" : "password"}
                     placeholder="••••••••"
-                    className="w-full pl-3.5 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition-all"
+                    className="w-full pl-3.5 pr-10 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                   />
                   <button 
                     type="button" 
                     onClick={() => setShowCurrentPass(!showCurrentPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
                   >
                     {showCurrentPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
@@ -342,18 +342,18 @@ export default function PerfilPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Nueva Contraseña *</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Nueva Contraseña *</label>
                   <div className="relative">
                     <input 
                       {...regPassword("new_password")} 
                       type={showNewPass ? "text" : "password"}
                       placeholder="••••••••"
-                      className="w-full pl-3.5 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition-all"
+                      className="w-full pl-3.5 pr-10 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                     />
                     <button 
                       type="button" 
                       onClick={() => setShowNewPass(!showNewPass)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
                     >
                       {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -364,18 +364,18 @@ export default function PerfilPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Confirmar Nueva Contraseña *</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Confirmar Nueva Contraseña *</label>
                   <div className="relative">
                     <input 
                       {...regPassword("confirm_password")} 
                       type={showConfirmPass ? "text" : "password"}
                       placeholder="••••••••"
-                      className="w-full pl-3.5 pr-10 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-400 transition-all"
+                      className="w-full pl-3.5 pr-10 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                     />
                     <button 
                       type="button" 
                       onClick={() => setShowConfirmPass(!showConfirmPass)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
                     >
                       {showConfirmPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
@@ -386,7 +386,7 @@ export default function PerfilPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end pt-2 border-t border-slate-50">
+              <div className="flex justify-end pt-2 border-t border-[#2E455C]/20">
                 <button 
                   type="submit" 
                   disabled={updatingPassword}

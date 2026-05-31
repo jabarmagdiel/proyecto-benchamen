@@ -81,30 +81,30 @@ export default function MisActividadesPage() {
 
       {/* Header */}
       <div>
-        <h2 className="text-xl font-bold text-slate-800">Mis actividades</h2>
-        <p className="text-slate-500 text-sm mt-0.5">Hola {user?.name} · {activities.length} actividad{activities.length !== 1 ? "es" : ""} asignada{activities.length !== 1 ? "s" : ""}</p>
+        <h2 className="text-xl font-bold text-white">Mis actividades</h2>
+        <p className="text-slate-400 text-sm mt-0.5">Hola {user?.name} · {activities.length} actividad{activities.length !== 1 ? "es" : ""} asignada{activities.length !== 1 ? "s" : ""}</p>
       </div>
 
       {/* Filtro y Vista */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Filter size={16} className="text-slate-400" />
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-slate-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-[#2E455C]/50 rounded-xl bg-[#07060B]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
             <option value="">Todos los estados</option>
             {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </div>
         
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+        <div className="flex items-center bg-[#2E455C]/30 p-1 rounded-xl">
           <button
             onClick={() => setViewMode("list")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === "list" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === "list" ? "bg-[#07060B]/80 text-white shadow-sm" : "text-slate-400 hover:text-white"}`}
           >
             <LayoutList size={16} /> Lista
           </button>
           <button
             onClick={() => setViewMode("calendar")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === "calendar" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${viewMode === "calendar" ? "bg-[#07060B]/80 text-white shadow-sm" : "text-slate-400 hover:text-white"}`}
           >
             <CalendarIcon size={16} /> Calendario
           </button>
@@ -112,9 +112,9 @@ export default function MisActividadesPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
       ) : activities.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 bg-white rounded-2xl border border-slate-100">
+        <div className="text-center py-20 text-slate-400 bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50">
           <CheckSquare size={48} className="mx-auto mb-4 opacity-20" />
           <p className="font-semibold text-lg">¡Todo listo!</p>
           <p className="text-sm mt-1">No tienes actividades asignadas en este momento.</p>
@@ -135,10 +135,10 @@ export default function MisActividadesPage() {
                     {group.map((a) => {
                       const overdue = isOverdue(a.deadline, a.status);
                       return (
-                        <div key={a.id} className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all p-5 flex flex-col gap-3 ${overdue ? "border-red-200 bg-red-50/20" : "border-slate-100"}`}>
+                        <div key={a.id} className={`bg-[#07060B]/80 rounded-2xl border shadow-sm hover:shadow-md transition-all p-5 flex flex-col gap-3 ${overdue ? "border-red-200 bg-red-50/20" : "border-[#2E455C]/30"}`}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
-                              <Link href={`/actividades/${a.id}`} className="font-semibold text-slate-800 hover:text-violet-600 transition-colors line-clamp-2 block">
+                              <Link href={`/actividades/${a.id}`} className="font-semibold text-white hover:text-[#20CDFE] transition-colors line-clamp-2 block">
                                 {a.title}
                               </Link>
                               <p className="text-slate-400 text-xs mt-1">{a.project_name} · {a.company_name}</p>
@@ -146,22 +146,22 @@ export default function MisActividadesPage() {
                             <PriorityBadge priority={a.priority} />
                           </div>
 
-                          <div className="flex items-center gap-2 text-xs text-slate-500">
-                            <span className="bg-slate-100 px-2 py-0.5 rounded-md">{ACTIVITY_TYPE_LABELS[a.activity_type]}</span>
+                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                            <span className="bg-[#2E455C]/30 px-2 py-0.5 rounded-md">{ACTIVITY_TYPE_LABELS[a.activity_type]}</span>
                             {overdue && <span className="text-red-600 font-medium">⚠️ Atrasada</span>}
                           </div>
 
                           {a.deadline && (
                             <div className="flex items-center gap-1.5 text-xs">
                               <Clock size={12} className={overdue ? "text-red-500" : "text-slate-400"} />
-                              <span className={overdue ? "text-red-600 font-medium" : "text-slate-500"}>
+                              <span className={overdue ? "text-red-600 font-medium" : "text-slate-400"}>
                                 Vence: {formatDate(a.deadline)}
                               </span>
                             </div>
                           )}
 
-                          <div className="flex gap-2 mt-auto pt-2 border-t border-slate-50">
-                            <Link href={`/actividades/${a.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-slate-600 hover:text-violet-600 bg-slate-100 hover:bg-violet-100 px-3 py-2 rounded-lg transition-colors font-medium">
+                          <div className="flex gap-2 mt-auto pt-2 border-t border-[#2E455C]/20">
+                            <Link href={`/actividades/${a.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-slate-300 hover:text-[#20CDFE] bg-[#2E455C]/30 hover:bg-[#20CDFE]/20 px-3 py-2 rounded-lg transition-colors font-medium">
                               <Eye size={13} /> Ver detalle
                             </Link>
                             {a.status === "bloqueada" ? (
@@ -197,9 +197,9 @@ export default function MisActividadesPage() {
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-100">
-              <h3 className="font-bold text-lg text-slate-800">{MONTHS[calMonth]} {calYear}</h3>
+          <div className="bg-[#07060B]/80 rounded-2xl border border-[#2E455C]/50 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-[#2E455C]/30">
+              <h3 className="font-bold text-lg text-white">{MONTHS[calMonth]} {calYear}</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
@@ -207,13 +207,13 @@ export default function MisActividadesPage() {
                     if (m < 0) { m = 11; y--; }
                     setCalMonth(m); setCalYear(y);
                   }}
-                  className="p-2 hover:bg-slate-100 rounded-lg text-slate-600"
+                  className="p-2 hover:bg-[#2E455C]/30 rounded-lg text-slate-300"
                 >
                   <ChevronLeft size={20} />
                 </button>
                 <button
                   onClick={() => { setCalMonth(now.getMonth()); setCalYear(now.getFullYear()); }}
-                  className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg"
+                  className="px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-[#2E455C]/30 rounded-lg"
                 >
                   Hoy
                 </button>
@@ -223,22 +223,22 @@ export default function MisActividadesPage() {
                     if (m > 11) { m = 0; y++; }
                     setCalMonth(m); setCalYear(y);
                   }}
-                  className="p-2 hover:bg-slate-100 rounded-lg text-slate-600"
+                  className="p-2 hover:bg-[#2E455C]/30 rounded-lg text-slate-300"
                 >
                   <ChevronRight size={20} />
                 </button>
               </div>
             </div>
             
-            <div className="grid grid-cols-7 border-b border-slate-100">
+            <div className="grid grid-cols-7 border-b border-[#2E455C]/30">
               {DAY_NAMES.map(d => (
-                <div key={d} className="py-3 text-center text-xs font-semibold text-slate-500">{d}</div>
+                <div key={d} className="py-3 text-center text-xs font-semibold text-slate-400">{d}</div>
               ))}
             </div>
             
             <div className="grid grid-cols-7 auto-rows-[120px]">
               {Array.from({ length: getFirstDayOfMonth(calYear, calMonth) }).map((_, i) => (
-                <div key={`empty-${i}`} className="border-b border-r border-slate-100 bg-slate-50/50" />
+                <div key={`empty-${i}`} className="border-b border-r border-[#2E455C]/30 bg-[#2E455C]/10" />
               ))}
               {Array.from({ length: getDaysInMonth(calYear, calMonth) }).map((_, i) => {
                 const day = i + 1;
@@ -250,8 +250,8 @@ export default function MisActividadesPage() {
                 const dayActivities = activities.filter(a => a.deadline === dateStr);
                 
                 return (
-                  <div key={day} className="border-b border-r border-slate-100 p-2 overflow-y-auto">
-                    <div className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full mb-1 ${isToday ? 'bg-violet-600 text-white' : 'text-slate-700'}`}>
+                  <div key={day} className="border-b border-r border-[#2E455C]/30 p-2 overflow-y-auto">
+                    <div className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full mb-1 ${isToday ? 'bg-violet-600 text-white' : 'text-white'}`}>
                       {day}
                     </div>
                     <div className="space-y-1.5">
@@ -259,7 +259,7 @@ export default function MisActividadesPage() {
                         <Link 
                           key={a.id} 
                           href={`/actividades/${a.id}`}
-                          className="block text-xs p-1.5 rounded bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-100 truncate"
+                          className="block text-xs p-1.5 rounded bg-violet-50 text-[#20CDFE] hover:bg-[#20CDFE]/20 border border-violet-100 truncate"
                           title={a.title}
                         >
                           {a.title}

@@ -132,7 +132,7 @@ export default function ProjectDetailPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-20">
-        <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
       </div>
     );
   }
@@ -168,19 +168,19 @@ export default function ProjectDetailPage() {
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-[#2E455C]/30 text-slate-400 hover:text-slate-300 transition-colors">
             <ArrowLeft size={18} />
           </button>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
+              <span className="text-xs bg-[#2E455C]/30 text-slate-300 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
                 <Building2 size={12} /> {project.company?.name}
               </span>
-              <span className="text-xs bg-violet-50 text-violet-600 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
+              <span className="text-xs bg-violet-50 text-[#20CDFE] px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
                 <UserIcon size={12} /> Responsable: {project.main_responsible?.name || "Sin asignar"}
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-slate-800 truncate">{project.name}</h1>
+            <h1 className="text-2xl font-bold text-white truncate">{project.name}</h1>
           </div>
           {isAdmin && (
             <button onClick={handleOpenCreateModal} className="flex items-center gap-2 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-violet-500/25 cursor-pointer">
@@ -192,14 +192,14 @@ export default function ProjectDetailPage() {
         {/* Resumen e información general */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Tarjeta de información */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 p-6 shadow-sm space-y-4">
+          <div className="lg:col-span-2 bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-6 shadow-sm space-y-4">
             <div>
-              <h3 className="font-semibold text-slate-800 text-base mb-2">Descripción del Proyecto</h3>
-              <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+              <h3 className="font-semibold text-white text-base mb-2">Descripción del Proyecto</h3>
+              <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
                 {project.description || "Sin descripción proporcionada."}
               </p>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t border-slate-50 text-sm">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t border-[#2E455C]/20 text-sm">
               <div>
                 <p className="text-slate-400 text-xs">Prioridad</p>
                 <div className="mt-1"><PriorityBadge priority={project.priority} /></div>
@@ -210,30 +210,30 @@ export default function ProjectDetailPage() {
               </div>
               <div>
                 <p className="text-slate-400 text-xs">Fecha inicio</p>
-                <p className="text-slate-700 font-medium mt-1">{formatDate(project.start_date)}</p>
+                <p className="text-white font-medium mt-1">{formatDate(project.start_date)}</p>
               </div>
               <div>
                 <p className="text-slate-400 text-xs">Fecha límite</p>
-                <p className="text-slate-700 font-medium mt-1">{formatDate(project.deadline)}</p>
+                <p className="text-white font-medium mt-1">{formatDate(project.deadline)}</p>
               </div>
             </div>
           </div>
 
           {/* Tarjeta de progreso */}
-          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm flex flex-col justify-between">
+          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-6 shadow-sm flex flex-col justify-between">
             <div>
-              <h3 className="font-semibold text-slate-800 text-base mb-4">Progreso del Proyecto</h3>
+              <h3 className="font-semibold text-white text-base mb-4">Progreso del Proyecto</h3>
               <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-3xl font-extrabold text-slate-800">{progressPercent}%</span>
+                <span className="text-3xl font-extrabold text-white">{progressPercent}%</span>
                 <span className="text-xs text-slate-400 font-medium">completado</span>
               </div>
-              <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden mb-4">
+              <div className="w-full bg-[#2E455C]/30 h-3 rounded-full overflow-hidden mb-4">
                 <div className="gradient-primary h-full rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-center border-t border-slate-50 pt-4">
+            <div className="grid grid-cols-2 gap-4 text-center border-t border-[#2E455C]/20 pt-4">
               <div>
-                <p className="text-2xl font-bold text-slate-800">{totalActs}</p>
+                <p className="text-2xl font-bold text-white">{totalActs}</p>
                 <p className="text-xs text-slate-400">Total actividades</p>
               </div>
               <div>
@@ -252,13 +252,13 @@ export default function ProjectDetailPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar actividad en este proyecto..."
-              className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200"
+              className="pl-9 pr-4 py-2.5 rounded-xl border border-[#2E455C]/50 bg-[#07060B]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2.5 border border-slate-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
+            className="px-3 py-2.5 border border-[#2E455C]/50 rounded-xl bg-[#07060B]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
           >
             <option value="">Todos los estados</option>
             {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => (
@@ -268,7 +268,7 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Listado de actividades */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm overflow-hidden">
           {filteredActivities.length === 0 ? (
             <div className="text-center py-16 text-slate-400">
               <ClipboardList size={40} className="mx-auto mb-3 opacity-30" />
@@ -279,7 +279,7 @@ export default function ProjectDetailPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                  <tr className="border-b border-[#2E455C]/30 bg-[#2E455C]/10 text-slate-400 text-xs font-semibold uppercase tracking-wider">
                     <th className="px-6 py-3.5">Actividad</th>
                     <th className="px-6 py-3.5">Tipo</th>
                     <th className="px-6 py-3.5">Prioridad</th>
@@ -289,21 +289,21 @@ export default function ProjectDetailPage() {
                     <th className="px-6 py-3.5 text-right">Detalle</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                <tbody className="divide-y divide-slate-100 text-sm text-white">
                   {filteredActivities.map((act) => (
-                    <tr key={act.id} className="hover:bg-slate-50/30 transition-colors">
+                    <tr key={act.id} className="hover:bg-[#2E455C]/20/30 transition-colors">
                       <td className="px-6 py-4">
-                        <span className="font-semibold text-slate-800">{act.title}</span>
+                        <span className="font-semibold text-white">{act.title}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-xs text-slate-500 capitalize">{ACTIVITY_TYPE_LABELS[act.activity_type] || act.activity_type}</span>
+                        <span className="text-xs text-slate-400 capitalize">{ACTIVITY_TYPE_LABELS[act.activity_type] || act.activity_type}</span>
                       </td>
                       <td className="px-6 py-4">
                         <PriorityBadge priority={act.priority} />
                       </td>
                       <td className="px-6 py-4">
                         {(act.node_type === 'end' || act.current_stage?.node_type === 'end') ? (
-                          <span className="font-medium text-violet-600 bg-violet-50 px-2.5 py-1 rounded-md text-xs">Aprobación del Cliente</span>
+                          <span className="font-medium text-[#20CDFE] bg-violet-50 px-2.5 py-1 rounded-md text-xs">Aprobación del Cliente</span>
                         ) : isAdmin ? (() => {
                           let allowedUsers = users;
                           if (act.current_stage?.department) {
@@ -316,7 +316,7 @@ export default function ProjectDetailPage() {
                             <select
                               value={act.assigned_user_id || ""}
                               onChange={(e) => handleAssignUser(act.id, e.target.value)}
-                              className="bg-slate-50 border border-slate-200 text-slate-700 text-xs rounded-lg focus:ring-violet-200 focus:border-violet-400 block w-full p-1.5"
+                              className="bg-[#2E455C]/20 border border-[#2E455C]/50 text-white text-xs rounded-lg focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] block w-full p-1.5"
                             >
                               <option value="">Sin asignar</option>
                               {allowedUsers.map(u => (
@@ -325,17 +325,17 @@ export default function ProjectDetailPage() {
                             </select>
                           );
                         })() : (
-                          <span className="font-medium text-slate-600">{act.assigned_user?.name || "Sin asignar"}</span>
+                          <span className="font-medium text-slate-300">{act.assigned_user?.name || "Sin asignar"}</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-slate-500">
+                      <td className="px-6 py-4 text-slate-400">
                         {formatDate(act.deadline || project.deadline)}
                       </td>
                       <td className="px-6 py-4">
                         <StatusBadge status={act.status} />
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <Link href={`/actividades/${act.id}`} className="inline-flex p-1.5 rounded-lg hover:bg-violet-100 text-slate-400 hover:text-violet-600 transition-colors">
+                        <Link href={`/actividades/${act.id}`} className="inline-flex p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors">
                           <Eye size={16} />
                         </Link>
                       </td>
@@ -351,42 +351,42 @@ export default function ProjectDetailPage() {
       {/* Modal crear actividad */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-fade-in max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 shrink-0">
-              <h3 className="text-lg font-bold text-slate-800">Nueva actividad</h3>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none cursor-pointer">&times;</button>
+          <div className="bg-[#07060B]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#2E455C]/50 w-full max-w-lg animate-fade-in max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-[#2E455C]/30 shrink-0">
+              <h3 className="text-lg font-bold text-white">Nueva actividad</h3>
+              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 text-2xl leading-none cursor-pointer">&times;</button>
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Proyecto</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Proyecto</label>
                   <input
                     type="text"
                     disabled
                     value={project.name}
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50 text-slate-500 focus:outline-none"
+                    className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm bg-[#2E455C]/20 text-slate-400 focus:outline-none"
                   />
                   <input type="hidden" {...register("project_id")} value={projectId} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Título *</label>
-                  <input {...register("title")} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Título *</label>
+                  <input {...register("title")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                   {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Descripción</label>
-                  <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Descripción</label>
+                  <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Tipo</label>
-                    <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo</label>
+                    <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                       {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Rol de la Tarea</label>
-                    <select {...register("node_type")} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Rol de la Tarea</label>
+                    <select {...register("node_type")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                       <option value="task">Tarea Estándar</option>
                       <option value="decision">Decisión</option>
                     </select>
@@ -394,8 +394,8 @@ export default function ProjectDetailPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Prioridad</label>
-                    <select {...register("priority")} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Prioridad</label>
+                    <select {...register("priority")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                       <option value="baja">Baja</option>
                       <option value="media">Media</option>
                       <option value="alta">Alta</option>
@@ -405,29 +405,29 @@ export default function ProjectDetailPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Fecha inicio</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Fecha inicio</label>
                     <input 
                       type="date" 
                       min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
                       max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
                       {...register("start_date")} 
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
+                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Fecha límite</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Fecha límite</label>
                     <input 
                       type="date" 
                       min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
                       max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
                       {...register("deadline")} 
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
+                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Departamento</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Departamento</label>
                     <select 
                       value={selectedDepartmentId}
                       onChange={(e) => {
@@ -435,15 +435,15 @@ export default function ProjectDetailPage() {
                         // Resetear el responsable si cambia el departamento
                         reset({ ...register, assigned_user_id: null });
                       }}
-                      className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
+                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
                     >
                       <option value="">Todos los departamentos</option>
                       {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Responsable</label>
-                    <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Responsable</label>
+                    <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                       <option value="">Sin asignar</option>
                       {users
                         .filter(u => !selectedDepartmentId || u.department_id === Number(selectedDepartmentId))
@@ -453,8 +453,8 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3 p-6 border-t border-slate-100 bg-slate-50/50 shrink-0">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-200 bg-white rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition-colors">Cancelar</button>
+              <div className="flex gap-3 p-6 border-t border-[#2E455C]/30 bg-[#2E455C]/10 shrink-0">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 bg-[#07060B]/80 rounded-xl text-sm text-slate-300 hover:bg-[#2E455C]/20 transition-colors">Cancelar</button>
                 <button type="submit" disabled={submitting} className="flex-1 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-violet-500/10">
                   {submitting ? "Creando..." : "Crear actividad"}
                 </button>
