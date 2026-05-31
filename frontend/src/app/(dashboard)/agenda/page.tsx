@@ -190,33 +190,33 @@ export default function AgendaPage() {
       )}
 
       {/* ─ Header ─ */}
-      <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-[#0A101D]/80/5 rounded-full blur-3xl -translate-y-8 translate-x-8 pointer-events-none" />
+      <div className="bg-[#0A101D]/50 backdrop-blur-xl border border-[#20CDFE]/20 rounded-3xl p-6 md:p-8 text-white shadow-[0_10px_40px_rgba(32,205,254,0.1)] relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-80 h-80 bg-[#20CDFE]/10 rounded-full blur-3xl -translate-y-8 translate-x-8 pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-3">
-            <CalendarCheck size={22} className="text-violet-200" />
+            <CalendarCheck size={22} className="text-[#20CDFE]" />
             <span className="font-black text-xl">
               {isAdmin ? "Agenda de Disponibilidad" : "Solicitar una Cita"}
             </span>
           </div>
-          <p className="text-indigo-200 text-sm leading-relaxed max-w-2xl">
+          <p className="text-slate-400 text-sm leading-relaxed max-w-2xl">
             {isAdmin
               ? "Selecciona un día en el calendario y publica los horarios en los que estás disponible para reuniones con clientes. Gestiona y visualiza todas tus citas programadas."
               : "Consulta los días y horarios disponibles del administrador y reserva la cita que mejor se adapte a tus necesidades."}
           </p>
           {isAdmin && (
             <div className="flex flex-wrap gap-4 mt-5">
-              <div className="bg-[#0A101D]/80/10 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl px-4 py-3 text-center">
+              <div className="bg-[#07060B]/50 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl px-4 py-3 text-center">
                 <p className="text-2xl font-black">{totalSlots}</p>
-                <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Total Slots</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Slots</p>
               </div>
-              <div className="bg-[#0A101D]/80/10 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl px-4 py-3 text-center">
-                <p className="text-2xl font-black text-emerald-300">{bookedSlots}</p>
-                <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Reservadas</p>
+              <div className="bg-[#07060B]/50 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl px-4 py-3 text-center">
+                <p className="text-2xl font-black text-[#1ED1B4]">{bookedSlots}</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Reservadas</p>
               </div>
-              <div className="bg-[#0A101D]/80/10 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl px-4 py-3 text-center">
-                <p className="text-2xl font-black text-sky-300">{availableCount}</p>
-                <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Disponibles</p>
+              <div className="bg-[#07060B]/50 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl px-4 py-3 text-center">
+                <p className="text-2xl font-black text-[#20CDFE]">{availableCount}</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Disponibles</p>
               </div>
             </div>
           )}
@@ -276,16 +276,16 @@ export default function AgendaPage() {
                       disabled={isPast}
                       onClick={() => setSelectedDay(ds)}
                       className={`relative h-9 w-full rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all duration-200
-                        ${isSelected ? "bg-violet-600 text-white shadow-lg shadow-[#20CDFE]/20" :
-                          isToday    ? "bg-violet-50 text-[#20CDFE] ring-2 ring-violet-300" :
-                          isPast     ? "text-slate-300 cursor-not-allowed" :
+                        ${isSelected ? "bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] shadow-lg shadow-[#20CDFE]/20" :
+                          isToday    ? "bg-[#20CDFE]/10 text-[#20CDFE] ring-2 ring-[#20CDFE]/30" :
+                          isPast     ? "text-slate-500 cursor-not-allowed" :
                           hasSlots   ? "text-white hover:bg-[#15233D]" :
                                        "text-slate-300 hover:bg-[#15233D]"}
                       `}
                     >
                       {d}
                       {hasSlots && !isSelected && (
-                        <span className={`absolute bottom-1 w-1 h-1 rounded-full ${hasBooked ? "bg-emerald-500" : "bg-violet-400"}`} />
+                        <span className={`absolute bottom-1 w-1 h-1 rounded-full ${hasBooked ? "bg-[#1ED1B4]" : "bg-[#20CDFE]"}`} />
                       )}
                     </button>
                   );
@@ -293,9 +293,9 @@ export default function AgendaPage() {
               </div>
 
               {/* Leyenda */}
-              <div className="flex items-center gap-3 mt-4 pt-3 border-t border-[#2E455C]/20 text-[10px] font-semibold text-slate-400">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-violet-400 inline-block" />Disponible</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />Reservada</span>
+              <div className="flex items-center gap-3 mt-4 pt-3 border-t border-[#20CDFE]/10 text-[10px] font-semibold text-slate-400">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#20CDFE] inline-block" />Disponible</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[#1ED1B4] inline-block" />Reservada</span>
               </div>
             </div>
 
@@ -310,8 +310,8 @@ export default function AgendaPage() {
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Fecha seleccionada</label>
                   <div className={`px-3.5 py-2.5 rounded-xl border text-sm font-semibold flex items-center gap-2
                     ${selectedDay
-                      ? "border-violet-200 bg-violet-50 text-[#20CDFE]"
-                      : "border-[#20CDFE]/10 bg-[#15233D] text-slate-400"}`}>
+                      ? "border-[#20CDFE]/30 bg-[#20CDFE]/10 text-[#20CDFE]"
+                      : "border-[#20CDFE]/10 bg-[#0A101D]/80 text-slate-400"}`}>
                     <CalendarIcon size={14} />
                     {selectedDay ? formatDate(selectedDay) : "Haz clic en un día del calendario"}
                   </div>
@@ -323,7 +323,7 @@ export default function AgendaPage() {
                     <select
                       value={adminStart}
                       onChange={e => setAdminStart(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80"
+                      className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#0A101D]/80"
                     >
                       {HOURS.map(h => <option key={`s-${h}`} value={h}>{h}</option>)}
                     </select>
@@ -333,7 +333,7 @@ export default function AgendaPage() {
                     <select
                       value={adminEnd}
                       onChange={e => setAdminEnd(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80"
+                      className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#0A101D]/80"
                     >
                       {HOURS.map(h => <option key={`e-${h}`} value={h}>{h}</option>)}
                     </select>
@@ -343,7 +343,7 @@ export default function AgendaPage() {
                 <button
                   type="submit"
                   disabled={submitting || !selectedDay}
-                  className="w-full bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 shadow-lg shadow-violet-500/20 transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 shadow-lg shadow-[#20CDFE]/20 transition-all flex items-center justify-center gap-2"
                 >
                   <Plus size={15} />
                   {submitting ? "Publicando..." : "Publicar este horario"}
@@ -357,7 +357,7 @@ export default function AgendaPage() {
 
             {/* Panel del día seleccionado */}
             {selectedDay && (
-              <div className="bg-[#0A101D]/80 rounded-2xl border border-violet-100 shadow-sm p-5">
+              <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/20 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-white text-sm flex items-center gap-2">
                     <CalendarIcon size={16} className="text-[#20CDFE]" />
@@ -382,19 +382,19 @@ export default function AgendaPage() {
                         className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all
                           ${apt.status === "booked" ? "border-emerald-100 bg-emerald-50/30" :
                             apt.status === "cancelled" ? "border-[#20CDFE]/10 bg-[#0F192E] opacity-50" :
-                            "border-[#20CDFE]/10 bg-[#0A101D]/80 hover:border-violet-100"}`}
+                            "border-[#20CDFE]/10 bg-[#0A101D]/80 hover:border-[#20CDFE]/30"}`}
                       >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-bold text-[#20CDFE] bg-violet-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-bold text-[#20CDFE] bg-[#20CDFE]/10 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
                             <Clock size={11} />
                             {apt.start_time} – {apt.end_time}
                           </span>
                           {apt.status === "booked" ? (
-                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full uppercase">Reservada</span>
+                            <span className="text-[10px] font-bold text-[#07060B] bg-[#1ED1B4] px-2 py-0.5 rounded-full uppercase">Reservada</span>
                           ) : apt.status === "cancelled" ? (
                             <span className="text-[10px] font-bold text-slate-400 bg-[#1C2C4D] px-2 py-0.5 rounded-full uppercase">Cancelada</span>
                           ) : (
-                            <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full uppercase">Disponible</span>
+                            <span className="text-[10px] font-bold text-[#20CDFE] bg-[#20CDFE]/10 px-2 py-0.5 rounded-full uppercase">Disponible</span>
                           )}
                         </div>
 
@@ -469,7 +469,7 @@ export default function AgendaPage() {
                             <CalendarIcon size={11} />
                             {formatDate(apt.date)}
                           </span>
-                          <span className="text-xs font-bold text-[#20CDFE] bg-violet-50 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
+                          <span className="text-xs font-bold text-[#20CDFE] bg-[#20CDFE]/10 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
                             <Clock size={11} />
                             {apt.start_time} – {apt.end_time}
                           </span>
@@ -492,7 +492,7 @@ export default function AgendaPage() {
                             </>
                           ) : apt.status === "available" ? (
                             <>
-                              <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full uppercase">Disponible</span>
+                              <span className="text-[10px] font-bold text-[#20CDFE] bg-[#20CDFE]/10 px-2 py-0.5 rounded-full uppercase">Disponible</span>
                               <button onClick={() => handleDeleteSlot(apt.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><Trash2 size={15} /></button>
                             </>
                           ) : (
@@ -545,15 +545,16 @@ export default function AgendaPage() {
                       key={d}
                       disabled={isPast || !hasAvail}
                       onClick={() => setSelectedDay(ds)}
-                      className={`relative h-9 w-full rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all duration-200
-                        ${isSelected ? "bg-violet-600 text-white shadow-lg shadow-[#20CDFE]/20" :
-                          isToday    ? "bg-violet-50 text-[#20CDFE] ring-2 ring-violet-300" :
-                          !hasAvail || isPast ? "text-slate-300 cursor-not-allowed" :
-                                       "text-white hover:bg-violet-50 hover:text-[#20CDFE] cursor-pointer"}`}
+                      className={`relative h-10 w-full rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all duration-200
+                        ${isSelected ? "bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] shadow-lg shadow-[#20CDFE]/20" :
+                          isToday    ? "bg-[#20CDFE]/10 text-[#20CDFE] ring-2 ring-[#20CDFE]/30" :
+                          isPast     ? "text-slate-500 cursor-not-allowed" :
+                                       "text-white hover:bg-[#20CDFE]/10 hover:text-[#20CDFE] cursor-pointer"}`}
                     >
                       {d}
+                      {/* Puntito si hay disponibilidad */}
                       {hasAvail && !isSelected && (
-                        <span className="absolute bottom-1 w-1 h-1 rounded-full bg-violet-500" />
+                        <span className="absolute bottom-1 w-1 h-1 rounded-full bg-[#20CDFE]" />
                       )}
                     </button>
                   );
@@ -568,7 +569,7 @@ export default function AgendaPage() {
 
             {/* Slots del día seleccionado */}
             {selectedDay && (
-              <div className="bg-[#0A101D]/80 rounded-2xl border border-violet-100 shadow-sm p-5">
+              <div className="bg-[#0A101D]/80 rounded-2xl border border-[#20CDFE]/20 shadow-sm p-5">
                 <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
                   <Clock size={15} className="text-[#20CDFE]" />
                   Horarios disponibles — {formatDate(selectedDay)}
@@ -580,8 +581,8 @@ export default function AgendaPage() {
                     {daySlots.map(slot => (
                       <button
                         key={slot.id}
-                        onClick={() => setSelectedSlot(slot)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 border border-violet-200 bg-violet-50/50 hover:bg-violet-600 hover:text-white hover:border-violet-600 rounded-xl text-xs font-bold text-[#20CDFE] transition-all duration-200 shadow-sm"
+                        onClick={() => openBookModal(slot)}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2.5 border border-[#20CDFE]/30 bg-[#20CDFE]/10 hover:bg-[#20CDFE] hover:text-[#07060B] hover:border-[#20CDFE] rounded-xl text-xs font-bold text-[#20CDFE] transition-all duration-200 shadow-sm"
                       >
                         <Clock size={12} />
                         {slot.start_time} – {slot.end_time}
@@ -607,8 +608,8 @@ export default function AgendaPage() {
                         {slots.map(slot => (
                           <button
                             key={slot.id}
-                            onClick={() => { setSelectedDay(dateStr); setSelectedSlot(slot); }}
-                            className="flex items-center gap-1.5 px-3 py-2 border border-violet-200 bg-violet-50/50 hover:bg-violet-600 hover:text-white hover:border-violet-600 rounded-xl text-xs font-bold text-[#20CDFE] transition-all duration-200"
+                            onClick={() => { setSelectedDay(dateStr); openBookModal(slot); }}
+                            className="flex items-center gap-1.5 px-3 py-2 border border-[#20CDFE]/30 bg-[#20CDFE]/10 hover:bg-[#20CDFE] hover:text-[#07060B] hover:border-[#20CDFE] rounded-xl text-xs font-bold text-[#20CDFE] transition-all duration-200"
                           >
                             <Clock size={11} />
                             {slot.start_time} – {slot.end_time}
@@ -686,9 +687,9 @@ export default function AgendaPage() {
             </div>
 
             {/* Tip card */}
-            <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl border border-violet-100 p-4 text-xs text-[#20CDFE] space-y-1.5">
-              <p className="font-bold flex items-center gap-1.5"><FileText size={13} />¿Cómo reservar?</p>
-              <ol className="list-decimal list-inside space-y-1 text-[#20CDFE] leading-relaxed">
+            <div className="bg-[#0A101D]/50 border border-[#20CDFE]/20 rounded-2xl p-4 text-xs text-slate-300 space-y-1.5">
+              <p className="font-bold text-[#20CDFE] flex items-center gap-1.5"><FileText size={13} />¿Cómo reservar?</p>
+              <ol className="list-decimal list-inside space-y-1 text-slate-400 leading-relaxed">
                 <li>Selecciona un día <strong>marcado</strong> en el calendario.</li>
                 <li>Haz clic en el horario que prefieras.</li>
                 <li>Completa el título y notas de la reunión.</li>
@@ -714,12 +715,13 @@ export default function AgendaPage() {
             </div>
 
             <form onSubmit={handleBookSlot} className="p-6 space-y-4">
-              <div className="bg-violet-50 border border-violet-100 rounded-xl p-3.5 space-y-2 text-xs">
-                <div className="flex items-center gap-2 text-[#20CDFE] font-semibold">
+              <div className="bg-[#0A101D]/50 border border-[#20CDFE]/20 rounded-xl p-3.5 space-y-2 text-xs">
+                <p className="font-bold text-[#20CDFE] flex items-center gap-1.5"><HelpCircle size={14} /> ¿Qué ocurre ahora?</p>
+                <div className="flex items-center gap-2 text-slate-300 font-semibold">
                   <CalendarIcon size={13} className="shrink-0" />
                   {formatDate(selectedSlot.date)}
                 </div>
-                <div className="flex items-center gap-2 text-[#20CDFE] font-semibold">
+                <div className="flex items-center gap-2 text-slate-300 font-semibold">
                   <Clock size={13} className="shrink-0" />
                   {selectedSlot.start_time} – {selectedSlot.end_time}
                 </div>
@@ -758,8 +760,8 @@ export default function AgendaPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-violet-500/15 flex items-center justify-center gap-2"
+                  disabled={submitting || !bookTitle}
+                  className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-[#20CDFE]/15 flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 size={15} />
                   {submitting ? "Confirmando..." : "Confirmar Cita"}
