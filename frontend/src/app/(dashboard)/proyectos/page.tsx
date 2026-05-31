@@ -20,7 +20,6 @@ const schema = z.object({
   status: z.enum(["planificado", "en_proceso", "en_pausa", "finalizado", "cancelado"]).default("planificado"),
   priority: z.enum(["baja", "media", "alta", "urgente"]).default("media"),
   main_responsible_id: z.coerce.number().optional().nullable(),
-  department_id: z.coerce.number().optional().nullable(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -81,13 +80,12 @@ export default function ProyectosPage() {
   const openCreate = () => { setEditing(null); reset({ status: "planificado", priority: "media" }); setModalOpen(true); };
   const openEdit = (p: Project) => {
     setEditing(p);
-    reset({ company_id: p.company_id, name: p.name, description: p.description || "", start_date: p.start_date || "", deadline: p.deadline || "", status: p.status, priority: p.priority, main_responsible_id: p.main_responsible_id || null, department_id: p.department_id || null });
+    reset({ company_id: p.company_id, name: p.name, description: p.description || "", start_date: p.start_date || "", deadline: p.deadline || "", status: p.status, priority: p.priority, main_responsible_id: p.main_responsible_id || null });
     setModalOpen(true);
   };
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
-    if (data.department_id === 0) data.department_id = null;
     if (data.main_responsible_id === 0) data.main_responsible_id = null;
     try {
       if (editing) { await projectsApi.update(editing.id, data); showToast("Proyecto actualizado"); }
@@ -239,14 +237,6 @@ export default function ProyectosPage() {
                       {Object.entries(PRIORITY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Departamento</label>
-                  <select {...register("department_id")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
-                    <option value="">Seleccionar departamento</option>
-                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                  </select>
                 </div>
               </div>
               <div className="flex gap-3 p-6 border-t border-[#20CDFE]/10 bg-[#0F192E] shrink-0">
