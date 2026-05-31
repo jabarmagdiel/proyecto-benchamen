@@ -15,6 +15,9 @@ export default function AprobacionesPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [observeModal, setObserveModal] = useState<{ id: number } | null>(null);
+  const [observeReason, setObserveReason] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -48,15 +51,19 @@ export default function AprobacionesPage() {
     }
   };
 
-  const handleObserve = async (id: number) => {
-    const obs = prompt("Escribe el motivo del rechazo u observación:");
-    if (!obs) return;
+  const handleObserve = async () => {
+    if (!observeModal || !observeReason.trim()) return;
+    setSubmitting(true);
     try {
-      await activitiesApi.observe(id, obs);
+      await activitiesApi.observe(observeModal.id, observeReason);
       showToast("Observación enviada 📝");
+      setObserveModal(null);
+      setObserveReason("");
       load();
     } catch (e: any) {
       showToast(e?.response?.data?.detail || "Error", "error");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -78,8 +85,8 @@ export default function AprobacionesPage() {
           <div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
         </div>
       ) : activities.length === 0 ? (
-        <div className="text-center py-20 bg-[#07060B]/80 border border-[#2E455C]/50 rounded-2xl shadow-sm">
-          <div className="w-16 h-16 bg-[#2E455C]/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#2E455C]/30">
+        <div className="text-center py-20 bg-[#0A101D]/80 border border-[#20CDFE]/10 rounded-2xl shadow-sm">
+          <div className="w-16 h-16 bg-[#15233D] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#20CDFE]/10">
             <CheckSquare size={24} className="text-slate-400" />
           </div>
           <h3 className="text-lg font-bold text-white">No hay tareas pendientes</h3>
@@ -90,9 +97,9 @@ export default function AprobacionesPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {activities.map(a => (
-            <div key={a.id} className="bg-[#07060B]/80 border border-[#2E455C]/50 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col group">
+            <div key={a.id} className="bg-[#0A101D]/80 border border-[#20CDFE]/10 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col group">
               <div className="flex justify-between items-start mb-3">
-                <span className="text-xs font-semibold text-slate-400 bg-[#2E455C]/30 px-2 py-1 rounded-md">
+                <span className="text-xs font-semibold text-slate-400 bg-[#1C2C4D] px-2 py-1 rounded-md">
                   {ACTIVITY_TYPE_LABELS[a.activity_type]}
                 </span>
                 <StatusBadge status={a.status} />
@@ -124,11 +131,11 @@ export default function AprobacionesPage() {
                 </div>
               )}
 
-              <div className="flex items-center gap-2 mt-auto pt-4 border-t border-[#2E455C]/30">
-                <Link href={`/actividades/${a.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-slate-300 hover:text-[#20CDFE] bg-[#2E455C]/30 hover:bg-[#20CDFE]/20 px-3 py-2 rounded-lg transition-colors font-medium">
+              <div className="flex items-center gap-2 mt-auto pt-4 border-t border-[#20CDFE]/10">
+                <Link href={`/actividades/${a.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-slate-300 hover:text-[#20CDFE] bg-[#1C2C4D] hover:bg-[#20CDFE]/20 px-3 py-2 rounded-lg transition-colors font-medium">
                   <Eye size={13} /> Revisar
                 </Link>
-                <button onClick={() => handleObserve(a.id)} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-white bg-amber-500 hover:bg-amber-600 px-3 py-2 rounded-lg transition-colors font-medium">
+                <button onClick={() => setObserveModal({ id: a.id })} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-white bg-amber-500 hover:bg-amber-600 px-3 py-2 rounded-lg transition-colors font-medium">
                   <AlertCircle size={13} /> Observar
                 </button>
                 <button onClick={() => handleApprove(a.id)} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-white bg-green-600 hover:bg-green-700 px-3 py-2 rounded-lg transition-colors font-medium">
@@ -137,6 +144,49 @@ export default function AprobacionesPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal Observar */}
+      {observeModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-md animate-fade-in">
+            <div className="flex items-center justify-between p-6 border-b border-[#20CDFE]/10">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <AlertCircle className="text-amber-500" size={20} />
+                Observar Actividad
+              </h3>
+              <button onClick={() => { setObserveModal(null); setObserveReason(""); }} className="text-slate-400 hover:text-slate-300 text-2xl leading-none">&times;</button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">Motivo de la observación *</label>
+                <textarea
+                  value={observeReason}
+                  onChange={e => setObserveReason(e.target.value)}
+                  placeholder="Detalla qué correcciones son necesarias..."
+                  rows={4}
+                  className="w-full px-3.5 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-all resize-none bg-[#15233D] text-white"
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => { setObserveModal(null); setObserveReason(""); }}
+                  className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleObserve}
+                  disabled={submitting || !observeReason.trim()}
+                  className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-amber-500/20"
+                >
+                  {submitting ? "Enviando..." : "Enviar Observación"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

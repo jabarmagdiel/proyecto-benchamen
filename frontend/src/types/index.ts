@@ -55,7 +55,7 @@ export interface User {
   is_active: boolean;
   avatar_url?: string;
   company_id?: number;
-  department_id?: number;
+  departments?: Department[];
   created_at: string;
 }
 
@@ -95,8 +95,8 @@ export interface Project {
   updated_at: string;
   company?: Company;
   main_responsible?: User;
-  workflow_id?: number;
-  workflow?: Workflow;
+  department_id?: number;
+  department?: Department;
   activity_count?: number;
   progress?: number;
 }
@@ -113,6 +113,8 @@ export interface Activity {
   status: ActivityStatus;
   current_stage_id?: number;
   current_stage?: WorkflowStage;
+  workflow_id?: number;
+  workflow?: Workflow;
   assigned_user_id: number | null;
   created_by_id: number;
   approved_by_id?: number;

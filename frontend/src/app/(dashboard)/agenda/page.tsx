@@ -191,7 +191,7 @@ export default function AgendaPage() {
 
       {/* ─ Header ─ */}
       <div className="bg-gradient-to-r from-violet-600 via-indigo-600 to-indigo-700 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-[#07060B]/80/5 rounded-full blur-3xl -translate-y-8 translate-x-8 pointer-events-none" />
+        <div className="absolute right-0 top-0 w-80 h-80 bg-[#0A101D]/80/5 rounded-full blur-3xl -translate-y-8 translate-x-8 pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-3">
             <CalendarCheck size={22} className="text-violet-200" />
@@ -206,15 +206,15 @@ export default function AgendaPage() {
           </p>
           {isAdmin && (
             <div className="flex flex-wrap gap-4 mt-5">
-              <div className="bg-[#07060B]/80/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 text-center">
+              <div className="bg-[#0A101D]/80/10 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl px-4 py-3 text-center">
                 <p className="text-2xl font-black">{totalSlots}</p>
                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Total Slots</p>
               </div>
-              <div className="bg-[#07060B]/80/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 text-center">
+              <div className="bg-[#0A101D]/80/10 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl px-4 py-3 text-center">
                 <p className="text-2xl font-black text-emerald-300">{bookedSlots}</p>
                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Reservadas</p>
               </div>
-              <div className="bg-[#07060B]/80/10 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-3 text-center">
+              <div className="bg-[#0A101D]/80/10 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl px-4 py-3 text-center">
                 <p className="text-2xl font-black text-sky-300">{availableCount}</p>
                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-wider">Disponibles</p>
               </div>
@@ -236,14 +236,14 @@ export default function AgendaPage() {
           <div className="xl:col-span-1 space-y-4">
 
             {/* Calendario */}
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-5">
               {/* Nav mes */}
               <div className="flex items-center justify-between mb-4">
-                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 transition-colors">
+                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#1C2C4D] text-slate-400 transition-colors">
                   <ChevronLeft size={16} />
                 </button>
                 <span className="font-bold text-white text-sm">{MONTHS[calMonth]} {calYear}</span>
-                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 transition-colors">
+                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#1C2C4D] text-slate-400 transition-colors">
                   <ChevronRight size={16} />
                 </button>
               </div>
@@ -279,8 +279,8 @@ export default function AgendaPage() {
                         ${isSelected ? "bg-violet-600 text-white shadow-lg shadow-[#20CDFE]/20" :
                           isToday    ? "bg-violet-50 text-[#20CDFE] ring-2 ring-violet-300" :
                           isPast     ? "text-slate-300 cursor-not-allowed" :
-                          hasSlots   ? "text-white hover:bg-[#2E455C]/20" :
-                                       "text-slate-300 hover:bg-[#2E455C]/20"}
+                          hasSlots   ? "text-white hover:bg-[#15233D]" :
+                                       "text-slate-300 hover:bg-[#15233D]"}
                       `}
                     >
                       {d}
@@ -300,7 +300,7 @@ export default function AgendaPage() {
             </div>
 
             {/* Formulario: Publicar Disponibilidad */}
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-5">
               <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
                 <Plus size={16} className="text-[#20CDFE]" />
                 Publicar Disponibilidad
@@ -311,7 +311,7 @@ export default function AgendaPage() {
                   <div className={`px-3.5 py-2.5 rounded-xl border text-sm font-semibold flex items-center gap-2
                     ${selectedDay
                       ? "border-violet-200 bg-violet-50 text-[#20CDFE]"
-                      : "border-[#2E455C]/50 bg-[#2E455C]/20 text-slate-400"}`}>
+                      : "border-[#20CDFE]/10 bg-[#15233D] text-slate-400"}`}>
                     <CalendarIcon size={14} />
                     {selectedDay ? formatDate(selectedDay) : "Haz clic en un día del calendario"}
                   </div>
@@ -323,7 +323,7 @@ export default function AgendaPage() {
                     <select
                       value={adminStart}
                       onChange={e => setAdminStart(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#07060B]/80"
+                      className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80"
                     >
                       {HOURS.map(h => <option key={`s-${h}`} value={h}>{h}</option>)}
                     </select>
@@ -333,7 +333,7 @@ export default function AgendaPage() {
                     <select
                       value={adminEnd}
                       onChange={e => setAdminEnd(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#07060B]/80"
+                      className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80"
                     >
                       {HOURS.map(h => <option key={`e-${h}`} value={h}>{h}</option>)}
                     </select>
@@ -357,7 +357,7 @@ export default function AgendaPage() {
 
             {/* Panel del día seleccionado */}
             {selectedDay && (
-              <div className="bg-[#07060B]/80 rounded-2xl border border-violet-100 shadow-sm p-5">
+              <div className="bg-[#0A101D]/80 rounded-2xl border border-violet-100 shadow-sm p-5">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-white text-sm flex items-center gap-2">
                     <CalendarIcon size={16} className="text-[#20CDFE]" />
@@ -381,8 +381,8 @@ export default function AgendaPage() {
                         key={apt.id}
                         className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all
                           ${apt.status === "booked" ? "border-emerald-100 bg-emerald-50/30" :
-                            apt.status === "cancelled" ? "border-[#2E455C]/30 bg-[#2E455C]/10 opacity-50" :
-                            "border-[#2E455C]/30 bg-[#07060B]/80 hover:border-violet-100"}`}
+                            apt.status === "cancelled" ? "border-[#20CDFE]/10 bg-[#0F192E] opacity-50" :
+                            "border-[#20CDFE]/10 bg-[#0A101D]/80 hover:border-violet-100"}`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-xs font-bold text-[#20CDFE] bg-violet-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
@@ -392,7 +392,7 @@ export default function AgendaPage() {
                           {apt.status === "booked" ? (
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full uppercase">Reservada</span>
                           ) : apt.status === "cancelled" ? (
-                            <span className="text-[10px] font-bold text-slate-400 bg-[#2E455C]/30 px-2 py-0.5 rounded-full uppercase">Cancelada</span>
+                            <span className="text-[10px] font-bold text-slate-400 bg-[#1C2C4D] px-2 py-0.5 rounded-full uppercase">Cancelada</span>
                           ) : (
                             <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full uppercase">Disponible</span>
                           )}
@@ -402,7 +402,7 @@ export default function AgendaPage() {
                           <div className="space-y-1">
                             {apt.title && <p className="text-xs font-bold text-white truncate">{apt.title}</p>}
                             {apt.notes && <p className="text-[11px] text-slate-400 line-clamp-2">{apt.notes}</p>}
-                            <div className="flex items-center gap-1.5 text-[11px] text-slate-300 font-medium pt-1 border-t border-[#2E455C]/30/60">
+                            <div className="flex items-center gap-1.5 text-[11px] text-slate-300 font-medium pt-1 border-t border-[#20CDFE]/10/60">
                               <User size={11} className="text-slate-400 shrink-0" />
                               <span className="truncate">{apt.client_name} · {apt.company_name}</span>
                             </div>
@@ -435,7 +435,7 @@ export default function AgendaPage() {
             )}
 
             {/* Listado completo de citas */}
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-5">
               <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
                 <CalendarCheck size={16} className="text-[#20CDFE]" />
                 Mi Agenda Completa
@@ -461,11 +461,11 @@ export default function AgendaPage() {
                         key={apt.id}
                         className={`p-3.5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 transition-all
                           ${apt.status === "booked" ? "border-emerald-100 bg-emerald-50/20" :
-                            apt.status === "cancelled" ? "border-[#2E455C]/30 bg-[#2E455C]/20/40 opacity-55" :
-                            "border-[#2E455C]/30 bg-[#07060B]/80 hover:bg-[#2E455C]/10"}`}
+                            apt.status === "cancelled" ? "border-[#20CDFE]/10 bg-[#15233D]/40 opacity-55" :
+                            "border-[#20CDFE]/10 bg-[#0A101D]/80 hover:bg-[#0F192E]"}`}
                       >
                         <div className="flex flex-wrap items-center gap-2 min-w-0">
-                          <span className="text-xs font-bold text-slate-300 bg-[#2E455C]/30 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
+                          <span className="text-xs font-bold text-slate-300 bg-[#1C2C4D] px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
                             <CalendarIcon size={11} />
                             {formatDate(apt.date)}
                           </span>
@@ -496,7 +496,7 @@ export default function AgendaPage() {
                               <button onClick={() => handleDeleteSlot(apt.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><Trash2 size={15} /></button>
                             </>
                           ) : (
-                            <span className="text-[10px] font-bold text-slate-400 bg-[#2E455C]/30 px-2 py-0.5 rounded-full uppercase">Cancelada</span>
+                            <span className="text-[10px] font-bold text-slate-400 bg-[#1C2C4D] px-2 py-0.5 rounded-full uppercase">Cancelada</span>
                           )}
                         </div>
                       </div>
@@ -516,13 +516,13 @@ export default function AgendaPage() {
           <div className="lg:col-span-2 space-y-4">
 
             {/* Calendario de selección */}
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
-                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 transition-colors">
+                <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#1C2C4D] text-slate-400 transition-colors">
                   <ChevronLeft size={16} />
                 </button>
                 <span className="font-bold text-white text-sm">{MONTHS[calMonth]} {calYear}</span>
-                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 transition-colors">
+                <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#1C2C4D] text-slate-400 transition-colors">
                   <ChevronRight size={16} />
                 </button>
               </div>
@@ -568,7 +568,7 @@ export default function AgendaPage() {
 
             {/* Slots del día seleccionado */}
             {selectedDay && (
-              <div className="bg-[#07060B]/80 rounded-2xl border border-violet-100 shadow-sm p-5">
+              <div className="bg-[#0A101D]/80 rounded-2xl border border-violet-100 shadow-sm p-5">
                 <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
                   <Clock size={15} className="text-[#20CDFE]" />
                   Horarios disponibles — {formatDate(selectedDay)}
@@ -594,7 +594,7 @@ export default function AgendaPage() {
 
             {/* Vista general por fecha */}
             {!selectedDay && Object.keys(slotsByDate).length > 0 && (
-              <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+              <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-5">
                 <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
                   <Bell size={15} className="text-[#20CDFE]" />
                   Próximas Disponibilidades
@@ -622,7 +622,7 @@ export default function AgendaPage() {
             )}
 
             {!selectedDay && Object.keys(slotsByDate).length === 0 && (
-              <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-10 text-center text-slate-400">
+              <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-10 text-center text-slate-400">
                 <HelpCircle size={40} className="mx-auto mb-3 opacity-20" />
                 <p className="font-semibold text-sm">No hay horarios disponibles en este momento.</p>
                 <p className="text-xs mt-1">Por favor, contacta al administrador para coordinar una reunión.</p>
@@ -632,7 +632,7 @@ export default function AgendaPage() {
 
           {/* Panel de citas del cliente */}
           <div className="lg:col-span-1 space-y-4">
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-5">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-5">
               <h3 className="font-bold text-white text-sm mb-4 flex items-center gap-2">
                 <CalendarCheck size={15} className="text-[#20CDFE]" />
                 Mis Citas Programadas
@@ -656,11 +656,11 @@ export default function AgendaPage() {
                       <div
                         key={apt.id}
                         className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all
-                          ${apt.status === "cancelled" ? "border-[#2E455C]/30 bg-[#2E455C]/10 opacity-60" : "border-emerald-100 bg-emerald-50/20"}`}
+                          ${apt.status === "cancelled" ? "border-[#20CDFE]/10 bg-[#0F192E] opacity-60" : "border-emerald-100 bg-emerald-50/20"}`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase
-                            ${apt.status === "booked" ? "text-emerald-700 bg-emerald-100" : "text-slate-400 bg-[#2E455C]/30"}`}>
+                            ${apt.status === "booked" ? "text-emerald-700 bg-emerald-100" : "text-slate-400 bg-[#1C2C4D]"}`}>
                             {apt.status === "booked" ? "Agendada" : "Cancelada"}
                           </span>
                           <span className="text-[10px] text-slate-400 font-semibold">{formatDate(apt.date)}</span>
@@ -669,7 +669,7 @@ export default function AgendaPage() {
                           {apt.title || "Reunión"}
                         </h4>
                         {apt.notes && <p className="text-[11px] text-slate-400 line-clamp-2">{apt.notes}</p>}
-                        <div className="flex items-center justify-between border-t border-[#2E455C]/30/60 pt-2 text-xs">
+                        <div className="flex items-center justify-between border-t border-[#20CDFE]/10/60 pt-2 text-xs">
                           <span className="text-[#20CDFE] font-bold flex items-center gap-1">
                             <Clock size={11} /> {apt.start_time} – {apt.end_time}
                           </span>
@@ -702,13 +702,13 @@ export default function AgendaPage() {
       {/* ── Modal Reservar Cita ── */}
       {selectedSlot && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#07060B]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#2E455C]/50 w-full max-w-md animate-fade-in">
-            <div className="flex items-center justify-between p-6 border-b border-[#2E455C]/30">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-md animate-fade-in">
+            <div className="flex items-center justify-between p-6 border-b border-[#20CDFE]/10">
               <div>
                 <h3 className="text-lg font-bold text-white">Solicitar Cita</h3>
                 <p className="text-xs text-slate-400 mt-0.5">Completa los datos de tu reunión.</p>
               </div>
-              <button onClick={() => setSelectedSlot(null)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#2E455C]/30 text-slate-400 hover:text-slate-300 transition-colors">
+              <button onClick={() => setSelectedSlot(null)} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-[#1C2C4D] text-slate-400 hover:text-slate-300 transition-colors">
                 <X size={18} />
               </button>
             </div>
@@ -733,7 +733,7 @@ export default function AgendaPage() {
                   placeholder="Ej. Revisión de avance del proyecto"
                   value={bookTitle}
                   onChange={e => setBookTitle(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
+                  className="w-full px-3.5 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                 />
               </div>
 
@@ -744,7 +744,7 @@ export default function AgendaPage() {
                   value={bookNotes}
                   onChange={e => setBookNotes(e.target.value)}
                   rows={3}
-                  className="w-full px-3.5 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all resize-none"
+                  className="w-full px-3.5 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all resize-none"
                 />
               </div>
 
@@ -752,7 +752,7 @@ export default function AgendaPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedSlot(null)}
-                  className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm text-slate-300 hover:bg-[#2E455C]/20 transition-colors"
+                  className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors"
                 >
                   Cancelar
                 </button>

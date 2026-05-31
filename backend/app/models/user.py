@@ -6,7 +6,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.utils.enums import UserRole
+import sqlalchemy as sa
 
+user_departments = sa.Table(
+    "user_departments",
+    Base.metadata,
+    sa.Column("user_id", sa.Integer, sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+    sa.Column("department_id", sa.Integer, sa.ForeignKey("departments.id", ondelete="CASCADE"), primary_key=True),
+)
 
 class User(Base):
     __tablename__ = "users"
@@ -21,7 +28,6 @@ class User(Base):
         nullable=False,
     )
     position: Mapped[str | None] = mapped_column(String(100))  # filmmaker, editora, diseñador, etc.
-    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id", ondelete="SET NULL"), nullable=True)
     company_id: Mapped[int | None] = mapped_column(ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     avatar_url: Mapped[str | None] = mapped_column(String(500))
@@ -36,7 +42,9 @@ class User(Base):
 
     # Relaciones
     company: Mapped["Company | None"] = relationship("Company", back_populates="users")
-    department: Mapped["Department | None"] = relationship("Department", back_populates="users")
+    departments: Mapped[list["Department"]] = relationship(
+        "Department", secondary=user_departments, back_populates="users"
+    )
 
     assigned_activities: Mapped[list["Activity"]] = relationship(
         "Activity", foreign_keys="Activity.assigned_user_id", back_populates="assigned_user"

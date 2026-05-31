@@ -39,14 +39,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#07060B] text-white selection:bg-[#20CDFE]/30">
+    <div className="min-h-screen flex bg-[#0A101D] text-white selection:bg-[#20CDFE]/30">
       {/* ─── Panel izquierdo decorativo ─── */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden bg-gradient-to-br from-[#07060B] to-[#2E455C]/40 border-r border-[#2E455C]/30">
+      <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 relative overflow-hidden bg-gradient-to-br from-[#07060B] to-[#2E455C]/40 border-r border-[#20CDFE]/10">
         <div className="absolute inset-0 opacity-20">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="absolute rounded-full border border-[#20CDFE]/20"
+              className="absolute rounded-full border border-[#20CDFE]/15"
               style={{
                 width: `${150 + i * 100}px`,
                 height: `${150 + i * 100}px`,
@@ -63,7 +63,7 @@ export default function LoginPage() {
 
         <div className="relative text-center z-10 flex flex-col items-center">
           {/* Logo representation */}
-          <div className="flex flex-col items-center justify-center mb-8 bg-[#2E455C]/20 p-6 rounded-3xl border border-[#20CDFE]/20 backdrop-blur-md shadow-[0_0_40px_rgba(32,205,254,0.1)]">
+          <div className="flex flex-col items-center justify-center mb-8 bg-[#15233D] p-6 rounded-3xl border border-[#20CDFE]/15 backdrop-blur-md shadow-[0_0_40px_rgba(32,205,254,0.1)]">
             <span className="text-sm font-bold tracking-[0.2em] text-white/80 -mb-2 ml-[-60px]">TU</span>
             <div className="flex items-center">
               <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] tracking-tighter">CREA</span>
@@ -80,7 +80,7 @@ export default function LoginPage() {
               { label: "Actividades", value: "360°" },
               { label: "Equipos", value: "✓" },
             ].map((s) => (
-              <div key={s.label} className="bg-[#2E455C]/30 rounded-2xl p-5 backdrop-blur-md border border-[#2E455C]/50 hover:bg-[#2E455C]/50 transition-colors">
+              <div key={s.label} className="bg-[#1C2C4D] rounded-2xl p-5 backdrop-blur-md border border-[#20CDFE]/10 hover:bg-[#2E455C]/50 transition-colors">
                 <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] mb-1">{s.value}</div>
                 <div className="text-slate-400 text-xs uppercase tracking-wider font-semibold">{s.label}</div>
               </div>
@@ -104,7 +104,7 @@ export default function LoginPage() {
             <span className="text-xs font-bold tracking-[0.3em] text-white ml-[40px]">TEGA</span>
           </div>
 
-          <div className="bg-[#2E455C]/20 rounded-3xl shadow-2xl p-8 lg:p-10 border border-[#2E455C]/50 backdrop-blur-xl">
+          <div className="bg-[#15233D] rounded-3xl shadow-2xl p-8 lg:p-10 border border-[#20CDFE]/10 backdrop-blur-xl">
             <h2 className="text-3xl font-bold text-white mb-2">Bienvenido</h2>
             <p className="text-slate-400 mb-8 font-light">Ingresa tus credenciales para continuar</p>
 
@@ -118,7 +118,7 @@ export default function LoginPage() {
                   {...register("email")}
                   type="email"
                   placeholder="ejemplo@correo.com"
-                  className="w-full px-5 py-4 rounded-xl border border-[#2E455C] bg-[#07060B]/50 focus:bg-[#07060B] focus:border-[#20CDFE] focus:ring-1 focus:ring-[#20CDFE] outline-none transition-all text-white placeholder:text-slate-600"
+                  className="w-full px-5 py-4 rounded-xl border border-[#2E455C] bg-[#0A101D]/50 focus:bg-[#0A101D] focus:border-[#20CDFE] focus:ring-1 focus:ring-[#20CDFE] outline-none transition-all text-white placeholder:text-slate-600"
                 />
                 {errors.email && (
                   <p className="text-[#ff5252] text-xs mt-2">{errors.email.message}</p>
@@ -135,7 +135,7 @@ export default function LoginPage() {
                     {...register("password")}
                     type={showPass ? "text" : "password"}
                     placeholder="••••••••"
-                    className="w-full px-5 py-4 pr-12 rounded-xl border border-[#2E455C] bg-[#07060B]/50 focus:bg-[#07060B] focus:border-[#20CDFE] focus:ring-1 focus:ring-[#20CDFE] outline-none transition-all text-white placeholder:text-slate-600"
+                    className="w-full px-5 py-4 pr-12 rounded-xl border border-[#2E455C] bg-[#0A101D]/50 focus:bg-[#0A101D] focus:border-[#20CDFE] focus:ring-1 focus:ring-[#20CDFE] outline-none transition-all text-white placeholder:text-slate-600"
                   />
                   <button
                     type="button"

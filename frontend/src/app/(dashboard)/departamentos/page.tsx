@@ -108,9 +108,9 @@ export default function DepartamentosPage() {
         </button>
       </div>
 
-      <div className="bg-[#07060B]/80 rounded-2xl shadow-sm border border-[#2E455C]/30 overflow-hidden">
+      <div className="bg-[#0A101D]/80 rounded-2xl shadow-sm border border-[#20CDFE]/10 overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-[#2E455C]/20 border-b border-[#2E455C]/30 text-slate-400 text-xs uppercase font-semibold">
+          <thead className="bg-[#15233D] border-b border-[#20CDFE]/10 text-slate-400 text-xs uppercase font-semibold">
             <tr>
               <th className="px-6 py-4">Nombre</th>
               <th className="px-6 py-4">Descripción</th>
@@ -120,17 +120,17 @@ export default function DepartamentosPage() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {departments.map((dept) => (
-              <tr key={dept.id} className="hover:bg-[#2E455C]/20 transition-colors">
+              <tr key={dept.id} className="hover:bg-[#15233D] transition-colors">
                 <td className="px-6 py-4 font-medium text-white">{dept.name}</td>
                 <td className="px-6 py-4 text-slate-400">{dept.description || "-"}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${dept.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-[#2E455C]/30 text-slate-300'}`}>
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${dept.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-[#1C2C4D] text-slate-300'}`}>
                     {dept.is_active ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-2">
-                    <button onClick={() => handleOpenModal(dept)} className="p-2 text-slate-400 hover:text-[#20CDFE] hover:bg-[#2E455C]/20 rounded-lg transition-colors">
+                    <button onClick={() => handleOpenModal(dept)} className="p-2 text-slate-400 hover:text-[#20CDFE] hover:bg-[#15233D] rounded-lg transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete(dept.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
@@ -154,8 +154,8 @@ export default function DepartamentosPage() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#07060B]/80 rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#2E455C]/30 flex justify-between items-center bg-[#2E455C]/20">
+          <div className="bg-[#0A101D]/80 rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-[#20CDFE]/10 flex justify-between items-center bg-[#15233D]">
               <h3 className="font-bold text-white">
                 {editingDept ? "Editar Departamento" : "Nuevo Departamento"}
               </h3>
@@ -170,7 +170,7 @@ export default function DepartamentosPage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-[#2E455C]/50 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
+                    className="w-full px-3 py-2 border border-[#20CDFE]/10 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
                     placeholder="Ej. Diseño Gráfico"
                   />
                 </div>
@@ -179,7 +179,7 @@ export default function DepartamentosPage() {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-[#2E455C]/50 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
+                    className="w-full px-3 py-2 border border-[#20CDFE]/10 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
                     placeholder="Opcional"
                     rows={3}
                   />
@@ -197,9 +197,9 @@ export default function DepartamentosPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">Operadores del Departamento</label>
-                  <div className="bg-[#2E455C]/20 border border-[#2E455C]/50 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                  <div className="bg-[#15233D] border border-[#20CDFE]/10 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
                     {users.map((user) => (
-                      <label key={user.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-[#2E455C]/30 rounded">
+                      <label key={user.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-[#1C2C4D] rounded">
                         <input 
                           type="checkbox"
                           className="rounded text-[#20CDFE] focus:ring-violet-500 w-4 h-4"
@@ -226,7 +226,7 @@ export default function DepartamentosPage() {
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-slate-300 hover:bg-[#2E455C]/30 font-medium rounded-xl transition-colors"
+                  className="px-4 py-2 text-slate-300 hover:bg-[#1C2C4D] font-medium rounded-xl transition-colors"
                 >
                   Cancelar
                 </button>

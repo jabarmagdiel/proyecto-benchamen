@@ -46,6 +46,7 @@ CREATE TABLE companies (
 CREATE TABLE projects (
     id                      SERIAL PRIMARY KEY,
     company_id              INT NOT NULL REFERENCES companies(id) ON DELETE RESTRICT,
+    department_id           INT,
     main_responsible_id     INT REFERENCES users(id) ON DELETE SET NULL,
     name                    VARCHAR(250) NOT NULL,
     description             TEXT,
@@ -61,6 +62,7 @@ CREATE TABLE projects (
 CREATE TABLE activities (
     id                  SERIAL PRIMARY KEY,
     project_id          INT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    workflow_id         INT,
     assigned_user_id    INT REFERENCES users(id) ON DELETE SET NULL,
     created_by_id       INT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     approved_by_id      INT REFERENCES users(id) ON DELETE SET NULL,
@@ -74,6 +76,13 @@ CREATE TABLE activities (
     approved_at         TIMESTAMPTZ,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ─── Departamentos y Usuarios (Muchos a Muchos) ───────────────────────────────
+CREATE TABLE user_departments (
+    user_id             INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    department_id       INT NOT NULL,
+    PRIMARY KEY (user_id, department_id)
 );
 
 -- ─── Evidencias ───────────────────────────────────────────────────────────────

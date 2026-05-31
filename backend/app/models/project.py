@@ -11,7 +11,7 @@ class Project(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     company_id: Mapped[int] = mapped_column(ForeignKey("companies.id", ondelete="RESTRICT"), nullable=False)
-    workflow_id: Mapped[int | None] = mapped_column(ForeignKey("workflows.id", ondelete="SET NULL"))
+    department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id", ondelete="SET NULL"))
     main_responsible_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     name: Mapped[str] = mapped_column(String(250), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(Text)
@@ -38,7 +38,7 @@ class Project(Base):
 
     # Relaciones
     company: Mapped["Company"] = relationship("Company", back_populates="projects")
-    workflow: Mapped["Workflow | None"] = relationship("Workflow", back_populates="projects")
+    department: Mapped["Department | None"] = relationship("Department")
     main_responsible: Mapped["User | None"] = relationship("User", foreign_keys=[main_responsible_id])
     activities: Mapped[list["Activity"]] = relationship(
         "Activity", back_populates="project", cascade="all, delete-orphan"

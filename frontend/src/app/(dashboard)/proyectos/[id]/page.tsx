@@ -7,8 +7,8 @@ import {
   ArrowLeft, Plus, Search, Eye, ClipboardList, Calendar,
   User as UserIcon, Building2, AlertTriangle
 } from "lucide-react";
-import { projectsApi, activitiesApi, usersApi, departmentsApi } from "@/lib/api";
-import type { Project, Activity, User as UserType } from "@/types";
+import { projectsApi, activitiesApi, usersApi, departmentsApi, workflowsApi } from "@/lib/api";
+import type { Project, Activity, User as UserType, Workflow } from "@/types";
 import { ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { formatDate } from "@/lib/utils";
@@ -27,6 +27,7 @@ const schema = z.object({
   assigned_user_id: z.coerce.number().optional().nullable(),
   start_date: z.string().optional(),
   deadline: z.string().optional(),
+  workflow_id: z.coerce.number().optional().nullable(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -40,6 +41,7 @@ export default function ProjectDetailPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -55,16 +57,18 @@ export default function ProjectDetailPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [projRes, actRes, usrRes, depRes] = await Promise.all([
+      const [projRes, actRes, usrRes, depRes, wfRes] = await Promise.all([
         projectsApi.get(projectId),
         activitiesApi.list({ project_id: projectId }),
         usersApi.list(),
         departmentsApi.getAll(),
+        workflowsApi.list()
       ]);
       setProject(projRes.data);
       setActivities(actRes.data);
       setUsers(usrRes.data);
       setDepartments(depRes.data);
+      setWorkflows(wfRes.data);
     } catch (err) {
       console.error("Error loading project details:", err);
     } finally {
@@ -88,6 +92,7 @@ export default function ProjectDetailPage() {
       if (!payload.start_date) payload.start_date = null;
       if (!payload.deadline) payload.deadline = null;
       if (payload.assigned_user_id === 0) payload.assigned_user_id = null;
+      if (payload.workflow_id === 0) payload.workflow_id = null;
       
       await activitiesApi.create(payload);
       showToast("Actividad creada correctamente");
@@ -125,6 +130,7 @@ export default function ProjectDetailPage() {
       description: "",
       start_date: "",
       deadline: "",
+      workflow_id: null,
     });
     setModalOpen(true);
   };
@@ -168,12 +174,12 @@ export default function ProjectDetailPage() {
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-[#2E455C]/30 text-slate-400 hover:text-slate-300 transition-colors">
+          <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-[#1C2C4D] text-slate-400 hover:text-slate-300 transition-colors">
             <ArrowLeft size={18} />
           </button>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="text-xs bg-[#2E455C]/30 text-slate-300 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
+              <span className="text-xs bg-[#1C2C4D] text-slate-300 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
                 <Building2 size={12} /> {project.company?.name}
               </span>
               <span className="text-xs bg-violet-50 text-[#20CDFE] px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
@@ -192,7 +198,7 @@ export default function ProjectDetailPage() {
         {/* Resumen e información general */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Tarjeta de información */}
-          <div className="lg:col-span-2 bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-6 shadow-sm space-y-4">
+          <div className="lg:col-span-2 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-6 shadow-sm space-y-4">
             <div>
               <h3 className="font-semibold text-white text-base mb-2">Descripción del Proyecto</h3>
               <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
@@ -220,14 +226,14 @@ export default function ProjectDetailPage() {
           </div>
 
           {/* Tarjeta de progreso */}
-          <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-6 shadow-sm flex flex-col justify-between">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-6 shadow-sm flex flex-col justify-between">
             <div>
               <h3 className="font-semibold text-white text-base mb-4">Progreso del Proyecto</h3>
               <div className="flex items-baseline gap-2 mb-2">
                 <span className="text-3xl font-extrabold text-white">{progressPercent}%</span>
                 <span className="text-xs text-slate-400 font-medium">completado</span>
               </div>
-              <div className="w-full bg-[#2E455C]/30 h-3 rounded-full overflow-hidden mb-4">
+              <div className="w-full bg-[#1C2C4D] h-3 rounded-full overflow-hidden mb-4">
                 <div className="bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] h-full rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
               </div>
             </div>
@@ -252,13 +258,13 @@ export default function ProjectDetailPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar actividad en este proyecto..."
-              className="pl-9 pr-4 py-2.5 rounded-xl border border-[#2E455C]/50 bg-[#07060B]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200"
+              className="pl-9 pr-4 py-2.5 rounded-xl border border-[#20CDFE]/10 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2.5 border border-[#2E455C]/50 rounded-xl bg-[#07060B]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
+            className="px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
           >
             <option value="">Todos los estados</option>
             {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => (
@@ -268,7 +274,7 @@ export default function ProjectDetailPage() {
         </div>
 
         {/* Listado de actividades */}
-        <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm overflow-hidden">
+        <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
           {filteredActivities.length === 0 ? (
             <div className="text-center py-16 text-slate-400">
               <ClipboardList size={40} className="mx-auto mb-3 opacity-30" />
@@ -279,7 +285,7 @@ export default function ProjectDetailPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-[#2E455C]/30 bg-[#2E455C]/10 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                  <tr className="border-b border-[#20CDFE]/10 bg-[#0F192E] text-slate-400 text-xs font-semibold uppercase tracking-wider">
                     <th className="px-6 py-3.5">Actividad</th>
                     <th className="px-6 py-3.5">Tipo</th>
                     <th className="px-6 py-3.5">Prioridad</th>
@@ -291,7 +297,7 @@ export default function ProjectDetailPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm text-white">
                   {filteredActivities.map((act) => (
-                    <tr key={act.id} className="hover:bg-[#2E455C]/20/30 transition-colors">
+                    <tr key={act.id} className="hover:bg-[#15233D]/30 transition-colors">
                       <td className="px-6 py-4">
                         <span className="font-semibold text-white">{act.title}</span>
                       </td>
@@ -309,14 +315,14 @@ export default function ProjectDetailPage() {
                           if (act.current_stage?.department) {
                             const targetDep = departments.find(d => d.name === act.current_stage?.department);
                             if (targetDep) {
-                              allowedUsers = users.filter(u => u.department_id === targetDep.id);
+                              allowedUsers = users.filter(u => u.departments?.some(d => d.id === targetDep.id));
                             }
                           }
                           return (
                             <select
                               value={act.assigned_user_id || ""}
                               onChange={(e) => handleAssignUser(act.id, e.target.value)}
-                              className="bg-[#2E455C]/20 border border-[#2E455C]/50 text-white text-xs rounded-lg focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] block w-full p-1.5"
+                              className="bg-[#15233D] border border-[#20CDFE]/10 text-white text-xs rounded-lg focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] block w-full p-1.5"
                             >
                               <option value="">Sin asignar</option>
                               {allowedUsers.map(u => (
@@ -351,8 +357,8 @@ export default function ProjectDetailPage() {
       {/* Modal crear actividad */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#07060B]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#2E455C]/50 w-full max-w-lg animate-fade-in max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-[#2E455C]/30 shrink-0">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-lg animate-fade-in max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-[#20CDFE]/10 shrink-0">
               <h3 className="text-lg font-bold text-white">Nueva actividad</h3>
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 text-2xl leading-none cursor-pointer">&times;</button>
             </div>
@@ -364,29 +370,29 @@ export default function ProjectDetailPage() {
                     type="text"
                     disabled
                     value={project.name}
-                    className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm bg-[#2E455C]/20 text-slate-400 focus:outline-none"
+                    className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm bg-[#15233D] text-slate-400 focus:outline-none"
                   />
                   <input type="hidden" {...register("project_id")} value={projectId} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Título *</label>
-                  <input {...register("title")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                  <input {...register("title")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                   {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Descripción</label>
-                  <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
+                  <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo</label>
-                    <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                    <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                       {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Rol de la Tarea</label>
-                    <select {...register("node_type")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                    <select {...register("node_type")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                       <option value="task">Tarea Estándar</option>
                       <option value="decision">Decisión</option>
                     </select>
@@ -395,7 +401,7 @@ export default function ProjectDetailPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Prioridad</label>
-                    <select {...register("priority")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                    <select {...register("priority")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                       <option value="baja">Baja</option>
                       <option value="media">Media</option>
                       <option value="alta">Alta</option>
@@ -411,7 +417,7 @@ export default function ProjectDetailPage() {
                       min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
                       max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
                       {...register("start_date")} 
-                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
+                      className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
                     />
                   </div>
                   <div>
@@ -421,11 +427,20 @@ export default function ProjectDetailPage() {
                       min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
                       max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
                       {...register("deadline")} 
-                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
+                      className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Flujo de Trabajo</label>
+                      <select {...register("workflow_id")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                        <option value="">Ninguno (Tarea Simple)</option>
+                        {workflows.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Departamento</label>
                     <select 
@@ -435,7 +450,7 @@ export default function ProjectDetailPage() {
                         // Resetear el responsable si cambia el departamento
                         reset({ ...register, assigned_user_id: null });
                       }}
-                      className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
+                      className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
                     >
                       <option value="">Todos los departamentos</option>
                       {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
@@ -443,18 +458,18 @@ export default function ProjectDetailPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Responsable</label>
-                    <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                    <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                       <option value="">Sin asignar</option>
                       {users
-                        .filter(u => !selectedDepartmentId || u.department_id === Number(selectedDepartmentId))
+                        .filter(u => !selectedDepartmentId || u.departments?.some(d => d.id === Number(selectedDepartmentId)))
                         .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
                       }
                     </select>
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3 p-6 border-t border-[#2E455C]/30 bg-[#2E455C]/10 shrink-0">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 bg-[#07060B]/80 rounded-xl text-sm text-slate-300 hover:bg-[#2E455C]/20 transition-colors">Cancelar</button>
+              <div className="flex gap-3 p-6 border-t border-[#20CDFE]/10 bg-[#0F192E] shrink-0">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 bg-[#0A101D]/80 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors">Cancelar</button>
                 <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-violet-500/10">
                   {submitting ? "Creando..." : "Crear actividad"}
                 </button>

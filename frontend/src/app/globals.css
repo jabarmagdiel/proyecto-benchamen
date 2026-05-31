@@ -29,9 +29,19 @@
 }
 
 body {
-  background-color: hsl(210, 40%, 98%);
-  color: hsl(var(--foreground));
+  background-color: #07060B;
+  color: #ffffff;
   font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+
+/* ─── Elementos de formulario nativos ────────────────────────── */
+input, select, textarea {
+  color-scheme: dark;
+}
+select option {
+  background-color: #07060B;
+  color: #ffffff;
 }
 
 /* ─── Scrollbar personalizada ─────────────────────────────────── */

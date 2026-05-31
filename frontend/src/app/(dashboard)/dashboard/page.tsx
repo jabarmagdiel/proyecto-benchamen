@@ -64,7 +64,7 @@ const STATUS_ICONS: Record<string, any> = {
 };
 
 const STATUS_BORDER_COLORS: Record<string, string> = {
-  pendiente: "border-[#2E455C]/50 bg-[#2E455C]/20 text-slate-600",
+  pendiente: "border-[#20CDFE]/10 bg-[#15233D] text-slate-600",
   asignada: "border-indigo-200 bg-indigo-50 text-[#20CDFE]",
   en_proceso: "border-violet-200 bg-[#20CDFE]/20 text-[#20CDFE]",
   en_revision: "border-blue-200 bg-blue-50 text-blue-600",
@@ -280,7 +280,7 @@ export default function DashboardPage() {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#07060B]/95 backdrop-blur-md border border-[#2E455C]/50 p-3 rounded-xl shadow-xl text-white text-xs font-semibold">
+        <div className="bg-[#0A101D]/95 backdrop-blur-md border border-[#20CDFE]/10 p-3 rounded-xl shadow-xl text-white text-xs font-semibold">
           <p className="capitalize">
             {payload[0].name}: <span className="font-extrabold text-violet-400 ml-1">{payload[0].value}</span>
           </p>
@@ -295,12 +295,12 @@ export default function DashboardPage() {
       
       {/* ─── Banner de bienvenida Premium ─── */}
       <div className="bg-gradient-to-r from-[#20CDFE]/20 via-[#2E455C]/40 to-[#07060B] border border-[#20CDFE]/30 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-indigo-900/15 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-[#07060B]/5 rounded-full blur-3xl -translate-y-12 translate-x-12 pointer-events-none" />
+        <div className="absolute right-0 top-0 w-96 h-96 bg-[#0A101D]/5 rounded-full blur-3xl -translate-y-12 translate-x-12 pointer-events-none" />
         <div className="absolute left-1/3 bottom-0 w-64 h-64 bg-[#20CDFE]/200/10 rounded-full blur-3xl translate-y-12 pointer-events-none" />
         
         <div className="relative z-10 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="bg-[#07060B]/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-indigo-100 flex items-center gap-1.5 border border-white/10">
+            <span className="bg-[#0A101D]/10 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-indigo-100 flex items-center gap-1.5 border border-[#20CDFE]/10">
               <Sparkles size={11} className="text-amber-300" />
               {user?.role === "administrador" ? "Panel Administrador" : user?.role === "cliente" ? "Portal de Clientes" : "Panel Operativo"}
             </span>
@@ -318,12 +318,12 @@ export default function DashboardPage() {
         </div>
 
         {stats && (
-          <div className="relative z-10 shrink-0 bg-[#07060B]/10 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex gap-4 text-center">
+          <div className="relative z-10 shrink-0 bg-[#0A101D]/10 backdrop-blur-md border border-[#20CDFE]/10 rounded-2xl p-4 flex gap-4 text-center">
             <div className="px-2">
               <p className="text-2xl font-black">{stats.total_projects}</p>
               <p className="text-[10px] text-indigo-200 font-semibold uppercase tracking-wider mt-0.5">Proyectos</p>
             </div>
-            <div className="w-px bg-[#07060B]/10" />
+            <div className="w-px bg-[#0A101D]/10" />
             <div className="px-2">
               <p className="text-2xl font-black text-emerald-300">{stats.approved_activities}</p>
               <p className="text-[10px] text-indigo-200 font-semibold uppercase tracking-wider mt-0.5">Aprobadas</p>
@@ -334,7 +334,7 @@ export default function DashboardPage() {
 
       {/* ─── FILTROS DEL DASHBOARD (Solo Admin y Operativo) ─── */}
       {user?.role !== "cliente" && (
-        <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-white text-sm font-bold">
             <TrendingUp size={16} className="text-[#20CDFE]" />
             Filtros del Panel:
@@ -344,7 +344,7 @@ export default function DashboardPage() {
               <select
                 value={selectedCompanyId}
                 onChange={e => handleCompanyChange(e.target.value)}
-                className="px-3 py-2 border border-[#2E455C]/50 rounded-xl bg-[#07060B] text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-violet-200"
+                className="px-3 py-2 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D] text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-violet-200"
               >
                 <option value="">Todas las empresas</option>
                 {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -354,7 +354,7 @@ export default function DashboardPage() {
             <select
               value={selectedProjectId}
               onChange={e => handleProjectChange(e.target.value)}
-              className="px-3 py-2 border border-[#2E455C]/50 rounded-xl bg-[#07060B] text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-violet-200"
+              className="px-3 py-2 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D] text-xs font-semibold text-white focus:outline-none focus:ring-2 focus:ring-violet-200"
             >
               <option value="">Todos los proyectos</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -385,7 +385,7 @@ export default function DashboardPage() {
             {loadingClientProjects ? (
               <div className="flex justify-center py-12"><div className="w-6 h-6 border-2 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
             ) : clientProjects.length === 0 ? (
-              <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-8 text-center text-slate-400 text-sm">
+              <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-8 text-center text-slate-400 text-sm">
                 No hay proyectos registrados para tu empresa en este momento.
               </div>
             ) : (
@@ -393,7 +393,7 @@ export default function DashboardPage() {
                 {clientProjects.map((proj) => {
                   const progress = proj.progress || 0;
                   return (
-                    <div key={proj.id} className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-5 shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                    <div key={proj.id} className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-5 shadow-sm flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                       <div>
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -437,7 +437,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-1 space-y-6">
             
             {/* Launchpad rápido */}
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-5 shadow-sm space-y-4">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-5 shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Sparkles size={15} className="text-[#20CDFE]" />
                 Accesos Rápidos
@@ -445,7 +445,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 gap-2.5">
                 <Link
                   href="/agenda"
-                  className="flex items-center justify-between p-3 rounded-xl border border-[#2E455C]/30 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
+                  className="flex items-center justify-between p-3 rounded-xl border border-[#20CDFE]/10 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
                 >
                   <span className="flex items-center gap-2 text-white">
                     <CalendarCheck size={16} className="text-[#20CDFE] group-hover:scale-110 transition-transform" />
@@ -456,7 +456,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/perfil"
-                  className="flex items-center justify-between p-3 rounded-xl border border-[#2E455C]/30 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
+                  className="flex items-center justify-between p-3 rounded-xl border border-[#20CDFE]/10 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
                 >
                   <span className="flex items-center gap-2 text-white">
                     <User size={16} className="text-[#20CDFE] group-hover:scale-110 transition-transform" />
@@ -468,7 +468,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Feed de Notificaciones */}
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-5 shadow-sm space-y-4">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-5 shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Bell size={15} className="text-[#20CDFE]" />
                 Notificaciones Recientes
@@ -480,7 +480,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {recentNotifications.map(n => (
-                    <div key={n.id} className="p-3 bg-[#2E455C]/20/60 rounded-xl border border-[#2E455C]/30 relative flex items-start gap-2.5">
+                    <div key={n.id} className="p-3 bg-[#15233D]/60 rounded-xl border border-[#20CDFE]/10 relative flex items-start gap-2.5">
                       <div className="w-1.5 h-1.5 rounded-full bg-violet-600 shrink-0 mt-1.5 animate-pulse" />
                       <div className="min-w-0 flex-1">
                         <h4 className="font-bold text-white text-xs leading-snug">{n.title}</h4>
@@ -515,7 +515,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Gráfico Donut: Distribución de Actividades */}
-            <div className="lg:col-span-2 bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
+            <div className="lg:col-span-2 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
               <div>
                 <h2 className="font-extrabold text-white text-base mb-1">Distribución de Actividades</h2>
                 <p className="text-slate-400 text-xs font-medium mb-6">Desglose porcentual y numérico por estado actual</p>
@@ -558,7 +558,7 @@ export default function DashboardPage() {
                       const color = STATUS_COLORS[item.status] || "#cbd5e1";
                       const percent = totalActivities > 0 ? Math.round((item.count / totalActivities) * 100) : 0;
                       return (
-                        <div key={item.status} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#2E455C]/30 hover:bg-[#2E455C]/20 transition-colors">
+                        <div key={item.status} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[#20CDFE]/10 hover:bg-[#15233D] transition-colors">
                           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
                           <div className="min-w-0">
                             <p className="text-[11px] font-bold text-white leading-none truncate capitalize">{STATUS_LABELS[item.status] || item.status}</p>
@@ -573,7 +573,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Panel de Tareas Desglosado con Barras de Avance */}
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
               <div>
                 <h2 className="font-extrabold text-white text-base mb-1">Estado de Tareas</h2>
                 <p className="text-slate-400 text-xs font-medium mb-4">Desglose de avance e hitos vigentes</p>
@@ -581,11 +581,11 @@ export default function DashboardPage() {
               <div className="space-y-3 flex-1 overflow-y-auto max-h-[260px] pr-1">
                 {activity_by_status.map((s) => {
                   const Icon = STATUS_ICONS[s.status] || ClipboardList;
-                  const borderStyles = STATUS_BORDER_COLORS[s.status] || "border-[#2E455C]/50 bg-[#2E455C]/20 text-slate-600";
+                  const borderStyles = STATUS_BORDER_COLORS[s.status] || "border-[#20CDFE]/10 bg-[#15233D] text-slate-600";
                   const percent = totalActivities > 0 ? Math.round((s.count / totalActivities) * 100) : 0;
 
                   return (
-                    <div key={s.status} className="flex items-center justify-between p-2 rounded-xl border border-[#2E455C]/30 hover:border-[#2E455C]/50 hover:shadow-sm transition-all duration-300 group">
+                    <div key={s.status} className="flex items-center justify-between p-2 rounded-xl border border-[#20CDFE]/10 hover:border-[#20CDFE]/10 hover:shadow-sm transition-all duration-300 group">
                       <div className="flex items-center gap-3">
                         <div className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 ${borderStyles}`}>
                           <Icon size={15} />
@@ -611,7 +611,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Gráfico de Barras: Rendimiento */}
-            <div className="lg:col-span-2 bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
+            <div className="lg:col-span-2 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
               <div className="mb-6">
                 <h2 className="font-extrabold text-white text-base mb-1">
                   {user?.role === "administrador" ? "Carga por Responsable" : "Mis Actividades por Proyecto"}
@@ -646,7 +646,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Actividades Atrasadas */}
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition-shadow duration-300">
               <div>
                 <h3 className="font-extrabold text-white text-base mb-1 flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
@@ -688,7 +688,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Launchpad Rápido de Acciones */}
-            <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-5 shadow-sm space-y-4">
+            <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-5 shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Sparkles size={15} className="text-[#20CDFE]" />
                 Launchpad de Acciones Rápidas
@@ -698,7 +698,7 @@ export default function DashboardPage() {
                   <>
                     <Link
                       href="/actividades"
-                      className="flex items-center justify-between p-3 rounded-xl border border-[#2E455C]/30 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
+                      className="flex items-center justify-between p-3 rounded-xl border border-[#20CDFE]/10 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
                     >
                       <span className="flex items-center gap-2 text-white">
                         <ClipboardList size={16} className="text-[#20CDFE] group-hover:scale-110 transition-transform" />
@@ -709,7 +709,7 @@ export default function DashboardPage() {
 
                     <Link
                       href="/proyectos"
-                      className="flex items-center justify-between p-3 rounded-xl border border-[#2E455C]/30 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
+                      className="flex items-center justify-between p-3 rounded-xl border border-[#20CDFE]/10 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
                     >
                       <span className="flex items-center gap-2 text-white">
                         <FolderKanban size={16} className="text-[#20CDFE] group-hover:scale-110 transition-transform" />
@@ -722,7 +722,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/agenda"
-                  className="flex items-center justify-between p-3 rounded-xl border border-[#2E455C]/30 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
+                  className="flex items-center justify-between p-3 rounded-xl border border-[#20CDFE]/10 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
                 >
                   <span className="flex items-center gap-2 text-white">
                     <CalendarCheck size={16} className="text-[#20CDFE] group-hover:scale-110 transition-transform" />
@@ -733,7 +733,7 @@ export default function DashboardPage() {
 
                 <Link
                   href="/perfil"
-                  className="flex items-center justify-between p-3 rounded-xl border border-[#2E455C]/30 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
+                  className="flex items-center justify-between p-3 rounded-xl border border-[#20CDFE]/10 hover:border-[#20CDFE]/50 hover:bg-[#20CDFE]/10 text-white font-semibold text-xs transition-all duration-300 group"
                 >
                   <span className="flex items-center gap-2 text-white">
                     <User size={16} className="text-[#20CDFE] group-hover:scale-110 transition-transform" />
@@ -745,7 +745,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Panel de Notificaciones Recientes (Últimas 3) */}
-            <div className="lg:col-span-2 bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 p-5 shadow-sm space-y-4">
+            <div className="lg:col-span-2 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-5 shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Bell size={15} className="text-[#20CDFE]" />
                 Mensajes y Notificaciones Recientes
@@ -757,7 +757,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {recentNotifications.map((n) => (
-                    <div key={n.id} className="p-3.5 bg-[#2E455C]/20/50 rounded-xl border border-[#2E455C]/50/30 flex flex-col justify-between gap-3 hover:bg-[#2E455C]/20 transition-colors">
+                    <div key={n.id} className="p-3.5 bg-[#15233D]/50 rounded-xl border border-[#20CDFE]/10/30 flex flex-col justify-between gap-3 hover:bg-[#15233D] transition-colors">
                       <div className="space-y-1">
                         <div className="flex items-center justify-between gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-violet-600 animate-pulse" />
@@ -768,7 +768,7 @@ export default function DashboardPage() {
                       </div>
                       <button
                         onClick={() => handleReadNotification(n.id)}
-                        className="text-[9px] font-extrabold text-[#20CDFE] hover:text-violet-800 border-t border-[#2E455C]/50 pt-2 text-left"
+                        className="text-[9px] font-extrabold text-[#20CDFE] hover:text-violet-800 border-t border-[#20CDFE]/10 pt-2 text-left"
                       >
                         Marcar como leída
                       </button>
@@ -784,8 +784,8 @@ export default function DashboardPage() {
       {/* ─── MODAL ENTREGABLES FINALES (Solo para Clientes) ─── */}
       {deliverablesModalProject && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#07060B] rounded-2xl shadow-2xl w-full max-w-2xl animate-fade-in max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-[#2E455C]/50 shrink-0">
+          <div className="bg-[#0A101D] rounded-2xl shadow-2xl w-full max-w-2xl animate-fade-in max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-[#20CDFE]/10 shrink-0">
               <div>
                 <h3 className="text-lg font-bold text-white">Producto Final / Entregables</h3>
                 <p className="text-xs text-slate-400 mt-0.5">Proyecto: <span className="font-semibold text-slate-600">{deliverablesModalProject.name}</span></p>
@@ -812,8 +812,8 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-6">
                   {projectDeliverables.map((item) => (
-                    <div key={item.activity.id} className="p-4 rounded-xl border border-[#2E455C]/50 bg-[#2E455C]/20/20 space-y-3">
-                      <div className="flex items-center justify-between border-b border-[#2E455C]/50/50 pb-2">
+                    <div key={item.activity.id} className="p-4 rounded-xl border border-[#20CDFE]/10 bg-[#15233D]/20 space-y-3">
+                      <div className="flex items-center justify-between border-b border-[#20CDFE]/10/50 pb-2">
                         <span className="font-bold text-white text-sm">{item.activity.title}</span>
                         <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full uppercase tracking-wider">Aprobado</span>
                       </div>
@@ -825,7 +825,7 @@ export default function DashboardPage() {
                           const name = ev.file_name || "Archivo de evidencia";
 
                           return (
-                            <div key={ev.id} className="p-3 bg-[#07060B] border border-[#2E455C]/50 rounded-xl flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition-shadow">
+                            <div key={ev.id} className="p-3 bg-[#0A101D] border border-[#20CDFE]/10 rounded-xl flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition-shadow">
                               <div className="min-w-0">
                                 <p className="font-bold text-white text-xs truncate" title={name}>{name}</p>
                                 <p className="text-[9px] text-slate-400 mt-0.5 capitalize">Tipo: {ev.evidence_type.replace("_", " ")}</p>
@@ -851,10 +851,10 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="p-6 border-t border-[#2E455C]/50 bg-[#2E455C]/20/50 shrink-0 flex justify-end">
+            <div className="p-6 border-t border-[#20CDFE]/10 bg-[#15233D]/50 shrink-0 flex justify-end">
               <button 
                 onClick={() => setDeliverablesModalProject(null)}
-                className="px-5 py-2.5 border border-[#2E455C]/50 bg-[#07060B] rounded-xl text-sm font-semibold text-slate-600 hover:bg-[#2E455C]/20 transition-colors"
+                className="px-5 py-2.5 border border-[#20CDFE]/10 bg-[#0A101D] rounded-xl text-sm font-semibold text-slate-600 hover:bg-[#15233D] transition-colors"
               >
                 Cerrar Ventana
               </button>

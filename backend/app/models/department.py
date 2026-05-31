@@ -12,4 +12,4 @@ class Department(Base):
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    users: Mapped[list["User"]] = relationship("User", back_populates="department")
+    users: Mapped[list["User"]] = relationship("User", secondary="user_departments", back_populates="departments")

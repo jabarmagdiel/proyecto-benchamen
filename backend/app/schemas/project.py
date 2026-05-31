@@ -15,7 +15,7 @@ class ProjectCreate(BaseModel):
     status: ProjectStatus = ProjectStatus.PLANNED
     priority: Priority = Priority.MEDIUM
     main_responsible_id: Optional[int] = None
-    workflow_id: Optional[int] = None
+    department_id: Optional[int] = None
 
     @field_validator("deadline")
     @classmethod
@@ -35,7 +35,7 @@ class ProjectUpdate(BaseModel):
     status: Optional[ProjectStatus] = None
     priority: Optional[Priority] = None
     main_responsible_id: Optional[int] = None
-    workflow_id: Optional[int] = None
+    department_id: Optional[int] = None
 
 
 class ProjectResponse(BaseModel):
@@ -52,7 +52,7 @@ class ProjectResponse(BaseModel):
     updated_at: datetime
     company: Optional[CompanyResponse] = None
     main_responsible: Optional[UserListResponse] = None
-    workflow_id: Optional[int] = None
+    department_id: Optional[int] = None
     activity_count: Optional[int] = 0
     progress: Optional[float] = 0.0  # porcentaje de actividades aprobadas
 

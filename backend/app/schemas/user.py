@@ -11,7 +11,7 @@ class UserCreate(BaseModel):
     role: UserRole = UserRole.OPERATIVE
     position: Optional[str] = None
     company_id: Optional[int] = None
-    department_id: Optional[int] = None
+    department_ids: Optional[list[int]] = []
 
     @field_validator("password")
     @classmethod
@@ -28,7 +28,7 @@ class UserUpdate(BaseModel):
     position: Optional[str] = None
     is_active: Optional[bool] = None
     company_id: Optional[int] = None
-    department_id: Optional[int] = None
+    department_ids: Optional[list[int]] = None
 
 
 class UserPasswordUpdate(BaseModel):
@@ -58,7 +58,7 @@ class UserResponse(BaseModel):
     is_active: bool
     avatar_url: Optional[str]
     company_id: Optional[int]
-    department_id: Optional[int]
+    departments: list[dict] = []
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -72,7 +72,7 @@ class UserListResponse(BaseModel):
     position: Optional[str]
     is_active: bool
     company_id: Optional[int]
-    department_id: Optional[int]
+    departments: list[dict] = []
     created_at: datetime
 
     model_config = {"from_attributes": True}

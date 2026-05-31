@@ -14,6 +14,7 @@ class ActivityCreate(BaseModel):
     node_type: str = "task"
     priority: Priority = Priority.MEDIUM
     assigned_user_id: Optional[int] = None
+    workflow_id: Optional[int] = None
     start_date: Optional[date] = None
     deadline: Optional[date] = None
 
@@ -33,6 +34,7 @@ class ActivityUpdate(BaseModel):
     node_type: Optional[str] = None
     priority: Optional[Priority] = None
     assigned_user_id: Optional[int] = None
+    workflow_id: Optional[int] = None
     start_date: Optional[date] = None
     deadline: Optional[date] = None
     status: Optional[ActivityStatus] = None
@@ -53,6 +55,7 @@ class ActivityResponse(BaseModel):
     priority: Priority
     status: ActivityStatus
     current_stage_id: Optional[int] = None
+    workflow_id: Optional[int] = None
     assigned_user_id: Optional[int]
     created_by_id: int
     approved_by_id: Optional[int]
@@ -88,6 +91,7 @@ class ActivityListResponse(BaseModel):
     node_type: str = "task"
     priority: Priority
     status: ActivityStatus
+    workflow_id: Optional[int] = None
     deadline: Optional[date]
     assigned_user: Optional[UserListResponse] = None
     project_name: Optional[str] = None

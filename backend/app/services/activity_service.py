@@ -138,10 +138,32 @@ def get_by_id(db: Session, activity_id: int) -> Activity:
 
 
 def create(db: Session, data: ActivityCreate, creator_id: int) -> Activity:
+    activity_data = data.model_dump()
+    
+    current_stage_id = None
+    if data.workflow_id:
+        from app.models.workflow import Workflow
+        workflow = db.query(Workflow).filter(Workflow.id == data.workflow_id).first()
+        if workflow and workflow.stages:
+            start_stage = next((s for s in workflow.stages if s.node_type == 'start'), None)
+            if start_stage:
+                from app.services.activity_service import evaluate_workflow_edges
+                target_stage_ids = evaluate_workflow_edges(db, start_stage.id, "approve", data.project_id)
+                if target_stage_ids:
+                    current_stage_id = target_stage_ids[0]
+            
+            if not current_stage_id:
+                # Fallback to first non-start stage
+                for stage in workflow.stages:
+                    if stage.node_type not in ['start', 'end']:
+                        current_stage_id = stage.id
+                        break
+                        
     activity = Activity(
-        **data.model_dump(),
+        **activity_data,
         created_by_id=creator_id,
         status=ActivityStatus.PENDING if not data.assigned_user_id else ActivityStatus.ASSIGNED,
+        current_stage_id=current_stage_id
     )
     db.add(activity)
     db.flush()
@@ -263,46 +285,48 @@ def _unlock_dependencies(db: Session, activity: Activity, action: str, current_u
     if not activity.current_stage_id:
         return
         
+    # Get next stages based on the action
     target_stage_ids = evaluate_workflow_edges(db, activity.current_stage_id, action, activity.project_id)
-    
-    for t_stage_id in target_stage_ids:
-        t_stage = db.query(WorkflowStage).filter(WorkflowStage.id == t_stage_id).first()
-        if t_stage and t_stage.node_type == 'end':
-            # Instead of finishing the project immediately, the end node activity goes to IN_REVIEW for the client
-            target_activity = db.query(Activity).filter(
-                Activity.project_id == activity.project_id,
-                Activity.current_stage_id == t_stage_id
-            ).first()
-            if target_activity:
-                prev_status = target_activity.status.value
-                target_activity.status = ActivityStatus.IN_REVIEW
-                _add_history(db, target_activity.id, current_user.id, HistoryAction.STATUS_CHANGED, "Aprobación final requerida por el cliente", prev_status, target_activity.status.value)
-                db.commit()
-            continue
-
-        target_activity = db.query(Activity).filter(
-            Activity.project_id == activity.project_id,
-            Activity.current_stage_id == t_stage_id
-        ).first()
+    if not target_stage_ids:
+        return
         
-        if target_activity:
-            prev_status = target_activity.status.value
-            target_activity.status = ActivityStatus.ASSIGNED if target_activity.assigned_user_id else ActivityStatus.PENDING
-            _add_history(db, target_activity.id, current_user.id, HistoryAction.STATUS_CHANGED, "Actividad desbloqueada por ruteo del workflow", prev_status, target_activity.status.value)
+    t_stage_id = target_stage_ids[0]
+    t_stage = db.query(WorkflowStage).filter(WorkflowStage.id == t_stage_id).first()
+    
+    if t_stage:
+        prev_stage_id = activity.current_stage_id
+        activity.current_stage_id = t_stage.id
+        
+        # Run on_exit automations for old stage
+        from app.services import automation_service as auto_svc
+        auto_svc.process_stage_automations(db, activity, prev_stage_id, "on_exit", current_user.id)
+        
+        if t_stage.node_type == 'end':
+            # It's fully completed
+            activity.status = ActivityStatus.APPROVED
+            _add_history(db, activity.id, current_user.id, HistoryAction.STATUS_CHANGED, "Flujo de trabajo finalizado", "Aprobada", "Completada")
+        else:
+            # Move to next stage and reset status
+            prev_status = activity.status.value
+            activity.status = ActivityStatus.ASSIGNED if activity.assigned_user_id else ActivityStatus.PENDING
+            _add_history(db, activity.id, current_user.id, HistoryAction.STATUS_CHANGED, f"Avanzó a la etapa {t_stage.name}", prev_status, activity.status.value)
             
-            if target_activity.assigned_user_id:
+            # Run on_enter automations for new stage
+            auto_svc.process_stage_automations(db, activity, t_stage.id, "on_enter", current_user.id)
+            
+            if activity.assigned_user_id:
                 try:
                     from app.services import notification_service as notification_svc
                     notification_svc.create_notification(
                         db,
-                        user_id=target_activity.assigned_user_id,
-                        title="Actividad Desbloqueada",
-                        message=f"La tarea '{target_activity.title}' ha sido asignada a ti por ruteo del workflow.",
-                        link=f"/actividades/{target_activity.id}"
+                        user_id=activity.assigned_user_id,
+                        title="Nueva etapa asignada",
+                        message=f"La actividad '{activity.title}' ha avanzado a '{t_stage.name}'.",
+                        link=f"/actividades/{activity.id}"
                     )
                 except Exception:
                     pass
-    db.commit()
+        db.commit()
 
 async def start_activity(db: Session, activity_id: int, current_user: User, bg: BackgroundTasks) -> Activity:
     """Operativo: Asignada → En Proceso"""

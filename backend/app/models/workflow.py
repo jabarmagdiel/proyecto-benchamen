@@ -30,7 +30,6 @@ class Workflow(Base):
     edges: Mapped[list["WorkflowEdge"]] = relationship(
         "WorkflowEdge", back_populates="workflow", cascade="all, delete-orphan"
     )
-    projects: Mapped[list["Project"]] = relationship("Project", back_populates="workflow")
 
 
 class WorkflowStage(Base):

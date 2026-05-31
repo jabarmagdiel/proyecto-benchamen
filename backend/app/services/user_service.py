@@ -32,6 +32,12 @@ def create(db: Session, data: UserCreate) -> User:
         position=data.position,
         company_id=data.company_id,
     )
+    
+    if data.department_ids:
+        from app.models.department import Department
+        deps = db.query(Department).filter(Department.id.in_(data.department_ids)).all()
+        user.departments = deps
+        
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -46,6 +52,14 @@ def update(db: Session, user_id: int, data: UserUpdate) -> User:
         existing = db.query(User).filter(User.email == update_data["email"], User.id != user_id).first()
         if existing:
             raise HTTPException(status_code=400, detail="El email ya está en uso")
+            
+    if "department_ids" in update_data:
+        dept_ids = update_data.pop("department_ids")
+        if dept_ids is not None:
+            from app.models.department import Department
+            deps = db.query(Department).filter(Department.id.in_(dept_ids)).all()
+            user.departments = deps
+            
     for key, val in update_data.items():
         setattr(user, key, val)
     db.commit()
@@ -119,7 +133,7 @@ def get_capacity(db: Session) -> List[dict]:
         results.append({
             "user_id": u.id,
             "name": u.name,
-            "department_name": u.department.name if getattr(u, 'department', None) else None,
+            "department_name": u.departments[0].name if u.departments else None,
             "active_activities_count": active_count,
             "weekly_tracked_hours": round(weekly_hours, 1),
             "capacity_status": status

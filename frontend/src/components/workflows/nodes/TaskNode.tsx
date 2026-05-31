@@ -5,7 +5,7 @@ export default function StageNode({ data }: any) {
   const { stage, updateStage } = data;
 
   return (
-    <div className="bg-[#07060B]/80 rounded-xl shadow-md border-2 border-[#2E455C]/50 p-4 w-64">
+    <div className="bg-[#0A101D]/80 rounded-xl shadow-md border-2 border-[#20CDFE]/10 p-4 w-64">
       <Handle type="target" position={Position.Top} className="w-3 h-3 bg-indigo-400" />
       
       <div className="mb-2">
@@ -14,9 +14,9 @@ export default function StageNode({ data }: any) {
         </span>
       </div>
 
-      <div className="bg-[#2E455C]/20 rounded-lg p-2 text-xs border border-[#2E455C]/30 mt-3">
+      <div className="bg-[#15233D] rounded-lg p-2 text-xs border border-[#20CDFE]/10 mt-3">
         <span className="text-slate-400 font-semibold mb-1 block">Departamento Asignado</span>
-        <span className="w-full block bg-[#07060B]/80 border border-[#2E455C]/50 rounded-md p-1 text-white text-center truncate">
+        <span className="w-full block bg-[#0A101D]/80 border border-[#20CDFE]/10 rounded-md p-1 text-white text-center truncate">
           {stage.department || "No asignado"}
         </span>
       </div>

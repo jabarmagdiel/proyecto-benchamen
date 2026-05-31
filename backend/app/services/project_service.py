@@ -56,32 +56,6 @@ def create(db: Session, data: ProjectCreate, current_user_id: int) -> Project:
     db.add(project)
     db.commit()
     db.refresh(project)
-    
-    if project.workflow_id:
-        workflow = db.query(Workflow).filter(Workflow.id == project.workflow_id).first()
-        if workflow and workflow.stages:
-            from app.services.activity_service import evaluate_workflow_edges
-            start_stage = next((s for s in workflow.stages if s.node_type == 'start'), None)
-            target_stage_ids = set()
-            if start_stage:
-                target_stage_ids = set(evaluate_workflow_edges(db, start_stage.id, "approve", project.id))
-            
-            for stage in workflow.stages:
-                if stage.node_type in ['start', 'decision', 'notification']:
-                    continue
-                status = ActivityStatus.PENDING if stage.id in target_stage_ids else ActivityStatus.BLOCKED
-                activity = Activity(
-                    project_id=project.id,
-                    current_stage_id=stage.id,
-                    title=stage.name,
-                    description=stage.description or "",
-                    created_by_id=current_user_id,
-                    activity_type=ActivityType.OTHER,
-                    status=status,
-                    priority=Priority.MEDIUM,
-                )
-                db.add(activity)
-            db.commit()
             
     return get_by_id(db, project.id)
 
@@ -91,39 +65,9 @@ def update(db: Session, project_id: int, data: ProjectUpdate, current_user_id: i
     if not project:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
         
-    old_workflow_id = project.workflow_id
-    
     for key, val in data.model_dump(exclude_unset=True).items():
         setattr(project, key, val)
     db.commit()
-    
-    if project.workflow_id and project.workflow_id != old_workflow_id:
-        # Only instantiate if workflow changed and there are no activities linked to this project yet?
-        # For simplicity, we just create them if workflow_id changed.
-        workflow = db.query(Workflow).filter(Workflow.id == project.workflow_id).first()
-        if workflow and workflow.stages:
-            from app.services.activity_service import evaluate_workflow_edges
-            start_stage = next((s for s in workflow.stages if s.node_type == 'start'), None)
-            target_stage_ids = set()
-            if start_stage:
-                target_stage_ids = set(evaluate_workflow_edges(db, start_stage.id, "approve", project.id))
-                
-            for stage in workflow.stages:
-                if stage.node_type in ['start', 'decision', 'notification']:
-                    continue
-                status = ActivityStatus.PENDING if stage.id in target_stage_ids else ActivityStatus.BLOCKED
-                activity = Activity(
-                    project_id=project.id,
-                    current_stage_id=stage.id,
-                    title=stage.name,
-                    description=stage.description or "",
-                    created_by_id=current_user_id,
-                    activity_type=ActivityType.OTHER,
-                    status=status,
-                    priority=Priority.MEDIUM,
-                )
-                db.add(activity)
-            db.commit()
 
     return get_by_id(db, project_id)
 

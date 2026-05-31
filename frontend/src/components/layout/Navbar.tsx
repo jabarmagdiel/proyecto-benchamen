@@ -92,7 +92,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="h-16 bg-[#07060B]/80 backdrop-blur-xl border-b border-[#2E455C]/30 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
+    <header className="h-16 bg-[#0A101D]/80 backdrop-blur-xl border-b border-[#20CDFE]/10 flex items-center justify-between px-6 sticky top-0 z-20 shadow-sm">
       {/* Título de la página */}
       <h1 className="text-lg font-bold text-white pl-8 lg:pl-0 tracking-wide">{title}</h1>
 
@@ -115,9 +115,9 @@ export default function Navbar() {
 
           {/* Dropdown de Notificaciones */}
           {isOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#07060B]/95 backdrop-blur-2xl border border-[#2E455C]/50 rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.1)] z-50 animate-fade-in flex flex-col max-h-[80vh] overflow-hidden">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#0A101D]/95 backdrop-blur-2xl border border-[#20CDFE]/10 rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.1)] z-50 animate-fade-in flex flex-col max-h-[80vh] overflow-hidden">
               {/* Encabezado */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[#2E455C]/30 shrink-0">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[#20CDFE]/10 shrink-0">
                 <span className="font-bold text-white text-sm">Notificaciones</span>
                 {unreadCount > 0 && (
                   <button
@@ -143,7 +143,7 @@ export default function Navbar() {
                         key={n.id}
                         onClick={() => handleNotificationClick(n)}
                         className={cn(
-                          "w-full text-left px-4 py-3 hover:bg-[#2E455C]/30 transition-colors flex flex-col gap-0.5 cursor-pointer",
+                          "w-full text-left px-4 py-3 hover:bg-[#1C2C4D] transition-colors flex flex-col gap-0.5 cursor-pointer",
                           !n.is_read && "bg-[#20CDFE]/5"
                         )}
                       >
@@ -171,7 +171,7 @@ export default function Navbar() {
         </div>
 
         {/* Usuario */}
-        <div className="flex items-center gap-3 pl-3 border-l border-[#2E455C]/30 ml-1">
+        <div className="flex items-center gap-3 pl-3 border-l border-[#20CDFE]/10 ml-1">
           <div className="w-9 h-9 bg-gradient-to-br from-[#20CDFE] to-[#1ED1B4] rounded-lg flex items-center justify-center shadow-[0_0_10px_rgba(32,205,254,0.3)]">
             <span className="text-[#07060B] text-sm font-black">
               {user?.name?.charAt(0).toUpperCase()}

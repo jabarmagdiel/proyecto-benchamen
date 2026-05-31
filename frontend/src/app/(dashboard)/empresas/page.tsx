@@ -119,12 +119,12 @@ export default function EmpresasPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar empresa..."
-          className="pl-9 pr-4 py-2.5 rounded-xl border border-[#2E455C]/50 bg-[#07060B]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
+          className="pl-9 pr-4 py-2.5 rounded-xl border border-[#20CDFE]/10 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
         />
       </div>
 
       {/* Tabla */}
-      <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm overflow-hidden">
+      <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-16">
             <div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
@@ -137,7 +137,7 @@ export default function EmpresasPage() {
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-[#2E455C]/20 border-b border-[#2E455C]/30">
+            <thead className="bg-[#15233D] border-b border-[#20CDFE]/10">
               <tr>
                 {["Empresa", "Contacto", "Teléfono", "Email", "Proyectos", "Estado", "Creado", "Acciones"].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">{h}</th>
@@ -146,7 +146,7 @@ export default function EmpresasPage() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {companies.map((c) => (
-                <tr key={c.id} className="hover:bg-[#2E455C]/10 transition-colors">
+                <tr key={c.id} className="hover:bg-[#0F192E] transition-colors">
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] rounded-lg flex items-center justify-center shrink-0">
@@ -162,7 +162,7 @@ export default function EmpresasPage() {
                     <span className="bg-[#20CDFE]/20 text-[#20CDFE] px-2.5 py-1 rounded-full text-xs font-semibold">{c.project_count ?? 0}</span>
                   </td>
                   <td className="px-4 py-3.5">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${c.status === "activo" ? "bg-green-100 text-green-700" : "bg-[#2E455C]/30 text-slate-300"}`}>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${c.status === "activo" ? "bg-green-100 text-green-700" : "bg-[#1C2C4D] text-slate-300"}`}>
                       {c.status === "activo" ? "Activo" : "Inactivo"}
                     </span>
                   </td>
@@ -188,8 +188,8 @@ export default function EmpresasPage() {
     {/* Modal Crear/Editar */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#07060B]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#2E455C]/50 w-full max-w-lg animate-fade-in">
-            <div className="flex items-center justify-between p-6 border-b border-[#2E455C]/30">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-lg animate-fade-in">
+            <div className="flex items-center justify-between p-6 border-b border-[#20CDFE]/10">
               <h3 className="text-lg font-bold text-white">{editing ? "Editar empresa" : "Nueva empresa"}</h3>
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 text-2xl leading-none">&times;</button>
             </div>
@@ -197,40 +197,40 @@ export default function EmpresasPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Nombre *</label>
-                  <input {...register("name")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                  <input {...register("name")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Persona de contacto</label>
-                  <input {...register("contact_name")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                  <input {...register("contact_name")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Teléfono</label>
-                  <input {...register("phone")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                  <input {...register("phone")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Correo</label>
-                  <input {...register("email")} type="email" className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                  <input {...register("email")} type="email" className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
                   {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Dirección</label>
-                <input {...register("address")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                <input {...register("address")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Descripción</label>
-                <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] resize-none" />
+                <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] resize-none" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Estado</label>
-                <select {...register("status")} className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]">
+                <select {...register("status")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]">
                   <option value="activo">Activo</option>
                   <option value="inactivo">Inactivo</option>
                 </select>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm text-slate-300 hover:bg-[#2E455C]/20 transition-colors">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors">
                   Cancelar
                 </button>
                 <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60">
@@ -245,11 +245,11 @@ export default function EmpresasPage() {
       {/* Modal Confirmar Eliminar */}
       {deleteId && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#07060B]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#2E455C]/50 w-full max-w-sm p-6 animate-fade-in">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-sm p-6 animate-fade-in">
             <h3 className="text-lg font-bold text-white mb-2">¿Eliminar empresa?</h3>
             <p className="text-slate-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm text-slate-300 hover:bg-[#2E455C]/20 transition-colors">Cancelar</button>
+              <button onClick={() => setDeleteId(null)} className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors">Cancelar</button>
               <button onClick={confirmDelete} className="flex-1 bg-red-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors">Eliminar</button>
             </div>
           </div>
