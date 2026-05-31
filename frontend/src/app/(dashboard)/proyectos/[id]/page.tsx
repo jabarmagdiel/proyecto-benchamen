@@ -44,10 +44,13 @@ export default function ProjectDetailPage() {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [creationMode, setCreationMode] = useState<"workflow" | "custom">("workflow");
   const [submitting, setSubmitting] = useState(false);
+  
+  // Kanban DND states
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
 
@@ -136,6 +139,43 @@ export default function ProjectDetailPage() {
     setModalOpen(true);
   };
 
+  const KANBAN_COLUMNS = [
+    { id: "pendiente", label: "Pendiente", borderColor: "border-slate-500" },
+    { id: "en_proceso", label: "En Proceso", borderColor: "border-blue-500" },
+    { id: "en_revision", label: "En Revisión", borderColor: "border-yellow-500" },
+    { id: "observada", label: "Observada", borderColor: "border-red-500" },
+    { id: "aprobada", label: "Aprobada", borderColor: "border-[#1ED1B4]" }
+  ];
+
+  const handleDragStart = (e: React.DragEvent, activityId: number) => {
+    setDraggingId(activityId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', activityId.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, colId: string) => {
+    e.preventDefault();
+    setDragOverCol(colId);
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetStatus: string) => {
+    e.preventDefault();
+    setDragOverCol(null);
+    if (!draggingId) return;
+
+    const act = activities.find(a => a.id === draggingId);
+    if (act && act.status !== targetStatus) {
+      try {
+        await activitiesApi.update(draggingId, { status: targetStatus });
+        showToast("Estado actualizado correctamente");
+        loadData();
+      } catch (err: any) {
+        showToast(err?.response?.data?.detail || "Error al actualizar estado", "error");
+      }
+    }
+    setDraggingId(null);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -152,11 +192,9 @@ export default function ProjectDetailPage() {
     );
   }
 
-  // Filtrar actividades localmente por búsqueda y estado
+  // Filtrar actividades localmente por búsqueda
   const filteredActivities = activities.filter((act) => {
-    const matchesSearch = act.title.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = filterStatus ? act.status === filterStatus : true;
-    return matchesSearch && matchesStatus;
+    return act.title.toLowerCase().includes(search.toLowerCase());
   });
 
   // Calcular contadores de actividades para el progreso
@@ -262,96 +300,94 @@ export default function ProjectDetailPage() {
               className="pl-9 pr-4 py-2.5 rounded-xl border border-[#20CDFE]/10 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200"
             />
           </div>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
-          >
-            <option value="">Todos los estados</option>
-            {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
-            ))}
-          </select>
+          </div>
         </div>
 
-        {/* Listado de actividades */}
-        <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
-          {filteredActivities.length === 0 ? (
-            <div className="text-center py-16 text-slate-400">
-              <ClipboardList size={40} className="mx-auto mb-3 opacity-30" />
-              <p className="font-medium">No se encontraron actividades</p>
-              <p className="text-xs mt-1">Intenta con otros filtros o crea una nueva actividad.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-[#20CDFE]/10 bg-[#0F192E] text-slate-400 text-xs font-semibold uppercase tracking-wider">
-                    <th className="px-6 py-3.5">Actividad</th>
-                    <th className="px-6 py-3.5">Tipo</th>
-                    <th className="px-6 py-3.5">Prioridad</th>
-                    <th className="px-6 py-3.5">Responsable</th>
-                    <th className="px-6 py-3.5">Fecha Límite</th>
-                    <th className="px-6 py-3.5">Estado</th>
-                    <th className="px-6 py-3.5 text-right">Detalle</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-sm text-white">
-                  {filteredActivities.map((act) => (
-                    <tr key={act.id} className="hover:bg-[#15233D]/30 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className="font-semibold text-white">{act.title}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-xs text-slate-400 capitalize">{ACTIVITY_TYPE_LABELS[act.activity_type] || act.activity_type}</span>
-                      </td>
-                      <td className="px-6 py-4">
+        {/* Tablero Kanban */}
+        <div className="flex gap-4 overflow-x-auto pb-4 items-start">
+          {KANBAN_COLUMNS.map(col => {
+            const colActivities = filteredActivities.filter(a => a.status === col.id);
+            return (
+              <div 
+                key={col.id} 
+                className={`flex flex-col flex-shrink-0 w-80 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border-t-4 shadow-sm min-h-[400px] transition-colors
+                  ${col.borderColor} 
+                  ${dragOverCol === col.id ? "bg-[#15233D]/60 border-[#20CDFE]" : "border-[#20CDFE]/10"}
+                `}
+                onDragOver={(e) => handleDragOver(e, col.id)}
+                onDragLeave={() => setDragOverCol(null)}
+                onDrop={(e) => handleDrop(e, col.id)}
+              >
+                <div className="p-4 border-b border-[#20CDFE]/10 flex items-center justify-between">
+                  <h3 className="font-bold text-white text-sm">{col.label}</h3>
+                  <span className="bg-[#1C2C4D] text-slate-300 text-xs px-2 py-0.5 rounded-full">{colActivities.length}</span>
+                </div>
+                
+                <div className="p-3 flex-1 overflow-y-auto space-y-3">
+                  {colActivities.map(act => (
+                    <div 
+                      key={act.id} 
+                      draggable={isAdmin}
+                      onDragStart={(e) => handleDragStart(e, act.id)}
+                      onDragEnd={() => setDraggingId(null)}
+                      className={`bg-[#0F192E] border border-[#20CDFE]/10 rounded-xl p-4 shadow-sm transition-all
+                        ${isAdmin ? "cursor-grab active:cursor-grabbing hover:border-[#20CDFE]/30 hover:shadow-[#20CDFE]/5" : ""}
+                        ${draggingId === act.id ? "opacity-50 scale-95" : "opacity-100 scale-100"}
+                      `}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{ACTIVITY_TYPE_LABELS[act.activity_type] || act.activity_type}</span>
                         <PriorityBadge priority={act.priority} />
-                      </td>
-                      <td className="px-6 py-4">
-                        {(act.node_type === 'end' || act.current_stage?.node_type === 'end') ? (
-                          <span className="font-medium text-[#20CDFE] bg-violet-50 px-2.5 py-1 rounded-md text-xs">Aprobación del Cliente</span>
-                        ) : isAdmin ? (() => {
-                          let allowedUsers = users;
-                          if (act.current_stage?.department) {
-                            const targetDep = departments.find(d => d.name === act.current_stage?.department);
-                            if (targetDep) {
-                              allowedUsers = users.filter(u => u.departments?.some(d => d.id === targetDep.id));
-                            }
-                          }
-                          return (
+                      </div>
+                      
+                      <Link href={`/actividades/${act.id}`} className="font-bold text-white text-sm mb-3 block hover:text-[#20CDFE] transition-colors">
+                        {act.title}
+                      </Link>
+
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#20CDFE]/5">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                            <Clock size={10} /> {formatDate(act.deadline || project.deadline)}
+                          </span>
+                          
+                          {(act.node_type === 'end' || act.current_stage?.node_type === 'end') ? (
+                            <span className="font-medium text-[#20CDFE] text-[10px]">Aprobación Cliente</span>
+                          ) : (
+                            <span className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]">
+                              {act.assigned_user?.name || "Sin asignar"}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* Selector de responsable rápido solo para admins si no es end-node */}
+                        {isAdmin && act.node_type !== 'end' && act.current_stage?.node_type !== 'end' && (
+                          <div className="w-6 h-6 rounded-full bg-[#1C2C4D] flex items-center justify-center text-[#20CDFE] hover:bg-[#20CDFE] hover:text-[#0A101D] transition-colors relative group cursor-pointer">
+                            <UserIcon size={12} />
                             <select
                               value={act.assigned_user_id || ""}
                               onChange={(e) => handleAssignUser(act.id, e.target.value)}
-                              className="bg-[#15233D] border border-[#20CDFE]/10 text-white text-xs rounded-lg focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] block w-full p-1.5"
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             >
                               <option value="">Sin asignar</option>
-                              {allowedUsers.map(u => (
+                              {users.map(u => (
                                 <option key={u.id} value={u.id}>{u.name}</option>
                               ))}
                             </select>
-                          );
-                        })() : (
-                          <span className="font-medium text-slate-300">{act.assigned_user?.name || "Sin asignar"}</span>
+                          </div>
                         )}
-                      </td>
-                      <td className="px-6 py-4 text-slate-400">
-                        {formatDate(act.deadline || project.deadline)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <StatusBadge status={act.status} />
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link href={`/actividades/${act.id}`} className="inline-flex p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors">
-                          <Eye size={16} />
-                        </Link>
-                      </td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  
+                  {colActivities.length === 0 && (
+                    <div className="text-center p-4 border-2 border-dashed border-[#20CDFE]/10 rounded-xl text-slate-500 text-xs font-medium">
+                      Suelta aquí
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
