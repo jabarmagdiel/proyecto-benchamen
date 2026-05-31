@@ -119,7 +119,7 @@ export default function ProyectosPage() {
           <h2 className="text-xl font-bold text-white">Proyectos</h2>
           <p className="text-slate-400 text-sm mt-0.5">{projects.length} proyecto{projects.length !== 1 ? "s" : ""}</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-violet-500/25">
+        <button onClick={openCreate} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-[#20CDFE]/20">
           <Plus size={16} /> Nuevo proyecto
         </button>
       </div>
@@ -172,7 +172,7 @@ export default function ProyectosPage() {
                   <span>Progreso</span><span className="font-semibold text-[#20CDFE]">{p.progress ?? 0}%</span>
                 </div>
                 <div className="h-1.5 bg-[#2E455C]/30 rounded-full overflow-hidden">
-                  <div className="h-full gradient-primary rounded-full transition-all" style={{ width: `${p.progress ?? 0}%` }} />
+                  <div className="h-full bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] rounded-full transition-all" style={{ width: `${p.progress ?? 0}%` }} />
                 </div>
               </div>
               <div className="flex items-center justify-between">
@@ -252,7 +252,7 @@ export default function ProyectosPage() {
               </div>
               <div className="flex gap-3 p-6 border-t border-[#2E455C]/30 bg-[#2E455C]/10 shrink-0">
                 <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 bg-[#07060B]/80 rounded-xl text-sm text-slate-300 hover:bg-[#2E455C]/20 transition-colors">Cancelar</button>
-                <button type="submit" disabled={submitting} className="flex-1 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-violet-500/10">
+                <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-violet-500/10">
                   {submitting ? "Guardando..." : editing ? "Actualizar" : "Crear proyecto"}
                 </button>
               </div>

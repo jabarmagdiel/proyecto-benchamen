@@ -230,7 +230,7 @@ export default function ActividadesPage() {
 
                 if (!a.current_stage_id && wf.stages.length > 0) {
                   return (
-                    <button onClick={() => handleUpdateStage(a.id, wf.stages[0].id)} className="flex-1 text-[10px] uppercase tracking-wider font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 py-1.5 px-2 rounded-lg transition-colors whitespace-nowrap">
+                    <button onClick={() => handleUpdateStage(a.id, wf.stages[0].id)} className="flex-1 text-[10px] uppercase tracking-wider font-bold bg-[#2E455C]/20 text-indigo-700 hover:bg-indigo-100 py-1.5 px-2 rounded-lg transition-colors whitespace-nowrap">
                       Iniciar Flujo
                     </button>
                   );
@@ -244,7 +244,7 @@ export default function ActividadesPage() {
                       </button>
                     )}
                     {nextStage && (
-                      <button onClick={() => handleUpdateStage(a.id, nextStage.id)} className="flex-1 text-[10px] uppercase tracking-wider font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 py-1.5 px-2 rounded-lg transition-colors whitespace-nowrap">
+                      <button onClick={() => handleUpdateStage(a.id, nextStage.id)} className="flex-1 text-[10px] uppercase tracking-wider font-bold bg-[#2E455C]/20 text-indigo-700 hover:bg-indigo-100 py-1.5 px-2 rounded-lg transition-colors whitespace-nowrap">
                         Avanzar a {nextStage.name}
                       </button>
                     )}
@@ -313,7 +313,7 @@ export default function ActividadesPage() {
               </button>
             </div>
 
-            <button onClick={() => { reset({ activity_type: "otro", priority: "media" }); setModalOpen(true); }} className="flex items-center gap-2 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-violet-500/25 transition-all">
+            <button onClick={() => { reset({ activity_type: "otro", priority: "media" }); setModalOpen(true); }} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-[#20CDFE]/20 transition-all">
               <Plus size={16} /> <span className="hidden sm:inline">Nueva actividad</span>
             </button>
           </div>
@@ -554,7 +554,7 @@ export default function ActividadesPage() {
               </div>
               <div className="flex gap-3 p-6 border-t border-[#2E455C]/30 bg-[#2E455C]/20/80 shrink-0">
                 <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 bg-[#07060B]/80 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#2E455C]/20 transition-colors shadow-sm">Cancelar</button>
-                <button type="submit" disabled={submitting} className="flex-1 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-violet-500/20">
+                <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-violet-500/20">
                   {submitting ? "Creando..." : "Crear actividad"}
                 </button>
               </div>

@@ -307,7 +307,7 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
               className="text-lg font-bold border-transparent bg-transparent hover:bg-[#2E455C]/20 focus:bg-[#07060B]/80 focus:border-violet-200 px-2 rounded-md outline-none focus:ring-2 focus:ring-violet-200 w-64 transition-all"
             />
           </div>
-          <button onClick={saveCanvas} disabled={loading} className="flex items-center gap-2 gradient-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-violet-500/25">
+          <button onClick={saveCanvas} disabled={loading} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-all shadow-md shadow-[#20CDFE]/20">
             <Save className="h-4 w-4" /> Guardar
           </button>
         </div>
@@ -337,7 +337,7 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
       {selectedNode && (
         <div className="w-80 bg-[#07060B]/80 border-l border-[#2E455C]/50 shadow-xl z-20 flex flex-col absolute right-0 top-0 bottom-0">
           <div className="p-4 border-b border-[#2E455C]/30 flex items-center gap-2 bg-[#2E455C]/20">
-            <Settings className="w-5 h-5 text-indigo-500" />
+            <Settings className="w-5 h-5 text-[#20CDFE]" />
             <h3 className="font-bold text-white">Propiedades del Nodo</h3>
           </div>
           <div className="p-4 flex-1 overflow-y-auto space-y-4">

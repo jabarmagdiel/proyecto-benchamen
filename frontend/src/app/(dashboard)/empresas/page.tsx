@@ -107,7 +107,7 @@ export default function EmpresasPage() {
           <h2 className="text-xl font-bold text-white">Empresas / Clientes</h2>
           <p className="text-slate-400 text-sm mt-0.5">{companies.length} empresa{companies.length !== 1 ? "s" : ""} registrada{companies.length !== 1 ? "s" : ""}</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-violet-500/25">
+        <button onClick={openCreate} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-[#20CDFE]/20">
           <Plus size={16} /> Nueva empresa
         </button>
       </div>
@@ -149,7 +149,7 @@ export default function EmpresasPage() {
                 <tr key={c.id} className="hover:bg-[#2E455C]/10 transition-colors">
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 gradient-primary rounded-lg flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] rounded-lg flex items-center justify-center shrink-0">
                         <span className="text-white text-xs font-bold">{c.name.charAt(0)}</span>
                       </div>
                       <span className="font-semibold text-white">{c.name}</span>
@@ -233,7 +233,7 @@ export default function EmpresasPage() {
                 <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm text-slate-300 hover:bg-[#2E455C]/20 transition-colors">
                   Cancelar
                 </button>
-                <button type="submit" disabled={submitting} className="flex-1 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60">
+                <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-60">
                   {submitting ? "Guardando..." : editing ? "Actualizar" : "Crear empresa"}
                 </button>
               </div>

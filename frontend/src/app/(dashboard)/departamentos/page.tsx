@@ -102,7 +102,7 @@ export default function DepartamentosPage() {
         </div>
         <button 
           onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 gradient-primary text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-violet-500/25 hover:opacity-90 transition-all"
+          className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2 rounded-xl text-sm font-semibold shadow-md shadow-[#20CDFE]/20 hover:opacity-90 transition-all"
         >
           <Plus className="w-4 h-4" /> Nuevo Departamento
         </button>
@@ -130,7 +130,7 @@ export default function DepartamentosPage() {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-2">
-                    <button onClick={() => handleOpenModal(dept)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                    <button onClick={() => handleOpenModal(dept)} className="p-2 text-slate-400 hover:text-[#20CDFE] hover:bg-[#2E455C]/20 rounded-lg transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete(dept.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">

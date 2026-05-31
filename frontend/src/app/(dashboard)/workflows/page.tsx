@@ -71,12 +71,12 @@ export default function WorkflowsPage() {
 
       <div className="flex justify-between items-center bg-[#07060B]/80 p-6 rounded-2xl shadow-sm border border-[#2E455C]/30">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Flujos de Trabajo</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-white">Flujos de Trabajo</h1>
           <p className="text-slate-400 mt-1">
             Diseña los procesos automáticos y embudos (pipelines) para los proyectos de tu agencia.
           </p>
         </div>
-        <button onClick={handleCreate} className="flex items-center gap-2 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-violet-500/25">
+        <button onClick={handleCreate} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-[#20CDFE]/20">
           <Plus className="h-4 w-4" />
           Crear Flujo
         </button>
@@ -94,11 +94,11 @@ export default function WorkflowsPage() {
               </button>
             </div>
             
-            <div className="h-10 w-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-4">
+            <div className="h-10 w-10 bg-[#2E455C]/20 rounded-xl flex items-center justify-center text-[#20CDFE] mb-4">
               <GitMerge className="h-5 w-5" />
             </div>
             
-            <h3 className="text-lg font-semibold text-slate-900 mb-1">{wf.name}</h3>
+            <h3 className="text-lg font-semibold text-white mb-1">{wf.name}</h3>
             <p className="text-sm text-slate-400 line-clamp-2 h-10 mb-4">
               {wf.description || "Sin descripción"}
             </p>
@@ -116,7 +116,7 @@ export default function WorkflowsPage() {
           <div className="h-12 w-12 bg-[#2E455C]/20 rounded-full flex items-center justify-center text-slate-400 mx-auto mb-4">
             <GitMerge className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-medium text-slate-900 mb-1">Sin Flujos de Trabajo</h3>
+          <h3 className="text-lg font-medium text-white mb-1">Sin Flujos de Trabajo</h3>
           <p className="text-slate-400 max-w-md mx-auto mb-6">
             Aún no has creado ningún flujo de trabajo para tu agencia. Los flujos te permiten diseñar los pasos que siguen tus proyectos.
           </p>

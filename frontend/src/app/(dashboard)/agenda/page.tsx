@@ -276,7 +276,7 @@ export default function AgendaPage() {
                       disabled={isPast}
                       onClick={() => setSelectedDay(ds)}
                       className={`relative h-9 w-full rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all duration-200
-                        ${isSelected ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25" :
+                        ${isSelected ? "bg-violet-600 text-white shadow-lg shadow-[#20CDFE]/20" :
                           isToday    ? "bg-violet-50 text-[#20CDFE] ring-2 ring-violet-300" :
                           isPast     ? "text-slate-300 cursor-not-allowed" :
                           hasSlots   ? "text-white hover:bg-[#2E455C]/20" :
@@ -343,7 +343,7 @@ export default function AgendaPage() {
                 <button
                   type="submit"
                   disabled={submitting || !selectedDay}
-                  className="w-full gradient-primary text-white py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 shadow-lg shadow-violet-500/20 transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-50 shadow-lg shadow-violet-500/20 transition-all flex items-center justify-center gap-2"
                 >
                   <Plus size={15} />
                   {submitting ? "Publicando..." : "Publicar este horario"}
@@ -546,7 +546,7 @@ export default function AgendaPage() {
                       disabled={isPast || !hasAvail}
                       onClick={() => setSelectedDay(ds)}
                       className={`relative h-9 w-full rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all duration-200
-                        ${isSelected ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25" :
+                        ${isSelected ? "bg-violet-600 text-white shadow-lg shadow-[#20CDFE]/20" :
                           isToday    ? "bg-violet-50 text-[#20CDFE] ring-2 ring-violet-300" :
                           !hasAvail || isPast ? "text-slate-300 cursor-not-allowed" :
                                        "text-white hover:bg-violet-50 hover:text-[#20CDFE] cursor-pointer"}`}
@@ -759,7 +759,7 @@ export default function AgendaPage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-violet-500/15 flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-violet-500/15 flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 size={15} />
                   {submitting ? "Confirmando..." : "Confirmar Cita"}

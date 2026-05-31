@@ -172,7 +172,7 @@ export default function UsuariosPage() {
             <h2 className="text-xl font-bold text-white">Usuarios</h2>
             <p className="text-slate-400 text-sm mt-0.5">{users.length} usuario{users.length !== 1 ? "s" : ""} registrado{users.length !== 1 ? "s" : ""}</p>
           </div>
-          <button onClick={openCreate} className="flex items-center gap-2 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-violet-500/25">
+          <button onClick={openCreate} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-[#20CDFE]/20">
             <Plus size={16} /> Nuevo usuario
           </button>
         </div>
@@ -206,7 +206,7 @@ export default function UsuariosPage() {
                     <tr key={u.id} className={`hover:bg-[#2E455C]/10 transition-colors ${!u.is_active ? "opacity-50" : ""}`}>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 gradient-primary rounded-xl flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] rounded-xl flex items-center justify-center shrink-0">
                             <span className="text-white text-xs font-bold">{u.name.charAt(0)}</span>
                           </div>
                           <span className="font-semibold text-white">{u.name}</span>
@@ -308,7 +308,7 @@ export default function UsuariosPage() {
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm text-slate-300 hover:bg-[#2E455C]/20">Cancelar</button>
-                <button type="submit" disabled={submitting} className="flex-1 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60">
+                <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60">
                   {submitting ? "Guardando..." : editing ? "Actualizar" : "Crear usuario"}
                 </button>
               </div>

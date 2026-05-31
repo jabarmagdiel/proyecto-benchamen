@@ -131,11 +131,11 @@ export default function PerfilPage() {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-[#07060B]/50 backdrop-blur-xl rounded-2xl border border-[#2E455C]/50 shadow-sm overflow-hidden">
             {/* Header decorativo */}
-            <div className="h-28 gradient-primary relative"></div>
+            <div className="h-28 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] relative"></div>
             {/* Avatar & Info Básica */}
             <div className="px-6 pb-6 text-center relative -mt-10">
               <div className="inline-flex w-20 h-20 rounded-2xl bg-[#07060B]/80 p-1 shadow-md mb-3">
-                <div className="w-full h-full gradient-primary rounded-xl flex items-center justify-center text-white text-3xl font-bold">
+                <div className="w-full h-full bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] rounded-xl flex items-center justify-center text-white text-3xl font-bold">
                   {profile.name.charAt(0).toUpperCase()}
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function PerfilPage() {
                 <button 
                   type="submit" 
                   disabled={updatingProfile}
-                  className="gradient-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60 shadow-lg shadow-violet-500/25 transition-all"
+                  className="bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-5 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60 shadow-lg shadow-[#20CDFE]/20 transition-all"
                 >
                   {updatingProfile ? "Guardando..." : "Guardar Cambios"}
                 </button>

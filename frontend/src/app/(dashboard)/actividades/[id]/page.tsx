@@ -267,7 +267,7 @@ export default function ActivityDetailPage() {
               <div>
                 <p className="text-xs text-slate-400 mb-2">Archivo (imagen, PDF, video, etc.)</p>
                 <input type="text" value={fileNote} onChange={e => setFileNote(e.target.value)} placeholder="Nota opcional..." className="w-full px-3 py-2 border border-[#2E455C]/50 rounded-xl text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-violet-200" />
-                <label className="flex items-center gap-2 gradient-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer hover:opacity-90 transition-all w-full justify-center">
+                <label className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer hover:opacity-90 transition-all w-full justify-center">
                   <Upload size={14} /> Subir archivo
                   <input type="file" className="hidden" onChange={handleFileUpload} />
                 </label>
@@ -330,7 +330,7 @@ export default function ActivityDetailPage() {
             ) : comments.map((c) => (
               <div key={c.id} className="bg-[#07060B]/80 rounded-xl border border-[#2E455C]/30 p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 gradient-primary rounded-lg flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-7 h-7 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] rounded-lg flex items-center justify-center text-white text-xs font-bold">
                     {c.user.name.charAt(0)}
                   </div>
                   <span className="font-medium text-white text-sm">{c.user.name}</span>
@@ -342,7 +342,7 @@ export default function ActivityDetailPage() {
           </div>
           <div className="bg-[#07060B]/80 rounded-xl border border-[#2E455C]/30 p-4">
             <textarea value={comment} onChange={e => setComment(e.target.value)} rows={3} placeholder="Escribe un comentario..." className="w-full px-3 py-2.5 border border-[#2E455C]/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none mb-3" />
-            <button onClick={handleComment} disabled={!comment.trim()} className="gradient-primary text-white px-5 py-2 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50">
+            <button onClick={handleComment} disabled={!comment.trim()} className="bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-5 py-2 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50">
               Enviar comentario
             </button>
           </div>
