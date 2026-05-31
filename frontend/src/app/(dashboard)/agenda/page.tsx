@@ -581,7 +581,7 @@ export default function AgendaPage() {
                     {daySlots.map(slot => (
                       <button
                         key={slot.id}
-                        onClick={() => openBookModal(slot)}
+                        onClick={() => setSelectedSlot(slot)}
                         className="flex items-center justify-center gap-1.5 px-3 py-2.5 border border-[#20CDFE]/30 bg-[#20CDFE]/10 hover:bg-[#20CDFE] hover:text-[#07060B] hover:border-[#20CDFE] rounded-xl text-xs font-bold text-[#20CDFE] transition-all duration-200 shadow-sm"
                       >
                         <Clock size={12} />
@@ -608,7 +608,7 @@ export default function AgendaPage() {
                         {slots.map(slot => (
                           <button
                             key={slot.id}
-                            onClick={() => { setSelectedDay(dateStr); openBookModal(slot); }}
+                            onClick={() => { setSelectedDay(dateStr); setSelectedSlot(slot); }}
                             className="flex items-center gap-1.5 px-3 py-2 border border-[#20CDFE]/30 bg-[#20CDFE]/10 hover:bg-[#20CDFE] hover:text-[#07060B] hover:border-[#20CDFE] rounded-xl text-xs font-bold text-[#20CDFE] transition-all duration-200"
                           >
                             <Clock size={11} />
