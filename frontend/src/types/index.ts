@@ -76,6 +76,7 @@ export interface Company {
   address?: string;
   description?: string;
   status: CompanyStatus;
+  dashboard_url?: string;
   created_at: string;
   project_count?: number;
 }
