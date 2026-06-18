@@ -79,8 +79,13 @@ def delete(db: Session, workflow_id: int):
     if not wf:
         raise HTTPException(status_code=404, detail="Workflow not found")
     
-    if len(wf.projects) > 0:
-        raise HTTPException(status_code=400, detail="Cannot delete workflow that is in use by projects")
+    if wf.is_default:
+        raise HTTPException(status_code=400, detail="Cannot delete the default workflow")
+        
+    from app.models.activity import Activity
+    activities_count = db.query(Activity).filter(Activity.workflow_id == workflow_id).count()
+    if activities_count > 0:
+        raise HTTPException(status_code=400, detail="Cannot delete workflow that is in use by activities")
 
     db.delete(wf)
     db.commit()

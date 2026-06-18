@@ -147,6 +147,12 @@ export const packagesApi = {
   removeFromCompany: (cpId: number) => api.delete(`/api/packages/company/${cpId}`),
 };
 
+export const packageRequestsApi = {
+  list: () => api.get("/api/package-requests"),
+  create: (data: object) => api.post("/api/package-requests", data),
+  updateStatus: (id: number, data: object) => api.patch(`/api/package-requests/${id}`, data),
+};
+
 // ─── Workflows ────────────────────────────────────────────────────────────────
 export const workflowsApi = {
   list: (params?: object) => api.get("/api/workflows", { params }),

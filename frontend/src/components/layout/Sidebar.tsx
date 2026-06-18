@@ -33,6 +33,8 @@ const operativeLinks = [
 
 const clientLinks = [
   { href: "/dashboard",        icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/mis-paquetes",     icon: Package,         label: "Catálogo de Paquetes" },
+  { href: "/rendimiento",      icon: BarChart3,       label: "Rendimiento" },
   { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
   { href: "/agenda",           icon: Calendar,        label: "Agenda" },
 ];

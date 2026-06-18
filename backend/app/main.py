@@ -1,13 +1,11 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.database import SessionLocal
 from sqlalchemy import text
-from app.routes import auth, users, companies, projects, activities, evidences, comments, dashboard, reports, notifications, appointments, workflows, departments
 
 # ─── Crear carpeta de uploads si no existe ────────────────────────────────────
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
@@ -21,77 +19,95 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+
 @app.on_event("startup")
 def run_migrations():
-    """Ejecuta las migraciones de BD necesarias automáticamente al iniciar el servidor en Render"""
+    """Ejecuta las migraciones de BD necesarias automáticamente al iniciar."""
     db = SessionLocal()
-    
-    try:
-        db.execute(text("""
+
+    migrations = [
+        # user_departments table
+        (
+            "user_departments",
+            """
             CREATE TABLE IF NOT EXISTS user_departments (
                 user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                 department_id INT NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
                 PRIMARY KEY (user_id, department_id)
             );
-        """))
-        db.commit()
-    except Exception as e:
-        print("❌ Error creando user_departments:", e)
-        db.rollback()
-
-    try:
-        db.execute(text("""
+            """,
+        ),
+        # Migrar department_id de users a user_departments
+        (
+            "migrate_user_departments",
+            """
             INSERT INTO user_departments (user_id, department_id)
-            SELECT id, department_id FROM users WHERE department_id IS NOT NULL
+            SELECT u.id, u.department_id
+            FROM users u
+            WHERE u.department_id IS NOT NULL
+              AND EXISTS (SELECT 1 FROM departments d WHERE d.id = u.department_id)
             ON CONFLICT DO NOTHING;
-        """))
-        db.commit()
-    except Exception as e:
-        print("❌ Error migrando departamentos de usuarios:", e)
-        db.rollback()
-
-    try:
-        db.execute(text("ALTER TABLE activities ADD COLUMN IF NOT EXISTS workflow_id INT REFERENCES workflows(id) ON DELETE SET NULL;"))
-        db.commit()
-    except Exception as e:
-        print("❌ Error alterando activities:", e)
-        db.rollback()
-
-    try:
-        db.execute(text("ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id INT REFERENCES departments(id) ON DELETE SET NULL;"))
-        db.commit()
-    except Exception as e:
-        print("❌ Error alterando projects:", e)
-        db.rollback()
-
-    try:
-        db.execute(text("""
+            """,
+        ),
+        # workflow_id en activities
+        (
+            "activities.workflow_id",
+            "ALTER TABLE activities ADD COLUMN IF NOT EXISTS workflow_id INT REFERENCES workflows(id) ON DELETE SET NULL;",
+        ),
+        # department_id en projects
+        (
+            "projects.department_id",
+            "ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id INT REFERENCES departments(id) ON DELETE SET NULL;",
+        ),
+        # Tabla packages
+        (
+            "packages",
+            """
             CREATE TABLE IF NOT EXISTS packages (
-                id SERIAL PRIMARY KEY,
-                name VARCHAR(150) NOT NULL,
+                id          SERIAL PRIMARY KEY,
+                name        VARCHAR(150) NOT NULL,
                 description TEXT,
-                base_price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                base_price  NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
-        """))
-        db.execute(text("""
+            """,
+        ),
+        # Tabla company_packages
+        (
+            "company_packages",
+            """
             CREATE TABLE IF NOT EXISTS company_packages (
-                id SERIAL PRIMARY KEY,
-                company_id INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-                package_id INT NOT NULL REFERENCES packages(id) ON DELETE CASCADE,
-                quantity INT NOT NULL DEFAULT 1,
+                id                  SERIAL PRIMARY KEY,
+                company_id          INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+                package_id          INT NOT NULL REFERENCES packages(id) ON DELETE CASCADE,
+                quantity            INT NOT NULL DEFAULT 1,
                 discount_percentage NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
-                final_price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                final_price         NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+                created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
             );
-        """))
-        db.commit()
-    except Exception as e:
-        print("❌ Error creando tablas de paquetes:", e)
-        db.rollback()
+            """,
+        ),
+        # Índices de company_packages
+        (
+            "idx_company_packages",
+            """
+            CREATE INDEX IF NOT EXISTS idx_company_packages_company ON company_packages(company_id);
+            CREATE INDEX IF NOT EXISTS idx_company_packages_package ON company_packages(package_id);
+            """,
+        ),
+    ]
 
-    print("✅ Migraciones automáticas verificadas/ejecutadas con éxito.")
+    for name, sql in migrations:
+        try:
+            db.execute(text(sql))
+            db.commit()
+            print(f"✅ Migración '{name}' OK")
+        except Exception as e:
+            print(f"❌ Error en migración '{name}': {e}")
+            db.rollback()
+
     db.close()
+    print("✅ Todas las migraciones automáticas verificadas.")
 
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
@@ -100,7 +116,7 @@ app.add_middleware(
     allow_origins=[
         settings.FRONTEND_URL,
         "http://localhost:3000",
-        "https://proyecto-benchamen.vercel.app"
+        "https://proyecto-benchamen.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -111,7 +127,23 @@ app.add_middleware(
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 # ─── Registrar routers ────────────────────────────────────────────────────────
-from app.routes import users, companies, projects, activities, evidences, comments, dashboard, reports, notifications, departments, workflows, appointments, auth, packages
+from app.routes import (
+    auth,
+    users,
+    companies,
+    projects,
+    activities,
+    evidences,
+    comments,
+    dashboard,
+    reports,
+    notifications,
+    departments,
+    workflows,
+    appointments,
+    packages,
+    package_requests,
+)
 
 app.include_router(auth.router)
 app.include_router(users.router)
@@ -127,7 +159,7 @@ app.include_router(departments.router)
 app.include_router(workflows.router)
 app.include_router(appointments.router)
 app.include_router(packages.router)
-
+app.include_router(package_requests.router)
 
 
 @app.get("/", tags=["Root"])

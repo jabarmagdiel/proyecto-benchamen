@@ -164,4 +164,27 @@ CREATE INDEX idx_appointments_admin ON appointments(admin_id);
 CREATE INDEX idx_appointments_client ON appointments(client_id);
 CREATE INDEX idx_appointments_date ON appointments(date);
 
+-- ─── Paquetes de servicios ────────────────────────────────────────────────────
+CREATE TABLE packages (
+    id              SERIAL PRIMARY KEY,
+    name            VARCHAR(150) NOT NULL,
+    description     TEXT,
+    base_price      NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ─── Paquetes asignados a empresas (cotizador) ────────────────────────────────
+CREATE TABLE company_packages (
+    id                  SERIAL PRIMARY KEY,
+    company_id          INT NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    package_id          INT NOT NULL REFERENCES packages(id) ON DELETE CASCADE,
+    quantity            INT NOT NULL DEFAULT 1,
+    discount_percentage NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
+    final_price         NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_company_packages_company ON company_packages(company_id);
+CREATE INDEX idx_company_packages_package ON company_packages(package_id);
+
 

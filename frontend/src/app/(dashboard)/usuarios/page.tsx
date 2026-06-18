@@ -13,6 +13,7 @@ const schema = z.object({
   name: z.string().min(1, "Nombre requerido"),
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres").optional().or(z.literal("")),
+  position: z.string().optional().default(""),
   role: z.enum(["administrador", "operativo", "cliente"]).default("operativo"),
   department_ids: z.array(z.coerce.number()).optional().default([]),
   company_id: z.coerce.number().optional().nullable(),
@@ -65,7 +66,7 @@ export default function UsuariosPage() {
       setCompanies(compRes.data);
       setDepartments(deptRes.data);
     } catch (e) {
-      console.error("Error al cargar empresas o roles operativos", e);
+      console.error("Error al cargar empresas o especialidades", e);
     }
   };
 
@@ -94,7 +95,7 @@ export default function UsuariosPage() {
 
   const openCreate = () => {
     setEditing(null);
-    reset({ name: "", email: "", role: "operativo", department_ids: [], password: "", company_id: null });
+    reset({ name: "", email: "", position: "", role: "operativo", department_ids: [], password: "", company_id: null });
     setModalOpen(true);
   };
 
@@ -103,6 +104,7 @@ export default function UsuariosPage() {
     reset({
       name: u.name,
       email: u.email,
+      position: u.position || "",
       role: u.role,
       department_ids: u.departments?.map(d => d.id) || [],
       password: "",
@@ -194,7 +196,7 @@ export default function UsuariosPage() {
             <table className="w-full text-sm">
               <thead className="bg-[#15233D] border-b border-[#20CDFE]/10">
                 <tr>
-                  {["Usuario", "Email", "Rol Operativo / Empresa", "Rol", "Estado", "Creado", "Acciones"].map(h => (
+                  {["Usuario", "Email", "Cargo", "Especialidad / Empresa", "Rol", "Estado", "Creado", "Acciones"].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -213,6 +215,7 @@ export default function UsuariosPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3.5 text-slate-300">{u.email}</td>
+                      <td className="px-4 py-3.5 text-slate-400">{u.position || "-"}</td>
                       <td className="px-4 py-3.5 text-slate-400">
                         {u.role === "cliente" ? (company?.name || "Cargando empresa...") : (u.departments?.map(d => d.name).join(", ") || "-")}
                       </td>
@@ -265,7 +268,11 @@ export default function UsuariosPage() {
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-2">Roles Operativos</label>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Cargo (Ej. Director Creativo)</label>
+                  <input {...register("position")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-2">Especialidades</label>
                   <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar p-1">
                     {departments.map(d => (
                       <label key={d.id} className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-white transition-colors">

@@ -17,6 +17,7 @@ const schema = z.object({
   address: z.string().optional().default(""),
   description: z.string().optional().default(""),
   status: z.enum(["activo", "inactivo"]).default("activo"),
+  dashboard_url: z.string().url("URL inválida").optional().or(z.literal("")),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -64,10 +65,14 @@ export default function EmpresasPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const openCreate = () => { setEditing(null); reset({}); setModalOpen(true); };
+  const openCreate = () => {
+    setEditing(null);
+    reset({ name: "", contact_name: "", phone: "", email: "", address: "", description: "", dashboard_url: "", status: "activo" });
+    setModalOpen(true);
+  };
   const openEdit = (c: Company) => {
     setEditing(c);
-    reset({ name: c.name, contact_name: c.contact_name || "", phone: c.phone || "", email: c.email || "", address: c.address || "", description: c.description || "", status: c.status });
+    reset({ name: c.name, contact_name: c.contact_name || "", phone: c.phone || "", email: c.email || "", address: c.address || "", description: c.description || "", dashboard_url: c.dashboard_url || "", status: c.status });
     setModalOpen(true);
   };
 

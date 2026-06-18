@@ -9,6 +9,8 @@ from app.models.notification import Notification
 from app.models.appointment import Appointment
 from app.models.workflow import Workflow, WorkflowStage, WorkflowAutomation, WorkflowEdge
 from app.models.department import Department
+from app.models.package import Package, CompanyPackage
+from app.models.package_request import PackageRequest
 
 __all__ = [
     "User",
@@ -25,4 +27,7 @@ __all__ = [
     "WorkflowAutomation",
     "WorkflowEdge",
     "Department",
+    "Package",
+    "CompanyPackage",
+    "PackageRequest",
 ]

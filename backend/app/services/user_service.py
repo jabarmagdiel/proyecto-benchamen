@@ -60,6 +60,11 @@ def update(db: Session, user_id: int, data: UserUpdate) -> User:
             deps = db.query(Department).filter(Department.id.in_(dept_ids)).all()
             user.departments = deps
             
+    if "password" in update_data:
+        pwd = update_data.pop("password")
+        if pwd:
+            user.password_hash = hash_password(pwd)
+            
     for key, val in update_data.items():
         setattr(user, key, val)
     db.commit()

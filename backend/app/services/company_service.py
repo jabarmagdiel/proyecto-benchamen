@@ -39,11 +39,15 @@ def create(db: Session, data: CompanyCreate) -> Company:
 
 
 def update(db: Session, company_id: int, data: CompanyUpdate) -> Company:
-    company = get_by_id(db, company_id)
+    company = db.query(Company).filter(Company.id == company_id).first()
+    if not company:
+        raise HTTPException(status_code=404, detail="Empresa no encontrada")
     for key, val in data.model_dump(exclude_unset=True).items():
         setattr(company, key, val)
     db.commit()
     db.refresh(company)
+    # Recalcular project_count tras el refresh
+    company.project_count = db.query(func.count(Project.id)).filter(Project.company_id == company_id).scalar()
     return company
 
 

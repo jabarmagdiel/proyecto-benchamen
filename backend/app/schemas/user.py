@@ -29,6 +29,14 @@ class UserUpdate(BaseModel):
     is_active: Optional[bool] = None
     company_id: Optional[int] = None
     department_ids: Optional[list[int]] = None
+    password: Optional[str] = None
+
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, v: Optional[str]) -> Optional[str]:
+        if v and len(v) < 6:
+            raise ValueError("La contraseña debe tener al menos 6 caracteres")
+        return v
 
 
 class UserPasswordUpdate(BaseModel):

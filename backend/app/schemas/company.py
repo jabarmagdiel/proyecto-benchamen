@@ -11,6 +11,7 @@ class CompanyCreate(BaseModel):
     email: Optional[EmailStr] = None
     address: Optional[str] = None
     description: Optional[str] = None
+    dashboard_url: Optional[str] = None
     status: CompanyStatus = CompanyStatus.ACTIVE
 
 
@@ -22,6 +23,7 @@ class CompanyUpdate(BaseModel):
     address: Optional[str] = None
     description: Optional[str] = None
     status: Optional[CompanyStatus] = None
+    dashboard_url: Optional[str] = None
 
 
 class CompanyResponse(BaseModel):
@@ -32,6 +34,7 @@ class CompanyResponse(BaseModel):
     email: Optional[str]
     address: Optional[str]
     description: Optional[str]
+    dashboard_url: Optional[str] = None
     status: CompanyStatus
     created_at: datetime
     project_count: Optional[int] = 0
