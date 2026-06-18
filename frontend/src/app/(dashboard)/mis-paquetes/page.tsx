@@ -124,7 +124,7 @@ export default function MisPaquetesPage() {
                   
                   <div>
                     <div className="text-2xl font-black text-white mb-4">
-                      {Number(p.base_price).toFixed(2)} Bs-
+                      {Number(p.base_price).toFixed(2)} Bs.
                       <span className="text-xs text-slate-500 font-normal ml-1">/ servicio</span>
                     </div>
 

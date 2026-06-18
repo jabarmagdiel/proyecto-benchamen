@@ -183,7 +183,7 @@ export default function PaquetesPage() {
                     <tr key={p.id} className="hover:bg-[#0F192E] transition-colors">
                       <td className="px-4 py-3.5 font-bold text-white">{p.name}</td>
                       <td className="px-4 py-3.5 text-slate-400 max-w-[200px] truncate">{p.description}</td>
-                      <td className="px-4 py-3.5 text-emerald-400 font-semibold">{Number(p.base_price).toFixed(2)} Bs-</td>
+                      <td className="px-4 py-3.5 text-emerald-400 font-semibold">{Number(p.base_price).toFixed(2)} Bs.</td>
                       <td className="px-4 py-3.5 text-slate-400">{formatDate(p.created_at)}</td>
                       <td className="px-4 py-3.5">
                         <div className="flex gap-2">
@@ -271,7 +271,7 @@ export default function PaquetesPage() {
                 <textarea {...register("description")} rows={3} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D] text-white focus:ring-2 focus:ring-[#20CDFE]" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Precio Base (Bs-)</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Precio Base (Bs.)</label>
                 <input type="number" step="0.01" {...register("base_price")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D] text-white focus:ring-2 focus:ring-[#20CDFE]" />
                 {errors.base_price && <p className="text-red-500 text-xs mt-1">{errors.base_price.message}</p>}
               </div>
