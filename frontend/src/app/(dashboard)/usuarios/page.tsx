@@ -181,10 +181,10 @@ export default function UsuariosPage() {
 
         <div className="relative max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar usuario..." className="pl-9 pr-4 py-2.5 rounded-xl border border-[#20CDFE]/10 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200" />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar usuario..." className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-800/50 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200" />
         </div>
 
-        <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
+        <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden">
           {loading ? (
             <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
           ) : users.length === 0 ? (
@@ -194,7 +194,7 @@ export default function UsuariosPage() {
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-[#15233D] border-b border-[#20CDFE]/10">
+              <thead className="bg-[#15233D] border-b border-slate-800/50">
                 <tr>
                   {["Usuario", "Email", "Cargo", "Especialidad / Empresa", "Rol", "Estado", "Creado", "Acciones"].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">{h}</th>
@@ -255,8 +255,8 @@ export default function UsuariosPage() {
       {/* Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-md animate-fade-in">
-            <div className="flex items-center justify-between p-6 border-b border-[#20CDFE]/10">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-slate-800/50 w-full max-w-md animate-fade-in">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800/50">
               <h3 className="text-lg font-bold text-white">{editing ? "Editar usuario" : "Nuevo usuario"}</h3>
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 text-2xl leading-none">&times;</button>
             </div>
@@ -264,12 +264,12 @@ export default function UsuariosPage() {
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Nombre *</label>
-                  <input {...register("name")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                  <input {...register("name")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Cargo (Ej. Director Creativo)</label>
-                  <input {...register("position")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                  <input {...register("position")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-2">Especialidades</label>
@@ -290,17 +290,17 @@ export default function UsuariosPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Email *</label>
-                <input {...register("email")} type="email" className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                <input {...register("email")} type="email" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                 {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">{editing ? "Nueva contraseña (dejar vacío para no cambiar)" : "Contraseña *"}</label>
-                <input {...register("password")} type="password" className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                <input {...register("password")} type="password" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                 {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Rol *</label>
-                <select {...register("role")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                <select {...register("role")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                   <option value="operativo">Operativo</option>
                   <option value="administrador">Administrador</option>
                   <option value="cliente">Cliente (Empresa)</option>
@@ -310,7 +310,7 @@ export default function UsuariosPage() {
               {selectedRole === "cliente" && (
                 <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Empresa *</label>
-                  <select {...register("company_id")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                  <select {...register("company_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                     <option value="">Seleccionar empresa...</option>
                     {companies.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
@@ -321,7 +321,7 @@ export default function UsuariosPage() {
               )}
 
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm text-slate-300 hover:bg-[#15233D]">Cancelar</button>
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-800/50 rounded-xl text-sm text-slate-300 hover:bg-[#15233D]">Cancelar</button>
                 <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60">
                   {submitting ? "Guardando..." : editing ? "Actualizar" : "Crear usuario"}
                 </button>
@@ -333,11 +333,11 @@ export default function UsuariosPage() {
 
       {deleteId && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-sm p-6 animate-fade-in">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-slate-800/50 w-full max-w-sm p-6 animate-fade-in">
             <h3 className="text-lg font-bold text-white mb-2">¿Eliminar usuario?</h3>
             <p className="text-slate-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm text-slate-300 hover:bg-[#15233D]">Cancelar</button>
+              <button onClick={() => setDeleteId(null)} className="flex-1 px-4 py-2.5 border border-slate-800/50 rounded-xl text-sm text-slate-300 hover:bg-[#15233D]">Cancelar</button>
               <button onClick={confirmDelete} className="flex-1 bg-red-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-600">Eliminar</button>
             </div>
           </div>

@@ -252,7 +252,7 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
   return (
     <div className="flex h-full relative" ref={reactFlowWrapper}>
       {/* Sidebar for Drag & Drop */}
-      <div className="w-20 bg-[#0A101D]/80 border-r border-[#20CDFE]/10 flex flex-col items-center py-4 space-y-6 z-10 shadow-sm shrink-0">
+      <div className="w-20 bg-[#0A101D]/80 border-r border-slate-800/50 flex flex-col items-center py-4 space-y-6 z-10 shadow-sm shrink-0">
         <div 
           className="cursor-grab hover:scale-110 transition-transform" 
           onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'start'); e.dataTransfer.effectAllowed = 'move'; }} 
@@ -296,9 +296,9 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
       </div>
 
       <div className="flex-1 flex flex-col h-full bg-[#15233D] relative">
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-center bg-[#0A101D]/80 p-3 rounded-xl shadow-sm border border-[#20CDFE]/10 z-10">
+        <div className="absolute top-4 left-4 right-4 flex justify-between items-center bg-[#0A101D]/80 p-3 rounded-xl shadow-sm border border-slate-800/50 z-10">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.push("/workflows")} className="p-2 border border-[#20CDFE]/10 rounded-lg hover:bg-[#15233D] transition-colors text-slate-400">
+            <button onClick={() => router.push("/workflows")} className="p-2 border border-slate-800/50 rounded-lg hover:bg-[#15233D] transition-colors text-slate-400">
               <ArrowLeft className="h-4 w-4" />
             </button>
             <input 
@@ -335,8 +335,8 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
 
       {/* Properties Panel */}
       {selectedNode && (
-        <div className="w-80 bg-[#0A101D]/80 border-l border-[#20CDFE]/10 shadow-xl z-20 flex flex-col absolute right-0 top-0 bottom-0">
-          <div className="p-4 border-b border-[#20CDFE]/10 flex items-center gap-2 bg-[#15233D]">
+        <div className="w-80 bg-[#0A101D]/80 border-l border-slate-800/50 shadow-xl z-20 flex flex-col absolute right-0 top-0 bottom-0">
+          <div className="p-4 border-b border-slate-800/50 flex items-center gap-2 bg-[#15233D]">
             <Settings className="w-5 h-5 text-[#20CDFE]" />
             <h3 className="font-bold text-white">Propiedades del Nodo</h3>
           </div>
@@ -346,7 +346,7 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
               <input 
                 value={(selectedNode.data as any).stage?.name || ""}
                 onChange={(e) => handleUpdateStageField(parseInt(selectedNode.id), "name", e.target.value)}
-                className="w-full px-3 py-2 border border-[#20CDFE]/10 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 border border-slate-800/50 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
             
@@ -356,7 +356,7 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
                 <select 
                   value={(selectedNode.data as any).stage?.department || ""}
                   onChange={(e) => handleUpdateStageField(parseInt(selectedNode.id), "department", e.target.value)}
-                  className="w-full px-3 py-2 bg-[#0A101D]/80 border border-[#20CDFE]/10 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-white"
+                  className="w-full px-3 py-2 bg-[#0A101D]/80 border border-slate-800/50 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                 >
                   <option value="">Selecciona área...</option>
                   {departments?.map((dept: any) => (
@@ -366,7 +366,7 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
               </div>
             )}
             
-            <div className="pt-4 border-t border-[#20CDFE]/10">
+            <div className="pt-4 border-t border-slate-800/50">
               <button 
                 onClick={handleDeleteNode}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors"
@@ -379,8 +379,8 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
       )}
 
       {selectedEdge && (
-        <div className="w-80 bg-[#0A101D]/80 border-l border-[#20CDFE]/10 shadow-xl z-20 flex flex-col absolute right-0 top-0 bottom-0">
-          <div className="p-4 border-b border-[#20CDFE]/10 flex items-center gap-2 bg-[#15233D]">
+        <div className="w-80 bg-[#0A101D]/80 border-l border-slate-800/50 shadow-xl z-20 flex flex-col absolute right-0 top-0 bottom-0">
+          <div className="p-4 border-b border-slate-800/50 flex items-center gap-2 bg-[#15233D]">
             <Settings className="w-5 h-5 text-emerald-500" />
             <h3 className="font-bold text-white">Condición de Línea</h3>
           </div>
@@ -400,11 +400,11 @@ function BuilderCanvas({ workflow, id, onWorkflowUpdate, showToast, departments 
                   }));
                 }}
                 placeholder="Ej. Aprobado"
-                className="w-full px-3 py-2 border border-[#20CDFE]/10 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 border border-slate-800/50 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
             
-            <div className="pt-4 border-t border-[#20CDFE]/10">
+            <div className="pt-4 border-t border-slate-800/50">
               <button 
                 onClick={handleDeleteEdge}
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors"

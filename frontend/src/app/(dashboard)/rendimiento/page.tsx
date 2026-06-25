@@ -55,7 +55,7 @@ export default function RendimientoPage() {
         </p>
       </div>
 
-      <div className="flex-1 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden flex flex-col">
+      <div className="flex-1 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden flex flex-col">
         {!hasDashboard ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
             <div className="w-20 h-20 bg-[#15233D] rounded-full flex items-center justify-center mb-6">

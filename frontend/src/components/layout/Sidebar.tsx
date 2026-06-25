@@ -59,10 +59,10 @@ export default function Sidebar() {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className={cn(
-        "flex items-center gap-3 px-4 py-5 border-b border-[#20CDFE]/10",
+        "flex items-center gap-3 px-4 py-5 border-b border-slate-800/50",
         collapsed && "justify-center px-0"
       )}>
-        <div className="flex flex-col items-center justify-center shrink-0 w-10 h-10 bg-[#15233D] border border-[#20CDFE]/15 rounded-xl shadow-[0_0_15px_rgba(32,205,254,0.1)]">
+        <div className="flex flex-col items-center justify-center shrink-0 w-10 h-10 bg-[#15233D] border border-slate-800/50 rounded-xl shadow-[0_0_15px_rgba(32,205,254,0.1)]">
           <span className="text-[8px] font-bold tracking-[0.2em] text-white/80 -mb-1 ml-[-12px]">TU</span>
           <span className="text-[16px] font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] leading-none tracking-tighter">C</span>
         </div>
@@ -90,7 +90,7 @@ export default function Sidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group relative",
                 active
-                  ? "bg-gradient-to-r from-[#20CDFE]/20 to-[#1ED1B4]/10 text-[#20CDFE] border border-[#20CDFE]/15 shadow-[0_0_20px_rgba(32,205,254,0.1)]"
+                  ? "bg-gradient-to-r from-[#20CDFE]/20 to-[#1ED1B4]/10 text-[#20CDFE] border border-slate-800/50 shadow-[0_0_20px_rgba(32,205,254,0.1)]"
                   : "text-slate-400 hover:text-white hover:bg-[#15233D]",
                 collapsed && "justify-center px-0"
               )}
@@ -106,17 +106,17 @@ export default function Sidebar() {
       </nav>
 
       {/* User info + logout */}
-      <div className="border-t border-[#20CDFE]/10 p-3">
+      <div className="border-t border-slate-800/50 p-3">
         <Link
           href="/perfil"
           title={collapsed ? "Mi Perfil" : undefined}
           className={cn(
-            "flex items-center gap-3 px-2 py-2 mb-2 rounded-xl hover:bg-[#15233D] transition-all group border border-transparent hover:border-[#20CDFE]/10",
+            "flex items-center gap-3 px-2 py-2 mb-2 rounded-xl hover:bg-[#15233D] transition-all group border border-transparent hover:border-slate-800/50",
             collapsed && "justify-center",
-            pathname === "/perfil" && "bg-[#15233D] border-[#20CDFE]/10"
+            pathname === "/perfil" && "bg-[#15233D] border-slate-800/50"
           )}
         >
-          <div className="w-8 h-8 rounded-xl bg-[#2E455C]/40 group-hover:bg-[#2E455C]/60 border border-[#20CDFE]/10 flex items-center justify-center shrink-0 transition-colors">
+          <div className="w-8 h-8 rounded-xl bg-[#2E455C]/40 group-hover:bg-[#2E455C]/60 border border-slate-800/50 flex items-center justify-center shrink-0 transition-colors">
             <User size={15} className="text-[#20CDFE]" />
           </div>
           {!collapsed && (
@@ -142,7 +142,7 @@ export default function Sidebar() {
       {/* Collapse button (desktop) */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-[#0A101D] border border-[#20CDFE]/10 rounded-full items-center justify-center text-slate-400 hover:text-[#20CDFE] transition-colors z-10 hover:border-[#20CDFE]/50"
+        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-[#0A101D] border border-slate-800/50 rounded-full items-center justify-center text-slate-400 hover:text-[#20CDFE] transition-colors z-10 hover:border-[#20CDFE]/50"
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
@@ -154,7 +154,7 @@ export default function Sidebar() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-[#0A101D] border border-[#20CDFE]/10 text-white rounded-xl flex items-center justify-center shadow-lg"
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-[#0A101D] border border-slate-800/50 text-white rounded-xl flex items-center justify-center shadow-lg"
       >
         {mobileOpen ? <X size={18} /> : <Menu size={18} />}
       </button>
@@ -170,7 +170,7 @@ export default function Sidebar() {
       {/* Sidebar desktop */}
       <aside
         className={cn(
-          "hidden lg:flex flex-col sticky top-0 h-screen bg-[#0A101D]/80 backdrop-blur-2xl border-r border-[#20CDFE]/10 transition-all duration-300 z-30 shrink-0",
+          "hidden lg:flex flex-col sticky top-0 h-screen bg-[#0A101D]/80 backdrop-blur-2xl border-r border-slate-800/50 transition-all duration-300 z-30 shrink-0",
           collapsed ? "w-[72px]" : "w-[260px]"
         )}
       >
@@ -180,7 +180,7 @@ export default function Sidebar() {
       {/* Sidebar mobile */}
       <aside
         className={cn(
-          "lg:hidden flex flex-col fixed left-0 top-0 h-full w-[260px] bg-[#0A101D] border-r border-[#20CDFE]/10 transition-all duration-300 z-50",
+          "lg:hidden flex flex-col fixed left-0 top-0 h-full w-[260px] bg-[#0A101D] border-r border-slate-800/50 transition-all duration-300 z-50",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >

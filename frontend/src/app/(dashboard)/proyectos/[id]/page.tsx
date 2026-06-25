@@ -237,7 +237,7 @@ export default function ProjectDetailPage() {
         {/* Resumen e información general */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Tarjeta de información */}
-          <div className="lg:col-span-2 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-6 shadow-sm space-y-4">
+          <div className="lg:col-span-2 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-6 shadow-sm space-y-4">
             <div>
               <h3 className="font-semibold text-white text-base mb-2">Descripción del Proyecto</h3>
               <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-line">
@@ -265,7 +265,7 @@ export default function ProjectDetailPage() {
           </div>
 
           {/* Tarjeta de progreso */}
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-6 shadow-sm flex flex-col justify-between">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-6 shadow-sm flex flex-col justify-between">
             <div>
               <h3 className="font-semibold text-white text-base mb-4">Progreso del Proyecto</h3>
               <div className="flex items-baseline gap-2 mb-2">
@@ -297,7 +297,7 @@ export default function ProjectDetailPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar actividad en este proyecto..."
-              className="pl-9 pr-4 py-2.5 rounded-xl border border-[#20CDFE]/10 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200"
+              className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-800/50 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200"
             />
           </div>
         </div>
@@ -311,13 +311,13 @@ export default function ProjectDetailPage() {
                 key={col.id} 
                 className={`flex flex-col flex-shrink-0 w-80 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border-t-4 shadow-sm min-h-[400px] transition-colors
                   ${col.borderColor} 
-                  ${dragOverCol === col.id ? "bg-[#15233D]/60 border-[#20CDFE]" : "border-[#20CDFE]/10"}
+                  ${dragOverCol === col.id ? "bg-[#15233D]/60 border-[#20CDFE]" : "border-slate-800/50"}
                 `}
                 onDragOver={(e) => handleDragOver(e, col.id)}
                 onDragLeave={() => setDragOverCol(null)}
                 onDrop={(e) => handleDrop(e, col.id)}
               >
-                <div className="p-4 border-b border-[#20CDFE]/10 flex items-center justify-between">
+                <div className="p-4 border-b border-slate-800/50 flex items-center justify-between">
                   <h3 className="font-bold text-white text-sm">{col.label}</h3>
                   <span className="bg-[#1C2C4D] text-slate-300 text-xs px-2 py-0.5 rounded-full">{colActivities.length}</span>
                 </div>
@@ -329,8 +329,8 @@ export default function ProjectDetailPage() {
                       draggable={isAdmin}
                       onDragStart={(e) => handleDragStart(e, act.id)}
                       onDragEnd={() => setDraggingId(null)}
-                      className={`bg-[#0F192E] border border-[#20CDFE]/10 rounded-xl p-4 shadow-sm transition-all
-                        ${isAdmin ? "cursor-grab active:cursor-grabbing hover:border-[#20CDFE]/30 hover:shadow-[#20CDFE]/5" : ""}
+                      className={`bg-[#0F192E] border border-slate-800/50 rounded-xl p-4 shadow-sm transition-all
+                        ${isAdmin ? "cursor-grab active:cursor-grabbing hover:border-slate-800 hover:shadow-[#20CDFE]/5" : ""}
                         ${draggingId === act.id ? "opacity-50 scale-95" : "opacity-100 scale-100"}
                       `}
                     >
@@ -379,7 +379,7 @@ export default function ProjectDetailPage() {
                   ))}
                   
                   {colActivities.length === 0 && (
-                    <div className="text-center p-4 border-2 border-dashed border-[#20CDFE]/10 rounded-xl text-slate-500 text-xs font-medium">
+                    <div className="text-center p-4 border-2 border-dashed border-slate-800/50 rounded-xl text-slate-500 text-xs font-medium">
                       Suelta aquí
                     </div>
                   )}
@@ -393,8 +393,8 @@ export default function ProjectDetailPage() {
       {/* Modal crear actividad */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-lg animate-fade-in max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-[#20CDFE]/10 shrink-0">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-slate-800/50 w-full max-w-lg animate-fade-in max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800/50 shrink-0">
               <h3 className="text-lg font-bold text-white">Nueva actividad</h3>
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 text-2xl leading-none cursor-pointer">&times;</button>
             </div>
@@ -402,7 +402,7 @@ export default function ProjectDetailPage() {
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 
                 {/* Selector de Modo de Creación */}
-                <div className="flex bg-[#0A101D] border border-[#20CDFE]/20 rounded-xl p-1 mb-2">
+                <div className="flex bg-[#0A101D] border border-slate-800 rounded-xl p-1 mb-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -435,7 +435,7 @@ export default function ProjectDetailPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Título de la Actividad *</label>
-                  <input {...register("title")} placeholder="Ej. Campaña de Verano 2026" className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                  <input {...register("title")} placeholder="Ej. Campaña de Verano 2026" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                   {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                 </div>
 
@@ -443,14 +443,14 @@ export default function ProjectDetailPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">Plantilla de Flujo</label>
-                      <select {...register("workflow_id")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]">
+                      <select {...register("workflow_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]">
                         {workflows.length === 0 && <option value="">No hay flujos disponibles</option>}
                         {workflows.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
                       </select>
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo de Actividad</label>
-                      <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]">
+                      <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]">
                         {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                       </select>
                     </div>
@@ -461,19 +461,19 @@ export default function ProjectDetailPage() {
                   <>
                     <div>
                       <label className="block text-xs font-semibold text-slate-300 mb-1">Descripción</label>
-                      <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
+                      <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo</label>
-                        <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                        <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                           {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                         </select>
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-slate-300 mb-1">Prioridad</label>
-                        <select {...register("priority")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                        <select {...register("priority")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                           <option value="baja">Baja</option>
                           <option value="media">Media</option>
                           <option value="alta">Alta</option>
@@ -490,7 +490,7 @@ export default function ProjectDetailPage() {
                           min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
                           max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
                           {...register("start_date")} 
-                          className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
+                          className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
                         />
                       </div>
                       <div>
@@ -500,7 +500,7 @@ export default function ProjectDetailPage() {
                           min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
                           max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
                           {...register("deadline")} 
-                          className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
+                          className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
                         />
                       </div>
                     </div>
@@ -514,7 +514,7 @@ export default function ProjectDetailPage() {
                             setSelectedDepartmentId(e.target.value);
                             reset({ ...register, assigned_user_id: null });
                           }}
-                          className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
+                          className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
                         >
                           <option value="">Cualquier rol operativo</option>
                           {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
@@ -522,7 +522,7 @@ export default function ProjectDetailPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-semibold text-slate-300 mb-1">Responsable Inicial</label>
-                        <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                        <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
                           <option value="">Sin asignar</option>
                           {users
                             .filter(u => !selectedDepartmentId || u.departments?.some(d => d.id === Number(selectedDepartmentId)))
@@ -534,8 +534,8 @@ export default function ProjectDetailPage() {
                   </>
                 )}
               </div>
-              <div className="flex gap-3 p-6 border-t border-[#20CDFE]/10 bg-[#0F192E] shrink-0">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 bg-[#0A101D]/80 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors">Cancelar</button>
+              <div className="flex gap-3 p-6 border-t border-slate-800/50 bg-[#0F192E] shrink-0">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-800/50 bg-[#0A101D]/80 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors">Cancelar</button>
                 <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-violet-500/10">
                   {submitting ? "Creando..." : "Crear actividad"}
                 </button>

@@ -69,7 +69,7 @@ export default function WorkflowsPage() {
         </div>
       )}
 
-      <div className="flex justify-between items-center bg-[#0A101D]/80 p-6 rounded-2xl shadow-sm border border-[#20CDFE]/10">
+      <div className="flex justify-between items-center bg-[#0A101D]/80 p-6 rounded-2xl shadow-sm border border-slate-800/50">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white">Flujos de Trabajo</h1>
           <p className="text-slate-400 mt-1">
@@ -84,7 +84,7 @@ export default function WorkflowsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {workflows.map((wf) => (
-          <div key={wf.id} className="bg-[#0A101D]/80 rounded-2xl p-6 shadow-sm border border-[#20CDFE]/10 hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div key={wf.id} className="bg-[#0A101D]/80 rounded-2xl p-6 shadow-sm border border-slate-800/50 hover:shadow-md transition-shadow relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button onClick={() => router.push(`/workflows/${wf.id}`)} className="p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors" title="Editar">
                 <Edit className="h-4 w-4" />
@@ -112,7 +112,7 @@ export default function WorkflowsPage() {
       </div>
       
       {workflows.length === 0 && (
-        <div className="text-center bg-[#0A101D]/80 p-12 rounded-2xl border border-[#20CDFE]/10 border-dashed">
+        <div className="text-center bg-[#0A101D]/80 p-12 rounded-2xl border border-slate-800/50 border-dashed">
           <div className="h-12 w-12 bg-[#15233D] rounded-full flex items-center justify-center text-slate-400 mx-auto mb-4">
             <GitMerge className="h-6 w-6" />
           </div>
@@ -120,7 +120,7 @@ export default function WorkflowsPage() {
           <p className="text-slate-400 max-w-md mx-auto mb-6">
             Aún no has creado ningún flujo de trabajo para tu agencia. Los flujos te permiten diseñar los pasos que siguen tus proyectos.
           </p>
-          <button onClick={handleCreate} className="px-4 py-2 border border-[#20CDFE]/10 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#15233D] transition-colors">
+          <button onClick={handleCreate} className="px-4 py-2 border border-slate-800/50 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#15233D] transition-colors">
             Crear mi primer flujo
           </button>
         </div>

@@ -143,7 +143,7 @@ export default function ActividadesPage() {
 
   // Agrupación para el Kanban Board
   const columns: { id: ActivityStatus; title: string; color: string; border: string; bg: string }[] = [
-    { id: "pendiente", title: "Pendientes", color: "text-slate-300", border: "border-[#20CDFE]/10", bg: "bg-[#1C2C4D]/50" },
+    { id: "pendiente", title: "Pendientes", color: "text-slate-300", border: "border-slate-800/50", bg: "bg-[#1C2C4D]/50" },
     { id: "en_proceso", title: "En Progreso", color: "text-blue-600", border: "border-blue-200", bg: "bg-blue-50/50" },
     { id: "en_revision", title: "En Revisión", color: "text-amber-600", border: "border-amber-200", bg: "bg-amber-50/50" },
     { id: "aprobada", title: "Completadas", color: "text-green-600", border: "border-green-200", bg: "bg-green-50/50" },
@@ -154,7 +154,7 @@ export default function ActividadesPage() {
     const overdue = isOverdue(a.deadline, a.status);
     
     return (
-      <div key={a.id} className={`p-4 rounded-xl border bg-[#0A101D]/80 shadow-sm flex flex-col gap-3 transition-all hover:shadow-md ${overdue ? "border-red-200" : "border-[#20CDFE]/10"}`}>
+      <div key={a.id} className={`p-4 rounded-xl border bg-[#0A101D]/80 shadow-sm flex flex-col gap-3 transition-all hover:shadow-md ${overdue ? "border-red-200" : "border-slate-800/50"}`}>
         <div className="flex justify-between items-start gap-2">
           <Link href={`/actividades/${a.id}`} className="font-bold text-white hover:text-[#20CDFE] transition-colors text-sm line-clamp-2">
             {a.title}
@@ -186,7 +186,7 @@ export default function ActividadesPage() {
             <select
               value={a.assigned_user_id || ""}
               onChange={(e) => handleAssignUser(a.id, e.target.value)}
-              className="w-full text-xs font-semibold appearance-none bg-[#15233D] hover:bg-[#1C2C4D] border border-[#20CDFE]/10 rounded-lg py-2 pl-8 pr-3 cursor-pointer outline-none transition-colors text-white"
+              className="w-full text-xs font-semibold appearance-none bg-[#15233D] hover:bg-[#1C2C4D] border border-slate-800/50 rounded-lg py-2 pl-8 pr-3 cursor-pointer outline-none transition-colors text-white"
             >
               <option value="">Sin asignar</option>
               {users.map(u => (
@@ -282,21 +282,21 @@ export default function ActividadesPage() {
         <div className="flex flex-wrap gap-3 shrink-0">
           <div className="relative flex-1 min-w-[180px]">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar actividad..." className="pl-9 pr-4 py-2.5 rounded-xl border border-[#20CDFE]/10 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar actividad..." className="pl-9 pr-4 py-2.5 rounded-xl border border-slate-800/50 bg-[#0A101D]/80 text-sm w-full focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium" />
           </div>
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
             <option value="">Todos los estados</option>
             {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
-          <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)} className="px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
+          <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
             <option value="">Todas las empresas</option>
             {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <select value={filterProject} onChange={e => setFilterProject(e.target.value)} className="px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
+          <select value={filterProject} onChange={e => setFilterProject(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
             <option value="">Todos los proyectos</option>
             {projects.filter(p => !filterCompany || p.company?.id.toString() === filterCompany).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
-          <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
+          <select value={filterUser} onChange={e => setFilterUser(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
             <option value="">Todos los usuarios</option>
             {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
           </select>
@@ -306,7 +306,7 @@ export default function ActividadesPage() {
         {loading ? (
             <div className="flex-1 flex justify-center items-center"><div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
         ) : activities.length === 0 ? (
-          <div className="flex-1 flex flex-col justify-center items-center text-slate-400 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 border-dashed">
+          <div className="flex-1 flex flex-col justify-center items-center text-slate-400 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 border-dashed">
             <ClipboardList size={48} className="mb-4 opacity-20" />
             <p className="font-semibold text-lg text-slate-400">No se encontraron actividades</p>
             <p className="text-sm mt-1">Intenta ajustando los filtros o creando una nueva.</p>
@@ -334,9 +334,9 @@ export default function ActividadesPage() {
           </div>
         ) : (
           /* List View */
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden flex-1 overflow-y-auto">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden flex-1 overflow-y-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#15233D] border-b border-[#20CDFE]/10 sticky top-0 z-10">
+              <thead className="bg-[#15233D] border-b border-slate-800/50 sticky top-0 z-10">
                 <tr>
                   {["Actividad", "Proyecto / Empresa", "Tipo", "Responsable", "Prioridad", "Estado", "Vence", "Acciones"].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider whitespace-nowrap">{h}</th>
@@ -363,7 +363,7 @@ export default function ActividadesPage() {
                         <select
                           value={a.assigned_user_id || ""}
                           onChange={(e) => handleAssignUser(a.id, e.target.value)}
-                          className="bg-transparent border border-[#20CDFE]/10 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-violet-200 hover:border-violet-300 outline-none transition-colors"
+                          className="bg-transparent border border-slate-800/50 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-violet-200 hover:border-violet-300 outline-none transition-colors"
                         >
                           <option value="">Sin asignar</option>
                           {users.map(u => (
@@ -376,7 +376,7 @@ export default function ActividadesPage() {
                         <select
                           value={a.status}
                           onChange={(e) => handleUpdateStatus(a.id, e.target.value as ActivityStatus)}
-                          className="bg-transparent border border-[#20CDFE]/10 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-violet-200 hover:border-violet-300 outline-none transition-colors"
+                          className="bg-transparent border border-slate-800/50 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-violet-200 hover:border-violet-300 outline-none transition-colors"
                         >
                           {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => (
                             <option key={k} value={k}>{v}</option>
@@ -424,8 +424,8 @@ export default function ActividadesPage() {
       {/* Modal crear actividad */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-lg animate-fade-in max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-[#20CDFE]/10 shrink-0">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-slate-800/50 w-full max-w-lg animate-fade-in max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800/50 shrink-0">
               <h3 className="text-lg font-bold text-white">Nueva actividad</h3>
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 transition-colors rounded-lg p-1 hover:bg-[#1C2C4D]"><XCircle size={20}/></button>
             </div>
@@ -433,7 +433,7 @@ export default function ActividadesPage() {
               <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Proyecto *</label>
-                  <select {...register("project_id")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
+                  <select {...register("project_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
                     <option value="">Seleccionar proyecto</option>
                     {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.company?.name})</option>)}
                   </select>
@@ -441,45 +441,45 @@ export default function ActividadesPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Título *</label>
-                  <input {...register("title")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80" placeholder="Ej. Diseño de logotipo" />
+                  <input {...register("title")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80" placeholder="Ej. Diseño de logotipo" />
                   {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Descripción</label>
-                  <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 resize-none" placeholder="Detalles de la tarea..." />
+                  <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 resize-none" placeholder="Detalles de la tarea..." />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">Tipo</label>
-                    <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
+                    <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
                       {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">Prioridad</label>
-                    <select {...register("priority")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
+                    <select {...register("priority")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
                       {Object.entries(PRIORITY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">Fecha inicio</label>
-                    <input {...register("start_date")} type="date" className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80" />
+                    <input {...register("start_date")} type="date" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80" />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">Fecha límite</label>
-                    <input {...register("deadline")} type="date" className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80" />
+                    <input {...register("deadline")} type="date" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable</label>
-                  <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
+                  <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
                     <option value="">Sin asignar</option>
                     {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)}
                   </select>
                 </div>
               </div>
-              <div className="flex gap-3 p-6 border-t border-[#20CDFE]/10 bg-[#15233D]/80 shrink-0">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 bg-[#0A101D]/80 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#15233D] transition-colors shadow-sm">Cancelar</button>
+              <div className="flex gap-3 p-6 border-t border-slate-800/50 bg-[#15233D]/80 shrink-0">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-800/50 bg-[#0A101D]/80 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#15233D] transition-colors shadow-sm">Cancelar</button>
                 <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-violet-500/20">
                   {submitting ? "Creando..." : "Crear actividad"}
                 </button>
@@ -492,12 +492,12 @@ export default function ActividadesPage() {
       {/* Modal observación */}
       {observeModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-[#20CDFE]/10 w-full max-w-sm p-6 animate-fade-in">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-slate-800/50 w-full max-w-sm p-6 animate-fade-in">
             <h3 className="text-lg font-bold text-white mb-2">Observar actividad</h3>
             <p className="text-slate-400 text-sm mb-4">Escribe una observación para el responsable.</p>
-            <textarea value={observation} onChange={e => setObservation(e.target.value)} rows={3} placeholder="Describe qué debe corregirse..." className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 resize-none mb-4 bg-[#0A101D]/80" />
+            <textarea value={observation} onChange={e => setObservation(e.target.value)} rows={3} placeholder="Describe qué debe corregirse..." className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-400 resize-none mb-4 bg-[#0A101D]/80" />
             <div className="flex gap-3">
-              <button onClick={() => { setObserveModal(null); setObservation(""); }} className="flex-1 px-4 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#15233D] transition-colors">Cancelar</button>
+              <button onClick={() => { setObserveModal(null); setObservation(""); }} className="flex-1 px-4 py-2.5 border border-slate-800/50 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#15233D] transition-colors">Cancelar</button>
               <button onClick={handleObserve} disabled={!observation.trim()} className="flex-1 bg-amber-500 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-amber-600 disabled:opacity-60 transition-colors shadow-lg shadow-amber-500/20">
                 Enviar observación
               </button>

@@ -113,9 +113,9 @@ export default function MisPaquetesPage() {
               const isRequested = requests.find(r => r.package_id === p.id && r.status !== "rechazada" && r.status !== "entregada");
               
               return (
-                <div key={p.id} className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 p-6 flex flex-col justify-between hover:border-[#20CDFE]/30 transition-all shadow-sm hover:shadow-lg group">
+                <div key={p.id} className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-6 flex flex-col justify-between hover:border-slate-800 transition-all shadow-sm hover:shadow-lg group">
                   <div>
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#20CDFE]/20 to-[#1ED1B4]/10 border border-[#20CDFE]/20 flex items-center justify-center mb-4 text-[#20CDFE]">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#20CDFE]/20 to-[#1ED1B4]/10 border border-slate-800 flex items-center justify-center mb-4 text-[#20CDFE]">
                       <PkgIcon size={24} />
                     </div>
                     <h3 className="font-bold text-white text-lg mb-2">{p.name}</h3>
@@ -155,7 +155,7 @@ export default function MisPaquetesPage() {
             <p className="text-slate-400 text-sm mt-1">Estado de los paquetes que has solicitado recientemente.</p>
           </div>
 
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden">
             {loading ? (
               <div className="flex justify-center py-12"><div className="w-6 h-6 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
             ) : requests.length === 0 ? (
@@ -165,7 +165,7 @@ export default function MisPaquetesPage() {
               </div>
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-[#15233D] border-b border-[#20CDFE]/10">
+                <thead className="bg-[#15233D] border-b border-slate-800/50">
                   <tr>
                     <th className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">ID</th>
                     <th className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase tracking-wider">Paquete</th>

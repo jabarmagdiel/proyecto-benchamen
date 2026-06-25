@@ -129,7 +129,7 @@ export default function PerfilPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Columna Izquierda: Tarjeta de Presentación */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden">
             {/* Header decorativo */}
             <div className="h-28 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] relative"></div>
             {/* Avatar & Info Básica */}
@@ -189,7 +189,7 @@ export default function PerfilPage() {
           </div>
 
           {/* Tarjeta de Privilegios/Permisos */}
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm p-6 space-y-4">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm p-6 space-y-4">
             <h4 className="text-sm font-bold text-white flex items-center gap-2">
               <Shield size={16} className="text-[#20CDFE]" />
               Tus Privilegios
@@ -245,7 +245,7 @@ export default function PerfilPage() {
         {/* Columna Derecha: Formularios de Edición y Cambio de Contraseña */}
         <div className="lg:col-span-2 space-y-6">
           {/* Formulario 1: Datos Personales */}
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-[#2E455C]/20">
               <h3 className="font-bold text-white text-sm flex items-center gap-2">
                 <User size={16} className="text-[#20CDFE]" />
@@ -261,7 +261,7 @@ export default function PerfilPage() {
                   <input 
                     {...regProfile("name")} 
                     type="text"
-                    className="w-full px-3.5 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
+                    className="w-full px-3.5 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                   />
                   {profileErrors.name && (
                     <p className="text-red-500 text-xs mt-1">{profileErrors.name.message as string}</p>
@@ -274,7 +274,7 @@ export default function PerfilPage() {
                     {...regProfile("position")} 
                     placeholder="Ej. Filmmaker, Editora, Diseñador..."
                     type="text"
-                    className="w-full px-3.5 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
+                    className="w-full px-3.5 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                   />
                   {profileErrors.position && (
                     <p className="text-red-500 text-xs mt-1">{profileErrors.position.message as string}</p>
@@ -287,7 +287,7 @@ export default function PerfilPage() {
                 <input 
                   {...regProfile("email")} 
                   type="email"
-                  className="w-full px-3.5 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
+                  className="w-full px-3.5 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                 />
                 {profileErrors.email && (
                   <p className="text-red-500 text-xs mt-1">{profileErrors.email.message as string}</p>
@@ -308,7 +308,7 @@ export default function PerfilPage() {
           </div>
 
           {/* Formulario 2: Cambio de Contraseña */}
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-[#2E455C]/20">
               <h3 className="font-bold text-white text-sm flex items-center gap-2">
                 <KeyRound size={16} className="text-[#20CDFE]" />
@@ -325,7 +325,7 @@ export default function PerfilPage() {
                     {...regPassword("current_password")} 
                     type={showCurrentPass ? "text" : "password"}
                     placeholder="••••••••"
-                    className="w-full pl-3.5 pr-10 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
+                    className="w-full pl-3.5 pr-10 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                   />
                   <button 
                     type="button" 
@@ -348,7 +348,7 @@ export default function PerfilPage() {
                       {...regPassword("new_password")} 
                       type={showNewPass ? "text" : "password"}
                       placeholder="••••••••"
-                      className="w-full pl-3.5 pr-10 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
+                      className="w-full pl-3.5 pr-10 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                     />
                     <button 
                       type="button" 
@@ -370,7 +370,7 @@ export default function PerfilPage() {
                       {...regPassword("confirm_password")} 
                       type={showConfirmPass ? "text" : "password"}
                       placeholder="••••••••"
-                      className="w-full pl-3.5 pr-10 py-2.5 border border-[#20CDFE]/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
+                      className="w-full pl-3.5 pr-10 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
                     />
                     <button 
                       type="button" 

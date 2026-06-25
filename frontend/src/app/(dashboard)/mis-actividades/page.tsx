@@ -89,7 +89,7 @@ export default function MisActividadesPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Filter size={16} className="text-slate-400" />
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
             <option value="">Todos los estados</option>
             {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
@@ -114,7 +114,7 @@ export default function MisActividadesPage() {
       {loading ? (
         <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
       ) : activities.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10">
+        <div className="text-center py-20 text-slate-400 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50">
           <CheckSquare size={48} className="mx-auto mb-4 opacity-20" />
           <p className="font-semibold text-lg">¡Todo listo!</p>
           <p className="text-sm mt-1">No tienes actividades asignadas en este momento.</p>
@@ -135,7 +135,7 @@ export default function MisActividadesPage() {
                     {group.map((a) => {
                       const overdue = isOverdue(a.deadline, a.status);
                       return (
-                        <div key={a.id} className={`bg-[#0A101D]/80 rounded-2xl border shadow-sm hover:shadow-md transition-all p-5 flex flex-col gap-3 ${overdue ? "border-red-200 bg-red-50/20" : "border-[#20CDFE]/10"}`}>
+                        <div key={a.id} className={`bg-[#0A101D]/80 rounded-2xl border shadow-sm hover:shadow-md transition-all p-5 flex flex-col gap-3 ${overdue ? "border-red-200 bg-red-50/20" : "border-slate-800/50"}`}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="flex-1 min-w-0">
                               <Link href={`/actividades/${a.id}`} className="font-semibold text-white hover:text-[#20CDFE] transition-colors line-clamp-2 block">
@@ -197,8 +197,8 @@ export default function MisActividadesPage() {
             })}
           </div>
         ) : (
-          <div className="bg-[#0A101D]/80 rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-[#20CDFE]/10">
+          <div className="bg-[#0A101D]/80 rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-slate-800/50">
               <h3 className="font-bold text-lg text-white">{MONTHS[calMonth]} {calYear}</h3>
               <div className="flex items-center gap-2">
                 <button
@@ -230,7 +230,7 @@ export default function MisActividadesPage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-7 border-b border-[#20CDFE]/10">
+            <div className="grid grid-cols-7 border-b border-slate-800/50">
               {DAY_NAMES.map(d => (
                 <div key={d} className="py-3 text-center text-xs font-semibold text-slate-400">{d}</div>
               ))}
@@ -238,7 +238,7 @@ export default function MisActividadesPage() {
             
             <div className="grid grid-cols-7 auto-rows-[120px]">
               {Array.from({ length: getFirstDayOfMonth(calYear, calMonth) }).map((_, i) => (
-                <div key={`empty-${i}`} className="border-b border-r border-[#20CDFE]/10 bg-[#0F192E]" />
+                <div key={`empty-${i}`} className="border-b border-r border-slate-800/50 bg-[#0F192E]" />
               ))}
               {Array.from({ length: getDaysInMonth(calYear, calMonth) }).map((_, i) => {
                 const day = i + 1;
@@ -255,7 +255,7 @@ export default function MisActividadesPage() {
                 });
                 
                 return (
-                  <div key={day} className="border-b border-r border-[#20CDFE]/10 p-2 overflow-y-auto">
+                  <div key={day} className="border-b border-r border-slate-800/50 p-2 overflow-y-auto">
                     <div className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full mb-1 ${isToday ? 'bg-violet-600 text-white' : 'text-slate-400'}`}>
                       {day}
                     </div>

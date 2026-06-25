@@ -52,14 +52,14 @@ export default function CapacidadPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {Object.entries(grouped).map(([dept, users]) => (
-          <div key={dept} className="bg-[#0A101D]/80 border border-[#20CDFE]/10 rounded-2xl p-5 shadow-sm">
+          <div key={dept} className="bg-[#0A101D]/80 border border-slate-800/50 rounded-2xl p-5 shadow-sm">
             <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
               <Users size={16} className="text-[#20CDFE]" /> {dept}
             </h3>
             
             <div className="space-y-4">
               {users.map(u => (
-                <div key={u.user_id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-xl border border-[#20CDFE]/10 bg-[#15233D]">
+                <div key={u.user_id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 rounded-xl border border-slate-800/50 bg-[#15233D]">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-[#20CDFE]/20 text-[#20CDFE] flex items-center justify-center font-bold text-sm">
                       {u.name.charAt(0).toUpperCase()}

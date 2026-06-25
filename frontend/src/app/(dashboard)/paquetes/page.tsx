@@ -130,7 +130,7 @@ export default function PaquetesPage() {
             <p className="text-slate-400 text-sm mt-0.5">Catálogo y solicitudes de clientes</p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="bg-[#0A101D]/80 border border-[#20CDFE]/10 rounded-xl p-1 flex">
+            <div className="bg-[#0A101D]/80 border border-slate-800/50 rounded-xl p-1 flex">
               <button 
                 onClick={() => setTab("catalogo")}
                 className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${tab === "catalogo" ? "bg-[#20CDFE]/20 text-[#20CDFE]" : "text-slate-400 hover:text-white"}`}
@@ -159,7 +159,7 @@ export default function PaquetesPage() {
         </div>
 
         {tab === "catalogo" ? (
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden">
             {loading ? (
               <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
             ) : packages.length === 0 ? (
@@ -169,7 +169,7 @@ export default function PaquetesPage() {
               </div>
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-[#15233D] border-b border-[#20CDFE]/10">
+                <thead className="bg-[#15233D] border-b border-slate-800/50">
                   <tr>
                     <th className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase">Paquete</th>
                     <th className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase">Descripción</th>
@@ -198,7 +198,7 @@ export default function PaquetesPage() {
             )}
           </div>
         ) : (
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-[#20CDFE]/10 shadow-sm overflow-hidden">
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm overflow-hidden">
             {loading ? (
               <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
             ) : requests.length === 0 ? (
@@ -208,7 +208,7 @@ export default function PaquetesPage() {
               </div>
             ) : (
               <table className="w-full text-sm">
-                <thead className="bg-[#15233D] border-b border-[#20CDFE]/10">
+                <thead className="bg-[#15233D] border-b border-slate-800/50">
                   <tr>
                     <th className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase">Cliente / Empresa</th>
                     <th className="text-left px-4 py-3 text-slate-400 font-medium text-xs uppercase">Paquete</th>
@@ -255,28 +255,28 @@ export default function PaquetesPage() {
 
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-[#20CDFE]/10 w-full max-w-md animate-fade-in">
-            <div className="flex items-center justify-between p-6 border-b border-[#20CDFE]/10">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-2xl border border-slate-800/50 w-full max-w-md animate-fade-in">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800/50">
               <h3 className="text-lg font-bold text-white">{editing ? "Editar paquete" : "Nuevo paquete"}</h3>
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 text-2xl">&times;</button>
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Nombre</label>
-                <input {...register("name")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D] text-white focus:ring-2 focus:ring-[#20CDFE]" />
+                <input {...register("name")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D] text-white focus:ring-2 focus:ring-[#20CDFE]" />
                 {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Descripción</label>
-                <textarea {...register("description")} rows={3} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D] text-white focus:ring-2 focus:ring-[#20CDFE]" />
+                <textarea {...register("description")} rows={3} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D] text-white focus:ring-2 focus:ring-[#20CDFE]" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Precio Base (Bs.)</label>
-                <input type="number" step="0.01" {...register("base_price")} className="w-full px-3 py-2.5 border border-[#20CDFE]/10 rounded-xl bg-[#0A101D] text-white focus:ring-2 focus:ring-[#20CDFE]" />
+                <input type="number" step="0.01" {...register("base_price")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D] text-white focus:ring-2 focus:ring-[#20CDFE]" />
                 {errors.base_price && <p className="text-red-500 text-xs mt-1">{errors.base_price.message}</p>}
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-2.5 border border-[#20CDFE]/10 rounded-xl text-slate-300 hover:bg-[#15233D]">Cancelar</button>
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-2.5 border border-slate-800/50 rounded-xl text-slate-300 hover:bg-[#15233D]">Cancelar</button>
                 <button type="submit" disabled={submitting} className="flex-1 bg-[#20CDFE] text-[#07060B] py-2.5 rounded-xl font-bold hover:opacity-90">{submitting ? "Guardando..." : "Guardar"}</button>
               </div>
             </form>
@@ -286,12 +286,12 @@ export default function PaquetesPage() {
 
       {deleteId && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D]/90 rounded-2xl border border-[#20CDFE]/10 w-full max-w-sm p-6 text-center">
+          <div className="bg-[#0A101D]/90 rounded-2xl border border-slate-800/50 w-full max-w-sm p-6 text-center">
             <Trash2 size={40} className="mx-auto text-red-500 mb-4" />
             <h3 className="text-lg font-bold text-white mb-2">¿Eliminar paquete?</h3>
             <p className="text-slate-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 rounded-xl border border-[#20CDFE]/10 text-slate-300 hover:bg-[#15233D]">Cancelar</button>
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 rounded-xl border border-slate-800/50 text-slate-300 hover:bg-[#15233D]">Cancelar</button>
               <button onClick={confirmDelete} className="flex-1 bg-red-500 text-white py-2.5 rounded-xl font-bold hover:bg-red-600">Eliminar</button>
             </div>
           </div>

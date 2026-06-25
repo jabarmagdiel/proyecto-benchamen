@@ -108,9 +108,9 @@ export default function RolesOperativosPage() {
         </button>
       </div>
 
-      <div className="bg-[#0A101D]/80 rounded-2xl shadow-sm border border-[#20CDFE]/10 overflow-hidden">
+      <div className="bg-[#0A101D]/80 rounded-2xl shadow-sm border border-slate-800/50 overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-[#15233D] border-b border-[#20CDFE]/10 text-slate-400 text-xs uppercase font-semibold">
+          <thead className="bg-[#15233D] border-b border-slate-800/50 text-slate-400 text-xs uppercase font-semibold">
             <tr>
               <th className="px-6 py-4">Nombre</th>
               <th className="px-6 py-4">Descripción</th>
@@ -155,7 +155,7 @@ export default function RolesOperativosPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#0A101D]/80 rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#20CDFE]/10 flex justify-between items-center bg-[#15233D]">
+            <div className="px-6 py-4 border-b border-slate-800/50 flex justify-between items-center bg-[#15233D]">
               <h3 className="font-bold text-white">
                 {editingDept ? "Editar Rol Operativo" : "Nuevo Rol Operativo"}
               </h3>
@@ -170,7 +170,7 @@ export default function RolesOperativosPage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-3 py-2 border border-[#20CDFE]/10 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
+                    className="w-full px-3 py-2 border border-slate-800/50 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
                     placeholder="Ej. Diseño Gráfico"
                   />
                 </div>
@@ -179,7 +179,7 @@ export default function RolesOperativosPage() {
                   <textarea
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-[#20CDFE]/10 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
+                    className="w-full px-3 py-2 border border-slate-800/50 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition-all"
                     placeholder="Opcional"
                     rows={3}
                   />
@@ -197,7 +197,7 @@ export default function RolesOperativosPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">Operadores del Rol Operativo</label>
-                  <div className="bg-[#15233D] border border-[#20CDFE]/10 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                  <div className="bg-[#15233D] border border-slate-800/50 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
                     {users.map((user) => (
                       <label key={user.id} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-[#1C2C4D] rounded">
                         <input 
