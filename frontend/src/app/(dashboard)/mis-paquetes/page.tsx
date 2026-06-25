@@ -64,7 +64,7 @@ export default function MisPaquetesPage() {
 
   const handleRequestPackage = async (packageId: number) => {
     if (!user?.company_id) {
-      showToast("Error: No tienes una empresa asignada.", "error");
+      showToast("Error: No tienes una empresa asignada. Contacta al administrador.", "error");
       return;
     }
     

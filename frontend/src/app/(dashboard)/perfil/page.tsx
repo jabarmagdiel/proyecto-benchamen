@@ -140,12 +140,16 @@ export default function PerfilPage() {
                 </div>
               </div>
               <h3 className="font-bold text-white text-lg leading-tight">{profile.name}</h3>
-              <p className="text-slate-400 text-xs mt-1 capitalize">{profile.position || "Miembro del equipo"}</p>
+              {profile.role !== "cliente" && (
+                <p className="text-slate-400 text-xs mt-1 capitalize">{profile.position || "Miembro del equipo"}</p>
+              )}
               
               <span className={`inline-block mt-3 px-3 py-1 rounded-full text-xs font-semibold capitalize ${
-                profile.role === "administrador" ? "bg-[#20CDFE]/20 text-[#20CDFE]" : "bg-blue-100 text-blue-700"
+                profile.role === "administrador" ? "bg-[#20CDFE]/20 text-[#20CDFE]" : 
+                profile.role === "cliente" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
               }`}>
-                {profile.role === "administrador" ? "Administrador" : "Operativo"}
+                {profile.role === "administrador" ? "Administrador" : 
+                 profile.role === "cliente" ? "Cliente" : "Operativo"}
               </span>
             </div>
 
@@ -159,13 +163,15 @@ export default function PerfilPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-slate-300">
-                <Briefcase size={16} className="text-slate-400 shrink-0" />
-                <div>
-                  <p className="text-xs text-slate-400">Cargo</p>
-                  <p className="font-medium text-white capitalize">{profile.position || "-"}</p>
+              {profile.role !== "cliente" && (
+                <div className="flex items-center gap-3 text-slate-300">
+                  <Briefcase size={16} className="text-slate-400 shrink-0" />
+                  <div>
+                    <p className="text-xs text-slate-400">Cargo</p>
+                    <p className="font-medium text-white capitalize">{profile.position || "-"}</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex items-center gap-3 text-slate-300">
                 <Calendar size={16} className="text-slate-400 shrink-0" />
@@ -268,18 +274,20 @@ export default function PerfilPage() {
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Cargo o Puesto</label>
-                  <input 
-                    {...regProfile("position")} 
-                    placeholder="Ej. Filmmaker, Editora, Diseñador..."
-                    type="text"
-                    className="w-full px-3.5 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
-                  />
-                  {profileErrors.position && (
-                    <p className="text-red-500 text-xs mt-1">{profileErrors.position.message as string}</p>
-                  )}
-                </div>
+                {profile.role !== "cliente" && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Cargo o Puesto</label>
+                    <input 
+                      {...regProfile("position")} 
+                      placeholder="Ej. Filmmaker, Editora, Diseñador..."
+                      type="text"
+                      className="w-full px-3.5 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] transition-all"
+                    />
+                    {profileErrors.position && (
+                      <p className="text-red-500 text-xs mt-1">{profileErrors.position.message as string}</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>

@@ -267,26 +267,30 @@ export default function UsuariosPage() {
                   <input {...register("name")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Cargo (Ej. Director Creativo)</label>
-                  <input {...register("position")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-2">Especialidades</label>
-                  <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar p-1">
-                    {departments.map(d => (
-                      <label key={d.id} className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-white transition-colors">
-                        <input
-                          type="checkbox"
-                          value={d.id}
-                          {...register("department_ids")}
-                          className="rounded border-[#2E455C] bg-[#0A101D] text-[#20CDFE] focus:ring-[#20CDFE] focus:ring-offset-[#07060B]"
-                        />
-                        {d.name}
-                      </label>
-                    ))}
-                  </div>
-                </div>
+                {selectedRole !== "cliente" && (
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Cargo (Ej. Director Creativo)</label>
+                      <input {...register("position")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-2">Especialidades</label>
+                      <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar p-1">
+                        {departments.map(d => (
+                          <label key={d.id} className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-white transition-colors">
+                            <input
+                              type="checkbox"
+                              value={d.id}
+                              {...register("department_ids")}
+                              className="rounded border-[#2E455C] bg-[#0A101D] text-[#20CDFE] focus:ring-[#20CDFE] focus:ring-offset-[#07060B]"
+                            />
+                            {d.name}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Email *</label>
