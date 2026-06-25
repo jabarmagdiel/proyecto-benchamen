@@ -33,7 +33,7 @@ def create_request(db: Session, req: PackageRequestCreate, client_user_id: int) 
     ).filter(PackageRequest.id == db_req.id).first()
 
     # Notify all admins
-    admins = db.query(User).filter(User.role == UserRole.ADMINISTRATOR, User.is_active == True).all()
+    admins = db.query(User).filter(User.role == UserRole.ADMIN, User.is_active == True).all()
     client = db_req.client_user
     company_name = db_req.company.name if db_req.company else "Empresa"
     

@@ -37,6 +37,6 @@ def update_request_status(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if current_user.role != UserRole.ADMINISTRATOR:
+    if current_user.role != UserRole.ADMIN:
         raise HTTPException(status_code=403, detail="Solo administradores pueden cambiar el estado")
     return request_svc.update_status(db, request_id, req)
