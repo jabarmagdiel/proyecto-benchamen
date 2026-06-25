@@ -28,7 +28,7 @@ def _execute_action(db: Session, activity: Activity, automation: WorkflowAutomat
         if not client_id:
             from app.models.user import User
             from app.utils.enums import UserRole
-            client = db.query(User).filter(User.company_id == activity.project.company_id, User.role == UserRole.CLIENTE).first()
+            client = db.query(User).filter(User.company_id == activity.project.company_id, User.role == UserRole.CLIENT).first()
             if client:
                 client_id = client.id
 
@@ -39,7 +39,7 @@ def _execute_action(db: Session, activity: Activity, automation: WorkflowAutomat
     elif action == "notify_admin":
         from app.models.user import User
         from app.utils.enums import UserRole
-        admins = db.query(User).filter(User.role == UserRole.ADMINISTRADOR).all()
+        admins = db.query(User).filter(User.role == UserRole.ADMIN).all()
         msg = automation.action_payload.get("message", f"Atención requerida en: '{activity.title}'") if automation.action_payload else f"Atención requerida en: '{activity.title}'"
         for adm in admins:
             create_notification(db, adm.id, "Aviso Automático", msg, type="system")

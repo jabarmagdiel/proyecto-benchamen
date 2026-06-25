@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Plus, Search, Pencil, Trash2, FolderKanban, ChevronRight } from "lucide-react";
 import { projectsApi, companiesApi, usersApi, departmentsApi } from "@/lib/api";
@@ -20,6 +21,7 @@ const schema = z.object({
   status: z.enum(["planificado", "en_proceso", "en_pausa", "finalizado", "cancelado"]).default("planificado"),
   priority: z.enum(["baja", "media", "alta", "urgente"]).default("media"),
   main_responsible_id: z.coerce.number().optional().nullable(),
+  package_request_id: z.coerce.number().optional().nullable(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -46,7 +48,26 @@ export default function ProyectosPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
+  const searchParams = useSearchParams();
+  const fromRequest = searchParams.get("from_request");
+  const defaultCompanyId = searchParams.get("company_id");
+  const defaultName = searchParams.get("name");
+
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) as any });
+
+  useEffect(() => {
+    if (fromRequest) {
+      setEditing(null);
+      reset({ 
+        company_id: defaultCompanyId ? parseInt(defaultCompanyId) : undefined, 
+        name: defaultName || "", 
+        status: "planificado", 
+        priority: "media",
+        package_request_id: parseInt(fromRequest)
+      });
+      setModalOpen(true);
+    }
+  }, [fromRequest, defaultCompanyId, defaultName, reset]);
 
   const load = async () => {
     setLoading(true);
@@ -199,6 +220,7 @@ export default function ProyectosPage() {
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <input type="hidden" {...register("package_request_id")} />
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Empresa *</label>
                   <select {...register("company_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">

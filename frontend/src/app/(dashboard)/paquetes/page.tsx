@@ -240,7 +240,7 @@ export default function PaquetesPage() {
                         </select>
                       </td>
                       <td className="px-4 py-3.5">
-                        <Link href="/proyectos" className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group">
+                        <Link href={`/proyectos?from_request=${r.id}&company_id=${r.company_id}&name=${encodeURIComponent('Proyecto: ' + (r.package?.name || ''))}`} className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group">
                           Crear Proyecto <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform"/>
                         </Link>
                       </td>

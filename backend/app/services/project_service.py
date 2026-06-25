@@ -65,9 +65,13 @@ def update(db: Session, project_id: int, data: ProjectUpdate, current_user_id: i
     if not project:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
         
+    old_status = project.status
     for key, val in data.model_dump(exclude_unset=True).items():
         setattr(project, key, val)
     db.commit()
+
+    if old_status != project.status and getattr(project, "package_request_id", None):
+        _sync_package_request_status(db, project.package_request_id, project.status)
 
     return get_by_id(db, project_id)
 
@@ -78,3 +82,26 @@ def delete(db: Session, project_id: int) -> None:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
     db.delete(project)
     db.commit()
+
+
+def _sync_package_request_status(db: Session, request_id: int, proj_status: str):
+    from app.services.package_request_service import update_status
+    from app.schemas.package_request import PackageRequestUpdateStatus
+    
+    # Map project status to package request status
+    status_map = {
+        "planificado": "aceptada",
+        "en_proceso": "en_proceso",
+        "finalizado": "entregada",
+        "cancelado": "rechazada"
+    }
+    
+    # ProjectStatus might be an enum object, so we use .value if it is
+    status_val = proj_status.value if hasattr(proj_status, "value") else proj_status
+    new_req_status = status_map.get(status_val)
+    
+    if new_req_status:
+        try:
+            update_status(db, request_id, PackageRequestUpdateStatus(status=new_req_status))
+        except Exception as e:
+            print(f"Error syncing package request status: {e}")

@@ -263,7 +263,7 @@ def evaluate_workflow_edges(db: Session, stage_id: int, act: str, project_id: in
                 from app.models.project import Project
                 proj = db.query(Project).filter(Project.id == project_id).first()
                 if proj:
-                    client = db.query(User).filter(User.company_id == proj.company_id, User.role == UserRole.CLIENTE).first()
+                    client = db.query(User).filter(User.company_id == proj.company_id, User.role == UserRole.CLIENT).first()
                     if client:
                         notification_svc.create_notification(
                             db, client.id, "Aviso de Sistema", f"El proyecto '{proj.name}' ha alcanzado: {target.name}", link=f"/aprobaciones"
