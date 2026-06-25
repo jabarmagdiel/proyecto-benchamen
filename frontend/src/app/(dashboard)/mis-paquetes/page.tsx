@@ -31,7 +31,7 @@ const STATUS_ICONS: Record<string, any> = {
 };
 
 export default function MisPaquetesPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [catalog, setCatalog] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,7 @@ export default function MisPaquetesPage() {
   };
 
   const handleRequestPackage = async (packageId: number) => {
-    if (!user?.company_id) {
+    if (!profile?.company_id) {
       showToast("Error: No tienes una empresa asignada. Contacta al administrador.", "error");
       return;
     }
@@ -72,7 +72,7 @@ export default function MisPaquetesPage() {
     try {
       await packageRequestsApi.create({
         package_id: packageId,
-        company_id: user.company_id,
+        company_id: profile.company_id,
         notes: "Solicitado desde el portal de clientes"
       });
       showToast("Paquete solicitado correctamente. Nos pondremos en contacto pronto.");

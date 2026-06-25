@@ -56,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const parsed: AuthUser = JSON.parse(stored);
         parsed.name = res.data.name;
         parsed.email = res.data.email;
+        parsed.company_id = res.data.company_id;
         localStorage.setItem("user", JSON.stringify(parsed));
         setUser(parsed);
       }
