@@ -303,6 +303,11 @@ export default function EmpresasPage() {
                 <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] resize-none" />
               </div>
               <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">URL de Dashboard de Rendimiento (Looker Studio, PowerBI, etc.)</label>
+                <input {...register("dashboard_url")} type="url" placeholder="https://lookerstudio.google.com/embed/reporting/..." className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                {errors.dashboard_url && <p className="text-red-500 text-xs mt-1">{errors.dashboard_url.message}</p>}
+              </div>
+              <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Estado</label>
                 <select {...register("status")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]">
                   <option value="activo">Activo</option>
