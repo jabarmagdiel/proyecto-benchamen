@@ -60,19 +60,14 @@ export default function Sidebar() {
       {/* Logo */}
       <div className={cn(
         "flex items-center gap-3 px-4 py-5 border-b border-slate-800/50",
-        collapsed && "justify-center px-0"
+        collapsed ? "justify-center px-0" : "justify-start"
       )}>
-        <div className="flex flex-col items-center justify-center shrink-0 w-10 h-10 bg-[#15233D] border border-slate-800/50 rounded-xl shadow-[0_0_15px_rgba(32,205,254,0.1)]">
-          <span className="text-[8px] font-bold tracking-[0.2em] text-white/80 -mb-1 ml-[-12px]">TU</span>
-          <span className="text-[16px] font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] leading-none tracking-tighter">C</span>
+        <div className="flex shrink-0 items-center justify-center relative w-10 h-10 bg-[#15233D] border border-slate-800/50 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(32,205,254,0.1)]">
+          <img src="/logo.png" alt="Logo" className="w-full h-full object-contain p-1" />
         </div>
         {!collapsed && (
-          <div>
-            <div className="flex flex-col">
-              <span className="text-[8px] font-bold tracking-[0.2em] text-white/80 -mb-1 ml-[-30px]">TU</span>
-              <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] leading-none tracking-tighter">CREA</span>
-              <span className="text-[8px] font-bold tracking-[0.3em] text-white ml-[30px] -mt-1">TEGA</span>
-            </div>
+          <div className="flex flex-col">
+            <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] leading-none tracking-tighter">TU CREA TEGA</span>
             <p className="text-slate-400 text-[10px] mt-1 font-medium tracking-wide">Project Manager</p>
           </div>
         )}
