@@ -7,7 +7,7 @@ import {
   Clock, XCircle, ClipboardList, LayoutList, LayoutGrid,
   User as UserIcon, Calendar as CalendarIcon
 } from "lucide-react";
-import { activitiesApi, projectsApi, companiesApi, usersApi, workflowsApi } from "@/lib/api";
+import { activitiesApi, projectsApi, companiesApi, usersApi, workflowsApi, departmentsApi } from "@/lib/api";
 import type { Activity, ActivityStatus, Company, Project, User, Workflow, WorkflowStage } from "@/types";
 import { ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_LABELS, PRIORITY_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
@@ -26,6 +26,7 @@ const schema = z.object({
   assigned_user_id: z.coerce.number().optional().nullable(),
   start_date: z.string().optional(),
   deadline: z.string().optional(),
+  workflow_id: z.coerce.number().optional().nullable(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -54,7 +55,11 @@ export default function ActividadesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) as any });
+  const [creationMode, setCreationMode] = useState<"workflow" | "custom">("workflow");
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
+  const [departments, setDepartments] = useState<any[]>([]);
+
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) as any });
 
   const load = async () => {
     setLoading(true);
@@ -65,18 +70,20 @@ export default function ActividadesPage() {
       if (filterCompany) params.company_id = filterCompany;
       if (filterProject) params.project_id = filterProject;
       if (filterUser) params.assigned_user_id = filterUser;
-      const [actRes, projRes, compRes, usrRes, wfRes] = await Promise.all([
+      const [actRes, projRes, compRes, usrRes, wfRes, depRes] = await Promise.all([
         activitiesApi.list(params),
         projectsApi.list(),
         companiesApi.list(),
         usersApi.list(),
         workflowsApi.list(),
+        departmentsApi.getAll(),
       ]);
       setActivities(actRes.data);
       setProjects(projRes.data);
       setCompanies(compRes.data);
       setUsers(usrRes.data);
       setWorkflows(wfRes.data);
+      setDepartments(depRes.data);
     } finally { setLoading(false); }
   };
 
@@ -90,7 +97,13 @@ export default function ActividadesPage() {
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
     try {
-      await activitiesApi.create(data);
+      const payload: any = { ...data };
+      if (!payload.start_date) payload.start_date = null;
+      if (!payload.deadline) payload.deadline = null;
+      if (payload.assigned_user_id === 0) payload.assigned_user_id = null;
+      if (payload.workflow_id === 0) payload.workflow_id = null;
+
+      await activitiesApi.create(payload);
       showToast("Actividad creada correctamente");
       setModalOpen(false); load();
     } catch (e: any) { showToast(e?.response?.data?.detail || "Error al crear", "error"); }
@@ -272,7 +285,16 @@ export default function ActividadesPage() {
               </button>
             </div>
 
-            <button onClick={() => { reset({ activity_type: "otro", priority: "media" }); setModalOpen(true); }} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-[#20CDFE]/20 transition-all">
+            <button onClick={() => { 
+              reset({ 
+                activity_type: "otro", 
+                priority: "media", 
+                workflow_id: workflows.length > 0 ? workflows[0].id : null 
+              }); 
+              setCreationMode("workflow");
+              setSelectedDepartmentId("");
+              setModalOpen(true); 
+            }} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-[#20CDFE]/20 transition-all">
               <Plus size={16} /> <span className="hidden sm:inline">Nueva actividad</span>
             </button>
           </div>
@@ -431,6 +453,39 @@ export default function ActividadesPage() {
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                
+                {/* Selector de Modo de Creación */}
+                <div className="flex bg-[#0A101D] border border-slate-800 rounded-xl p-1 mb-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreationMode("workflow");
+                      setValue("workflow_id", workflows.length > 0 ? workflows[0].id : null);
+                    }}
+                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+                      creationMode === "workflow" 
+                        ? "bg-[#20CDFE]/20 text-[#20CDFE]" 
+                        : "text-slate-400 hover:text-slate-300"
+                    }`}
+                  >
+                    Usar Flujo de Trabajo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreationMode("custom");
+                      setValue("workflow_id", null);
+                    }}
+                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+                      creationMode === "custom" 
+                        ? "bg-violet-500/20 text-violet-400" 
+                        : "text-slate-400 hover:text-slate-300"
+                    }`}
+                  >
+                    Actividad Personalizada
+                  </button>
+                </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Proyecto *</label>
                   <select {...register("project_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
@@ -439,15 +494,30 @@ export default function ActividadesPage() {
                   </select>
                   {errors.project_id && <p className="text-red-500 text-xs mt-1">{errors.project_id.message}</p>}
                 </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">Título *</label>
                   <input {...register("title")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80" placeholder="Ej. Diseño de logotipo" />
                   {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Descripción</label>
-                  <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 resize-none" placeholder="Detalles de la tarea..." />
-                </div>
+
+                {creationMode === "custom" && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Descripción</label>
+                    <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 resize-none" placeholder="Detalles de la tarea..." />
+                  </div>
+                )}
+
+                {creationMode === "workflow" && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Plantilla de Flujo</label>
+                    <select {...register("workflow_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#0A101D]/80">
+                      {workflows.length === 0 && <option value="">No hay flujos disponibles</option>}
+                      {workflows.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                    </select>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">Tipo</label>
@@ -470,12 +540,32 @@ export default function ActividadesPage() {
                     <input {...register("deadline")} type="date" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80" />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable</label>
-                  <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
-                    <option value="">Sin asignar</option>
-                    {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)}
-                  </select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Rol Operativo</label>
+                    <select 
+                      value={selectedDepartmentId}
+                      onChange={(e) => {
+                        setSelectedDepartmentId(e.target.value);
+                        setValue("assigned_user_id", null);
+                      }}
+                      className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80"
+                    >
+                      <option value="">Cualquier rol operativo</option>
+                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable Inicial</label>
+                    <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
+                      <option value="">Sin asignar</option>
+                      {users
+                        .filter(u => !selectedDepartmentId || u.departments?.some((d: any) => d.id === Number(selectedDepartmentId)))
+                        .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
+                      }
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="flex gap-3 p-6 border-t border-slate-800/50 bg-[#15233D]/80 shrink-0">

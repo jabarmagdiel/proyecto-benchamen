@@ -54,7 +54,7 @@ export default function ProjectDetailPage() {
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema) as any,
   });
 
@@ -407,7 +407,7 @@ export default function ProjectDetailPage() {
                     type="button"
                     onClick={() => {
                       setCreationMode("workflow");
-                      reset({ ...register, workflow_id: workflows.length > 0 ? workflows[0].id : null });
+                      setValue("workflow_id", workflows.length > 0 ? workflows[0].id : null);
                     }}
                     className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
                       creationMode === "workflow" 
@@ -421,7 +421,7 @@ export default function ProjectDetailPage() {
                     type="button"
                     onClick={() => {
                       setCreationMode("custom");
-                      reset({ ...register, workflow_id: null });
+                      setValue("workflow_id", null);
                     }}
                     className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
                       creationMode === "custom" 
@@ -439,100 +439,90 @@ export default function ProjectDetailPage() {
                   {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                 </div>
 
-                {creationMode === "workflow" && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Plantilla de Flujo</label>
-                      <select {...register("workflow_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]">
-                        {workflows.length === 0 && <option value="">No hay flujos disponibles</option>}
-                        {workflows.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo de Actividad</label>
-                      <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]">
-                        {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                      </select>
-                    </div>
+                {creationMode === "custom" && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Descripción</label>
+                    <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
                   </div>
                 )}
 
-                {creationMode === "custom" && (
-                  <>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">Descripción</label>
-                      <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo</label>
-                        <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
-                          {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Prioridad</label>
-                        <select {...register("priority")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
-                          <option value="baja">Baja</option>
-                          <option value="media">Media</option>
-                          <option value="alta">Alta</option>
-                          <option value="urgente">Urgente</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Fecha inicio</label>
-                        <input 
-                          type="date" 
-                          min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
-                          max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
-                          {...register("start_date")} 
-                          className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Fecha límite</label>
-                        <input 
-                          type="date" 
-                          min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
-                          max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
-                          {...register("deadline")} 
-                          className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Rol Operativo</label>
-                        <select 
-                          value={selectedDepartmentId}
-                          onChange={(e) => {
-                            setSelectedDepartmentId(e.target.value);
-                            reset({ ...register, assigned_user_id: null });
-                          }}
-                          className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
-                        >
-                          <option value="">Cualquier rol operativo</option>
-                          {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Responsable Inicial</label>
-                        <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
-                          <option value="">Sin asignar</option>
-                          {users
-                            .filter(u => !selectedDepartmentId || u.departments?.some(d => d.id === Number(selectedDepartmentId)))
-                            .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
-                          }
-                        </select>
-                      </div>
-                    </div>
-                  </>
+                {creationMode === "workflow" && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Plantilla de Flujo</label>
+                    <select {...register("workflow_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]">
+                      {workflows.length === 0 && <option value="">No hay flujos disponibles</option>}
+                      {workflows.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                    </select>
+                  </div>
                 )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Tipo</label>
+                    <select {...register("activity_type")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                      {Object.entries(ACTIVITY_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Prioridad</label>
+                    <select {...register("priority")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                      <option value="baja">Baja</option>
+                      <option value="media">Media</option>
+                      <option value="alta">Alta</option>
+                      <option value="urgente">Urgente</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Fecha inicio</label>
+                    <input 
+                      type="date" 
+                      min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
+                      max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
+                      {...register("start_date")} 
+                      className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Fecha límite</label>
+                    <input 
+                      type="date" 
+                      min={project?.start_date ? String(project.start_date).split('T')[0] : undefined}
+                      max={project?.deadline ? String(project.deadline).split('T')[0] : undefined}
+                      {...register("deadline")} 
+                      className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" 
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Rol Operativo</label>
+                    <select 
+                      value={selectedDepartmentId}
+                      onChange={(e) => {
+                        setSelectedDepartmentId(e.target.value);
+                        setValue("assigned_user_id", null);
+                      }}
+                      className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200"
+                    >
+                      <option value="">Cualquier rol operativo</option>
+                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Responsable Inicial</label>
+                    <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                      <option value="">Sin asignar</option>
+                      {users
+                        .filter(u => !selectedDepartmentId || u.departments?.some(d => d.id === Number(selectedDepartmentId)))
+                        .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
+                      }
+                    </select>
+                  </div>
+                </div>
               </div>
               <div className="flex gap-3 p-6 border-t border-slate-800/50 bg-[#0F192E] shrink-0">
                 <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-800/50 bg-[#0A101D]/80 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors">Cancelar</button>
