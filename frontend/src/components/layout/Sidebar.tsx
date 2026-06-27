@@ -59,18 +59,15 @@ export default function Sidebar() {
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className={cn(
-        "flex items-center gap-3 px-4 py-5 border-b border-slate-800/50",
-        collapsed ? "justify-center px-0" : "justify-start"
+        "flex items-center px-4 py-5 border-b border-slate-800/50",
+        collapsed ? "justify-center px-0" : "justify-center"
       )}>
-        <div className="flex shrink-0 items-center justify-center relative w-10 h-10 bg-[#15233D] border border-slate-800/50 rounded-xl overflow-hidden shadow-[0_0_15px_rgba(32,205,254,0.1)]">
-          <img src="/logo.png" alt="Logo" className="w-full h-full object-contain p-1" />
+        <div className={cn(
+          "flex shrink-0 items-center justify-center relative overflow-hidden transition-all duration-300",
+          collapsed ? "w-10 h-10" : "w-48 h-16"
+        )}>
+          <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
         </div>
-        {!collapsed && (
-          <div className="flex flex-col">
-            <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] leading-none tracking-tighter">TU CREA TEGA</span>
-            <p className="text-slate-400 text-[10px] mt-1 font-medium tracking-wide">Project Manager</p>
-          </div>
-        )}
       </div>
 
       {/* Nav links */}
