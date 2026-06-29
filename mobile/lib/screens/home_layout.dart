@@ -5,6 +5,8 @@ import 'operative_screen.dart';
 import 'admin_screen.dart';
 import 'profile_screen.dart';
 import 'notifications_screen.dart';
+import 'companies_screen.dart';
+import 'projects_screen.dart';
 
 class HomeLayout extends StatefulWidget {
   const HomeLayout({super.key});
@@ -40,8 +42,8 @@ class _HomeLayoutState extends State<HomeLayout> {
       switch (_drawerIndex) {
         case 0: mainView = AdminScreen(onMenuPressed: openDrawer); break; // Aprobaciones
         // case 1: mainView = const DashboardScreen(); break;
-        // case 2: mainView = const CompaniesScreen(); break;
-        // case 3: mainView = const ProjectsScreen(); break;
+        case 2: mainView = CompaniesScreen(onMenuPressed: openDrawer); break;
+        case 3: mainView = ProjectsScreen(onMenuPressed: openDrawer); break;
         // case 4: mainView = const ActivitiesAdminScreen(); break;
         // case 5: mainView = const UsersScreen(); break;
         default: mainView = AdminScreen(onMenuPressed: openDrawer);
@@ -115,8 +117,8 @@ class _HomeLayoutState extends State<HomeLayout> {
                 if (isAdmin) ...[
                   _drawerItem(0, Icons.check_circle_outline, 'Aprobaciones'),
                   _drawerItem(1, Icons.dashboard_outlined, 'Dashboard (Próximamente)'),
-                  _drawerItem(2, Icons.business_outlined, 'Empresas (Próximamente)'),
-                  _drawerItem(3, Icons.folder_outlined, 'Proyectos (Próximamente)'),
+                  _drawerItem(2, Icons.business_outlined, 'Empresas'),
+                  _drawerItem(3, Icons.folder_outlined, 'Proyectos'),
                   _drawerItem(4, Icons.task_alt_outlined, 'Actividades (Próximamente)'),
                   const Divider(color: Colors.white10),
                   _drawerItem(5, Icons.people_outline, 'Usuarios (Próximamente)'),
