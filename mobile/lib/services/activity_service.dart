@@ -32,4 +32,40 @@ class ActivityService {
     }
     return [];
   }
+  Future<List<Activity>> getAllActivities({Map<String, dynamic>? params}) async {
+    try {
+      String query = '';
+      if (params != null && params.isNotEmpty) {
+        query = '?' + params.entries.map((e) => '${e.key}=${e.value}').join('&');
+      }
+      final response = await _api.get('/activities$query');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Activity.fromJson(json)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error getting all activities: $e');
+    }
+    return [];
+  }
+
+  Future<Activity> createActivity(Map<String, dynamic> data) async {
+    final response = await _api.post('/activities', data);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return Activity.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Error al crear actividad');
+  }
+
+  Future<Activity> updateActivity(int id, Map<String, dynamic> data) async {
+    final response = await _api.put('/activities/$id', data);
+    if (response.statusCode == 200) {
+      return Activity.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Error al actualizar actividad');
+  }
+
+  Future<void> deleteActivity(int id) async {
+    await _api.delete('/activities/$id');
+  }
 }

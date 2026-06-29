@@ -43,4 +43,12 @@ class ApiService {
       headers: headers,
     );
   }
+
+  Future<http.Response> delete(String endpoint) async {
+    final headers = await _getHeaders();
+    return http.delete(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: headers,
+    );
+  }
 }

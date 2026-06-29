@@ -4,9 +4,9 @@ import '../services/auth_service.dart';
 import 'operative_screen.dart';
 import 'admin_screen.dart';
 import 'profile_screen.dart';
-import 'notifications_screen.dart';
 import 'companies_screen.dart';
 import 'projects_screen.dart';
+import 'activities_admin_screen.dart';
 
 class HomeLayout extends StatefulWidget {
   const HomeLayout({super.key});
@@ -44,7 +44,7 @@ class _HomeLayoutState extends State<HomeLayout> {
         // case 1: mainView = const DashboardScreen(); break;
         case 2: mainView = CompaniesScreen(onMenuPressed: openDrawer); break;
         case 3: mainView = ProjectsScreen(onMenuPressed: openDrawer); break;
-        // case 4: mainView = const ActivitiesAdminScreen(); break;
+        case 4: mainView = ActivitiesAdminScreen(onMenuPressed: openDrawer); break;
         // case 5: mainView = const UsersScreen(); break;
         default: mainView = AdminScreen(onMenuPressed: openDrawer);
       }
@@ -119,7 +119,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                   _drawerItem(1, Icons.dashboard_outlined, 'Dashboard (Próximamente)'),
                   _drawerItem(2, Icons.business_outlined, 'Empresas'),
                   _drawerItem(3, Icons.folder_outlined, 'Proyectos'),
-                  _drawerItem(4, Icons.task_alt_outlined, 'Actividades (Próximamente)'),
+                  _drawerItem(4, Icons.task_alt_outlined, 'Todas las Actividades'),
                   const Divider(color: Colors.white10),
                   _drawerItem(5, Icons.people_outline, 'Usuarios (Próximamente)'),
                 ] else if (isClient) ...[
