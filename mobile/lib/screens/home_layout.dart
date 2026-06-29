@@ -7,6 +7,7 @@ import 'profile_screen.dart';
 import 'companies_screen.dart';
 import 'projects_screen.dart';
 import 'activities_admin_screen.dart';
+import 'dashboard_screen.dart';
 
 class HomeLayout extends StatefulWidget {
   const HomeLayout({super.key});
@@ -41,7 +42,7 @@ class _HomeLayoutState extends State<HomeLayout> {
     if (isAdmin) {
       switch (_drawerIndex) {
         case 0: mainView = AdminScreen(onMenuPressed: openDrawer); break; // Aprobaciones
-        // case 1: mainView = const DashboardScreen(); break;
+        case 1: mainView = DashboardScreen(onMenuPressed: openDrawer); break;
         case 2: mainView = CompaniesScreen(onMenuPressed: openDrawer); break;
         case 3: mainView = ProjectsScreen(onMenuPressed: openDrawer); break;
         case 4: mainView = ActivitiesAdminScreen(onMenuPressed: openDrawer); break;
@@ -51,7 +52,7 @@ class _HomeLayoutState extends State<HomeLayout> {
     } else if (isClient) {
       switch (_drawerIndex) {
         case 0: mainView = AdminScreen(onMenuPressed: openDrawer); break; // Aprobaciones de su empresa
-        // case 1: mainView = const ClientDashboardScreen(); break;
+        case 1: mainView = DashboardScreen(onMenuPressed: openDrawer); break;
         // case 2: mainView = const ClientProjectsScreen(); break;
         default: mainView = AdminScreen(onMenuPressed: openDrawer);
       }
@@ -116,7 +117,7 @@ class _HomeLayoutState extends State<HomeLayout> {
               children: [
                 if (isAdmin) ...[
                   _drawerItem(0, Icons.check_circle_outline, 'Aprobaciones'),
-                  _drawerItem(1, Icons.dashboard_outlined, 'Dashboard (Próximamente)'),
+                  _drawerItem(1, Icons.dashboard_outlined, 'Dashboard'),
                   _drawerItem(2, Icons.business_outlined, 'Empresas'),
                   _drawerItem(3, Icons.folder_outlined, 'Proyectos'),
                   _drawerItem(4, Icons.task_alt_outlined, 'Todas las Actividades'),
@@ -124,7 +125,7 @@ class _HomeLayoutState extends State<HomeLayout> {
                   _drawerItem(5, Icons.people_outline, 'Usuarios (Próximamente)'),
                 ] else if (isClient) ...[
                   _drawerItem(0, Icons.check_circle_outline, 'Aprobaciones'),
-                  _drawerItem(1, Icons.dashboard_outlined, 'Mi Rendimiento (Próximamente)'),
+                  _drawerItem(1, Icons.dashboard_outlined, 'Mi Rendimiento'),
                   _drawerItem(2, Icons.folder_outlined, 'Mis Proyectos (Próximamente)'),
                 ] else ...[
                   _drawerItem(0, Icons.list_alt, 'Mis Actividades'),
