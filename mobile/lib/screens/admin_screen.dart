@@ -6,7 +6,8 @@ import '../models/activity.dart';
 import 'activity_detail_screen.dart';
 
 class AdminScreen extends StatefulWidget {
-  const AdminScreen({super.key});
+  final VoidCallback? onMenuPressed;
+  const AdminScreen({super.key, this.onMenuPressed});
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
@@ -39,16 +40,18 @@ class _AdminScreenState extends State<AdminScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0A101D),
       appBar: AppBar(
+        leading: widget.onMenuPressed != null 
+          ? IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: widget.onMenuPressed,
+            )
+          : null,
         title: const Text('Aprobaciones', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF15233D),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _loadApprovals,
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => authService.logout(),
           ),
         ],
       ),

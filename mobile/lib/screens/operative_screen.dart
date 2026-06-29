@@ -6,7 +6,8 @@ import '../models/activity.dart';
 import 'activity_detail_screen.dart';
 
 class OperativeScreen extends StatefulWidget {
-  const OperativeScreen({super.key});
+  final VoidCallback? onMenuPressed;
+  const OperativeScreen({super.key, this.onMenuPressed});
 
   @override
   State<OperativeScreen> createState() => _OperativeScreenState();
@@ -39,16 +40,18 @@ class _OperativeScreenState extends State<OperativeScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0A101D),
       appBar: AppBar(
+        leading: widget.onMenuPressed != null 
+          ? IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: widget.onMenuPressed,
+            )
+          : null,
         title: const Text('Mis Tareas', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF15233D),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _loadActivities,
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => authService.logout(),
           ),
         ],
       ),
