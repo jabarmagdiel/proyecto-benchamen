@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.core.database import get_db
 from app.core.security import get_current_user
@@ -9,9 +11,18 @@ import app.services.auth_service as auth_svc
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
+# Limiter local para este router
+_limiter = Limiter(key_func=get_remote_address)
+
 
 @router.post("/login", response_model=TokenResponse)
-def login(data: LoginRequest, db: Session = Depends(get_db)):
+@_limiter.limit("10/minute")
+def login(request: Request, data: LoginRequest, db: Session = Depends(get_db)):
+    """
+    Autenticación de usuario.
+    Protegido: máximo 10 intentos por minuto por IP.
+    Después de ese límite el servidor responde 429 Too Many Requests.
+    """
     return auth_svc.login(db, data)
 
 
