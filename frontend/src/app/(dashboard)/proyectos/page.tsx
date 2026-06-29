@@ -17,7 +17,7 @@ const schema = z.object({
   name: z.string().min(1, "Nombre requerido"),
   description: z.string().optional(),
   start_date: z.string().optional(),
-  deadline: z.string().optional(),
+  deadline: z.string().min(1, "La fecha límite es requerida"),
   status: z.enum(["planificado", "en_proceso", "en_pausa", "finalizado", "cancelado"]).default("planificado"),
   priority: z.enum(["baja", "media", "alta", "urgente"]).default("media"),
   main_responsible_id: z.coerce.number().optional().nullable(),
@@ -244,8 +244,9 @@ export default function ProyectosPage() {
                     <input {...register("start_date")} type="date" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Fecha límite</label>
-                    <input {...register("deadline")} type="date" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Fecha límite *</label>
+                    <input {...register("deadline")} type="date" className={`w-full px-3 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 ${errors.deadline ? 'border-red-500' : 'border-slate-800/50'}`} />
+                    {errors.deadline && <p className="text-red-500 text-xs mt-1">{errors.deadline.message}</p>}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Estado</label>

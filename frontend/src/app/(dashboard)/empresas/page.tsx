@@ -268,53 +268,55 @@ export default function EmpresasPage() {
       {/* Modal Crear/Editar */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-slate-800/50 w-full max-w-lg animate-fade-in">
-            <div className="flex items-center justify-between p-6 border-b border-slate-800/50">
+          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-slate-800/50 w-full max-w-lg animate-fade-in max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800/50 shrink-0">
               <h3 className="text-lg font-bold text-white">{editing ? "Editar empresa" : "Nueva empresa"}</h3>
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 text-2xl leading-none">&times;</button>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Nombre *</label>
-                  <input {...register("name")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
-                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+            <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">Nombre *</label>
+                    <input {...register("name")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                    {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">Persona de contacto</label>
+                    <input {...register("contact_name")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">Teléfono</label>
+                    <input {...register("phone")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">Correo</label>
+                    <input {...register("email")} type="email" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Persona de contacto</label>
-                  <input {...register("contact_name")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Dirección</label>
+                  <input {...register("address")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Teléfono</label>
-                  <input {...register("phone")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Descripción</label>
+                  <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] resize-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Correo</label>
-                  <input {...register("email")} type="email" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
-                  {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+                  <label className="block text-xs font-medium text-slate-300 mb-1">URL de Dashboard de Rendimiento (Looker Studio, PowerBI, etc.)</label>
+                  <input {...register("dashboard_url")} type="url" placeholder="https://lookerstudio.google.com/embed/reporting/..." className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
+                  {errors.dashboard_url && <p className="text-red-500 text-xs mt-1">{errors.dashboard_url.message}</p>}
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Estado</label>
+                  <select {...register("status")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]">
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                  </select>
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Dirección</label>
-                <input {...register("address")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Descripción</label>
-                <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] resize-none" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">URL de Dashboard de Rendimiento (Looker Studio, PowerBI, etc.)</label>
-                <input {...register("dashboard_url")} type="url" placeholder="https://lookerstudio.google.com/embed/reporting/..." className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
-                {errors.dashboard_url && <p className="text-red-500 text-xs mt-1">{errors.dashboard_url.message}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Estado</label>
-                <select {...register("status")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]">
-                  <option value="activo">Activo</option>
-                  <option value="inactivo">Inactivo</option>
-                </select>
-              </div>
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 p-6 border-t border-slate-800/50 bg-[#0F192E] shrink-0">
                 <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-800/50 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors">
                   Cancelar
                 </button>
