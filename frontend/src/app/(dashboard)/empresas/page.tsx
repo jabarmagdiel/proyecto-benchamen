@@ -9,6 +9,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { useWebSocket } from "@/context/WebSocketContext";
+
 const schema = z.object({
   name: z.string().min(1, "Nombre requerido"),
   contact_name: z.string().optional().default(""),
@@ -21,6 +23,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function EmpresasPage() {
+  const { subscribe } = useWebSocket();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -72,6 +75,11 @@ export default function EmpresasPage() {
     }, 350);
     return () => clearTimeout(timer);
   }, [search]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe("companies", () => load());
+    return () => unsubscribe();
+  }, [subscribe]);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });

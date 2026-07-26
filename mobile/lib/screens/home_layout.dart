@@ -14,6 +14,8 @@ import 'packages_screen.dart';
 import 'agenda_screen.dart';
 import 'notifications_screen.dart';
 
+import '../services/websocket_service.dart';
+
 class HomeLayout extends StatefulWidget {
   const HomeLayout({super.key});
 
@@ -26,6 +28,12 @@ class _HomeLayoutState extends State<HomeLayout> {
   // Index para la navegación del drawer (solo usado si _currentIndex == 0)
   int _drawerIndex = 0; 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WebSocketService().connect();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -50,6 +50,14 @@ def _format_date_es(d: date) -> str:
     return f"{day_name} {d.day} de {month_name} de {d.year}"
 
 
+def _emit_appointment_update():
+    try:
+        from app.core.websocket import notify_realtime
+        notify_realtime(entity="appointments", action="update")
+    except Exception:
+        pass
+
+
 def create_availability(db: Session, admin_id: int, data: AppointmentCreate) -> AppointmentResponse:
     # Validar que la hora de inicio sea menor a la de fin
     if data.start_time >= data.end_time:
@@ -85,6 +93,7 @@ def create_availability(db: Session, admin_id: int, data: AppointmentCreate) -> 
     db.add(apt)
     db.commit()
     db.refresh(apt)
+    _emit_appointment_update()
     return _to_response(apt)
 
 
@@ -148,6 +157,7 @@ def book_slot(db: Session, appointment_id: int, client_id: int, data: Appointmen
         link="/agenda",
     )
 
+    _emit_appointment_update()
     return _to_response(apt)
 
 
@@ -246,6 +256,7 @@ def cancel_appointment(db: Session, appointment_id: int, user: User) -> Appointm
     apt.updated_at = datetime.now()
     db.commit()
     db.refresh(apt)
+    _emit_appointment_update()
     return _to_response(apt)
 
 
@@ -269,3 +280,4 @@ def delete_slot(db: Session, appointment_id: int, admin_id: int) -> None:
 
     db.delete(apt)
     db.commit()
+    _emit_appointment_update()

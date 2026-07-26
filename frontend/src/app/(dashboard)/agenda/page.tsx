@@ -11,6 +11,8 @@ import {
   Building2, FileText, Bell
 } from "lucide-react";
 
+import { useWebSocket } from "@/context/WebSocketContext";
+
 /* ───── Helpers ───── */
 const MONTHS = [
   "Enero","Febrero","Marzo","Abril","Mayo","Junio",
@@ -37,6 +39,7 @@ for (let h = 7; h <= 19; h++) {
 /* ───── Page ───── */
 export default function AgendaPage() {
   const { user } = useAuth();
+  const { subscribe } = useWebSocket();
   const isAdmin = user?.role === "administrador";
 
   /* Datos */
@@ -85,6 +88,13 @@ export default function AgendaPage() {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    const unsubscribe = subscribe("appointments", () => {
+      loadData();
+    });
+    return () => unsubscribe();
+  }, [subscribe]);
 
   /* ── Acciones ── */
   const handleCreateSlot = async (e: React.FormEvent) => {

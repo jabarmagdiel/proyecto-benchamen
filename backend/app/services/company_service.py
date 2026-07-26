@@ -29,12 +29,21 @@ def get_by_id(db: Session, company_id: int) -> Company:
     return company
 
 
+def _emit_company_update():
+    try:
+        from app.core.websocket import notify_realtime
+        notify_realtime(entity="companies", action="update")
+    except Exception:
+        pass
+
+
 def create(db: Session, data: CompanyCreate) -> Company:
     company = Company(**data.model_dump())
     db.add(company)
     db.commit()
     db.refresh(company)
     company.project_count = 0
+    _emit_company_update()
     return company
 
 
@@ -48,6 +57,7 @@ def update(db: Session, company_id: int, data: CompanyUpdate) -> Company:
     db.refresh(company)
     # Recalcular project_count tras el refresh
     company.project_count = db.query(func.count(Project.id)).filter(Project.company_id == company_id).scalar()
+    _emit_company_update()
     return company
 
 
@@ -57,3 +67,4 @@ def delete(db: Session, company_id: int) -> None:
         raise HTTPException(status_code=404, detail="Empresa no encontrada")
     db.delete(company)
     db.commit()
+    _emit_company_update()

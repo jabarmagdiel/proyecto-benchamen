@@ -221,7 +221,16 @@ def create(db: Session, data: ActivityCreate, creator_id: int) -> Activity:
             )
         except Exception:
             pass
+    _emit_activity_update(activity.id)
     return get_by_id(db, activity.id)
+
+
+def _emit_activity_update(activity_id: int):
+    try:
+        from app.core.websocket import notify_realtime
+        notify_realtime(entity="activities", action="update", data={"id": activity_id})
+    except Exception:
+        pass
 
 
 def update(db: Session, activity_id: int, data: ActivityUpdate, editor_id: int) -> Activity:
@@ -259,6 +268,7 @@ def update(db: Session, activity_id: int, data: ActivityUpdate, editor_id: int) 
             )
         except Exception:
             pass
+    _emit_activity_update(activity_id)
     return get_by_id(db, activity_id)
 
 
@@ -379,6 +389,7 @@ async def start_activity(db: Session, activity_id: int, current_user: User, bg: 
     activity.status = ActivityStatus.IN_PROGRESS
     _add_history(db, activity_id, current_user.id, HistoryAction.STATUS_CHANGED, "Actividad iniciada", prev, ActivityStatus.IN_PROGRESS.value)
     db.commit()
+    _emit_activity_update(activity_id)
     return get_by_id(db, activity_id)
 
 
@@ -412,6 +423,7 @@ async def send_to_review(db: Session, activity_id: int, current_user: User, bg: 
             )
         except Exception:
             pass
+    _emit_activity_update(activity_id)
     return get_by_id(db, activity_id)
 
 
@@ -458,6 +470,7 @@ async def approve_activity(db: Session, activity_id: int, current_user: User, bg
         except Exception:
             pass
         
+    _emit_activity_update(activity_id)
     return get_by_id(db, activity_id)
 
 
@@ -498,6 +511,7 @@ async def observe_activity(
             
     # Ruta de rechazo (State Machine)
     _unlock_dependencies(db, activity, "observe", current_user)
+    _emit_activity_update(activity_id)
             
     return get_by_id(db, activity_id)
 
@@ -523,6 +537,7 @@ async def cancel_activity(db: Session, activity_id: int, current_user: User) -> 
             )
         except Exception:
             pass
+    _emit_activity_update(activity_id)
     return get_by_id(db, activity_id)
 
 
@@ -537,6 +552,7 @@ def start_timer(db: Session, activity_id: int, current_user: User) -> Activity:
         
     activity.timer_started_at = datetime.now(timezone.utc)
     db.commit()
+    _emit_activity_update(activity_id)
     return get_by_id(db, activity_id)
 
 
@@ -551,6 +567,7 @@ def stop_timer(db: Session, activity_id: int, current_user: User) -> Activity:
     activity.time_spent_seconds = (activity.time_spent_seconds or 0) + int(elapsed)
     activity.timer_started_at = None
     db.commit()
+    _emit_activity_update(activity_id)
     return get_by_id(db, activity_id)
 
 
@@ -560,3 +577,4 @@ def delete(db: Session, activity_id: int) -> None:
         raise HTTPException(status_code=404, detail="Actividad no encontrada")
     db.delete(activity)
     db.commit()
+    _emit_activity_update(activity_id)

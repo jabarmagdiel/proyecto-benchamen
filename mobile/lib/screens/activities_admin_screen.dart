@@ -9,6 +9,9 @@ import '../models/activity.dart';
 import '../models/project.dart';
 import 'activity_detail_screen.dart';
 
+import 'dart:async';
+import '../services/websocket_service.dart';
+
 class ActivitiesAdminScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
   const ActivitiesAdminScreen({super.key, this.onMenuPressed});
@@ -25,11 +28,23 @@ class _ActivitiesAdminScreenState extends State<ActivitiesAdminScreen> {
   List<Project> _projects = [];
   bool _isLoading = true;
   String _filterStatus = '';
+  StreamSubscription? _wsSub;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _wsSub = WebSocketService().eventStream.listen((event) {
+      if (event['entity'] == 'activities' || event['entity'] == 'projects') {
+        _loadData();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _wsSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadData() async {

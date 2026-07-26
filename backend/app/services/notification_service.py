@@ -34,6 +34,18 @@ def create_notification(
     db.add(notification)
     db.commit()
     db.refresh(notification)
+
+    try:
+        from app.core.websocket import notify_realtime
+        notify_realtime(
+            entity="notifications",
+            action="create",
+            data={"id": notification.id, "title": title, "link": link},
+            user_id=user_id,
+        )
+    except Exception:
+        pass
+
     return notification
 
 

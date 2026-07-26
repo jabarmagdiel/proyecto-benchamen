@@ -12,6 +12,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { useWebSocket } from "@/context/WebSocketContext";
+
 const schema = z.object({
   company_id: z.coerce.number().min(1, "Empresa requerida"),
   name: z.string().min(1, "Nombre requerido"),
@@ -34,6 +36,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
 };
 
 export default function ProyectosPage() {
+  const { subscribe } = useWebSocket();
   const [projects, setProjects] = useState<Project[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -92,6 +95,15 @@ export default function ProyectosPage() {
   };
 
   useEffect(() => { load(); }, [search, filterStatus, filterCompany]);
+
+  useEffect(() => {
+    const unsubProjects = subscribe("projects", () => load());
+    const unsubActivities = subscribe("activities", () => load());
+    return () => {
+      unsubProjects();
+      unsubActivities();
+    };
+  }, [subscribe]);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });

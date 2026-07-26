@@ -4,6 +4,9 @@ import '../services/auth_service.dart';
 import '../services/appointment_service.dart';
 import '../models/appointment.dart';
 
+import 'dart:async';
+import '../services/websocket_service.dart';
+
 class AgendaScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
   const AgendaScreen({super.key, this.onMenuPressed});
@@ -19,6 +22,7 @@ class _AgendaScreenState extends State<AgendaScreen> with SingleTickerProviderSt
   bool _isLoading = true;
   String? _selectedDate; // Format YYYY-MM-DD
   late TabController _tabController;
+  StreamSubscription? _wsSub;
 
   // Admin form controllers
   String _selectedStartTime = '09:00';
@@ -38,10 +42,16 @@ class _AgendaScreenState extends State<AgendaScreen> with SingleTickerProviderSt
     final now = DateTime.now();
     _selectedDate = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
     _loadData();
+    _wsSub = WebSocketService().eventStream.listen((event) {
+      if (event['entity'] == 'appointments') {
+        _loadData();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _wsSub?.cancel();
     _tabController.dispose();
     super.dispose();
   }

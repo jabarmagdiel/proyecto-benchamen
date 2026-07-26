@@ -16,6 +16,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/context/AuthContext";
+import { useWebSocket } from "@/context/WebSocketContext";
 
 const schema = z.object({
   project_id: z.coerce.number().min(1, "Proyecto requerido"),
@@ -34,6 +35,7 @@ type ViewMode = "list" | "board";
 
 export default function ActividadesPage() {
   const { user: currentUser } = useAuth();
+  const { subscribe } = useWebSocket();
   
   const [viewMode, setViewMode] = useState<ViewMode>("board");
   
@@ -88,6 +90,13 @@ export default function ActividadesPage() {
   };
 
   useEffect(() => { load(); }, [search, filterStatus, filterCompany, filterProject, filterUser]);
+
+  useEffect(() => {
+    const unsubscribe = subscribe("activities", () => {
+      load();
+    });
+    return () => unsubscribe();
+  }, [subscribe]);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });

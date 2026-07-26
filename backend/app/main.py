@@ -157,6 +157,7 @@ from app.routes import (
     appointments,
     packages,
     package_requests,
+    websocket,
 )
 
 app.include_router(auth.router)
@@ -174,6 +175,7 @@ app.include_router(workflows.router)
 app.include_router(appointments.router)
 app.include_router(packages.router)
 app.include_router(package_requests.router)
+app.include_router(websocket.router)
 
 
 @app.get("/", tags=["Root"])

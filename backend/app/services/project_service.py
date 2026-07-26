@@ -51,12 +51,21 @@ def get_by_id(db: Session, project_id: int) -> Project:
     return _with_progress(db, project)
 
 
+def _emit_project_update(project_id: int):
+    try:
+        from app.core.websocket import notify_realtime
+        notify_realtime(entity="projects", action="update", data={"id": project_id})
+    except Exception:
+        pass
+
+
 def create(db: Session, data: ProjectCreate, current_user_id: int) -> Project:
     project = Project(**data.model_dump())
     db.add(project)
     db.commit()
     db.refresh(project)
             
+    _emit_project_update(project.id)
     return get_by_id(db, project.id)
 
 
@@ -73,6 +82,7 @@ def update(db: Session, project_id: int, data: ProjectUpdate, current_user_id: i
     if old_status != project.status and getattr(project, "package_request_id", None):
         _sync_package_request_status(db, project.package_request_id, project.status)
 
+    _emit_project_update(project_id)
     return get_by_id(db, project_id)
 
 
@@ -82,6 +92,7 @@ def delete(db: Session, project_id: int) -> None:
         raise HTTPException(status_code=404, detail="Proyecto no encontrado")
     db.delete(project)
     db.commit()
+    _emit_project_update(project_id)
 
 
 def _sync_package_request_status(db: Session, request_id: int, proj_status: str):

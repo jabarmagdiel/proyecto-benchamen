@@ -6,6 +6,9 @@ import '../models/activity.dart';
 import 'activity_detail_screen.dart';
 import 'notifications_screen.dart';
 
+import 'dart:async';
+import '../services/websocket_service.dart';
+
 class AdminScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
   const AdminScreen({super.key, this.onMenuPressed});
@@ -18,11 +21,23 @@ class _AdminScreenState extends State<AdminScreen> {
   final ActivityService _activityService = ActivityService();
   List<Activity> _activities = [];
   bool _isLoading = true;
+  StreamSubscription? _wsSub;
 
   @override
   void initState() {
     super.initState();
     _loadApprovals();
+    _wsSub = WebSocketService().eventStream.listen((event) {
+      if (event['entity'] == 'activities') {
+        _loadApprovals();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _wsSub?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadApprovals() async {

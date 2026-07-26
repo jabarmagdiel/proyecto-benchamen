@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { NotificationItem } from "@/types";
 
 
+import { useWebSocket } from "@/context/WebSocketContext";
+
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard":      "Dashboard",
   "/empresas":       "Gestión de Empresas",
@@ -25,6 +27,7 @@ const PAGE_TITLES: Record<string, string> = {
 
 export default function Navbar() {
   const { user } = useAuth();
+  const { subscribe } = useWebSocket();
   const pathname = usePathname();
   const router = useRouter();
   const title = PAGE_TITLES[pathname] || "TuCreatega";
@@ -49,10 +52,17 @@ export default function Navbar() {
 
   useEffect(() => {
     fetchNotifications();
-    // Consultar cada 30 segundos
+    // Consultar cada 30 segundos como fallback
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    // Escuchar eventos en tiempo real por WebSocket
+    const unsubscribe = subscribe("notifications", () => {
+      fetchNotifications();
+    });
+    return () => {
+      clearInterval(interval);
+      unsubscribe();
+    };
+  }, [subscribe]);
 
   // Cerrar dropdown al hacer click afuera
   useEffect(() => {
