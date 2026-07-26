@@ -36,6 +36,15 @@ class ApiService {
     );
   }
 
+  Future<http.Response> patch(String endpoint, Map<String, dynamic> data) async {
+    final headers = await _getHeaders();
+    return http.patch(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: headers,
+      body: jsonEncode(data),
+    );
+  }
+
   Future<http.Response> get(String endpoint) async {
     final headers = await _getHeaders();
     return http.get(
@@ -50,5 +59,18 @@ class ApiService {
       Uri.parse('$baseUrl$endpoint'),
       headers: headers,
     );
+  }
+  Future<Uint8List> downloadFile(String endpoint) async {
+    final headers = await _getHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: headers,
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.bodyBytes;
+    } else {
+      throw Exception('Failed to download file: ${response.statusCode} - ${response.body}');
+    }
   }
 }

@@ -7,6 +7,8 @@ class Activity {
   final String status;
   final String? projectName;
   final String? companyName;
+  final int? projectId;
+  final int? companyId;
   final String? deadline;
 
   Activity({
@@ -18,6 +20,8 @@ class Activity {
     required this.status,
     this.projectName,
     this.companyName,
+    this.projectId,
+    this.companyId,
     this.deadline,
   });
 
@@ -31,6 +35,8 @@ class Activity {
       status: json['status'],
       projectName: json['project_name'],
       companyName: json['company_name'],
+      projectId: json['project_id'],
+      companyId: json['company_id'],
       deadline: json['deadline'],
     );
   }

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../services/activity_service.dart';
 import '../services/projects_service.dart';
+import '../services/api_service.dart';
 import '../models/activity.dart';
 import '../models/project.dart';
 import 'activity_detail_screen.dart';
@@ -42,6 +46,34 @@ class _ActivitiesAdminScreenState extends State<ActivitiesAdminScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
+
+  Future<void> _downloadReport(String format) async {
+    setState(() => _isLoading = true);
+    try {
+      final api = ApiService();
+      String query = '';
+      if (_filterStatus.isNotEmpty) {
+        query = '?status=$_filterStatus';
+      }
+      final bytes = await api.downloadFile('/reports/activities/$format$query');
+      
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/reporte_actividades_$format.${format == 'excel' ? 'xlsx' : 'pdf'}');
+      await file.writeAsBytes(bytes);
+      
+      setState(() => _isLoading = false);
+      
+      if (mounted) {
+        await Share.shareXFiles(
+          [XFile(file.path)],
+          text: 'Reporte de Actividades ($format)',
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error descargando reporte: $e')));
     }
   }
 
@@ -170,6 +202,16 @@ class _ActivitiesAdminScreenState extends State<ActivitiesAdminScreen> {
         title: const Text('Todas las Actividades', style: TextStyle(color: Colors.white, fontSize: 18)),
         backgroundColor: const Color(0xFF15233D),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf, color: Colors.redAccent),
+            tooltip: 'Descargar PDF',
+            onPressed: () => _downloadReport('pdf'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.table_chart, color: Colors.green),
+            tooltip: 'Descargar Excel',
+            onPressed: () => _downloadReport('excel'),
+          ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.filter_list, color: Colors.white),
             onSelected: (val) {
@@ -193,28 +235,106 @@ class _ActivitiesAdminScreenState extends State<ActivitiesAdminScreen> {
               itemCount: _activities.length,
               itemBuilder: (context, index) {
                 final a = _activities[index];
-                return Card(
-                  color: const Color(0xFF15233D),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF15233D).withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF20CDFE).withOpacity(0.15), width: 1),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (_) => ActivityDetailScreen(activity: a)));
                     },
-                    title: Text(a.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    subtitle: Text('${a.projectName ?? "Sin proyecto"} • ${a.companyName ?? "Sin empresa"}', style: const TextStyle(color: Colors.white54)),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: const Color(0xFF20CDFE).withOpacity(0.2), borderRadius: BorderRadius.circular(4)),
-                          child: Text(a.status.toUpperCase(), style: const TextStyle(color: Color(0xFF20CDFE), fontSize: 9, fontWeight: FontWeight.bold)),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.white54, size: 20),
-                          onPressed: () => _showActivityModal(a),
-                        ),
-                      ],
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  a.title,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                constraints: const BoxConstraints(),
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(Icons.edit, color: Colors.white54, size: 20),
+                                onPressed: () => _showActivityModal(a),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const Icon(Icons.business, color: Colors.white54, size: 16),
+                              const SizedBox(width: 6),
+                              Text(
+                                a.companyName ?? "Sin empresa",
+                                style: const TextStyle(color: Colors.white70, fontSize: 14),
+                              ),
+                              const SizedBox(width: 12),
+                              const Icon(Icons.folder, color: Colors.white54, size: 16),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  a.projectName ?? "Sin proyecto",
+                                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF20CDFE).withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFF20CDFE).withOpacity(0.3)),
+                                ),
+                                child: Text(
+                                  a.status.toUpperCase(),
+                                  style: const TextStyle(
+                                      color: Color(0xFF20CDFE), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.purpleAccent.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
+                                ),
+                                child: Text(
+                                  a.priority.toUpperCase(),
+                                  style: const TextStyle(
+                                      color: Colors.purpleAccent, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
                     ),
                   ),
                 );

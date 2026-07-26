@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../services/activity_service.dart';
 import '../models/activity.dart';
 import 'activity_detail_screen.dart';
+import 'notifications_screen.dart';
 
 class AdminScreen extends StatefulWidget {
   final VoidCallback? onMenuPressed;
@@ -49,6 +50,10 @@ class _AdminScreenState extends State<AdminScreen> {
         title: const Text('Aprobaciones', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF15233D),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _loadApprovals,

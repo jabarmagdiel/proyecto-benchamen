@@ -11,6 +11,8 @@ import 'dashboard_screen.dart';
 import 'users_screen.dart';
 import 'departments_screen.dart';
 import 'packages_screen.dart';
+import 'agenda_screen.dart';
+import 'notifications_screen.dart';
 
 class HomeLayout extends StatefulWidget {
   const HomeLayout({super.key});
@@ -29,7 +31,6 @@ class _HomeLayoutState extends State<HomeLayout> {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
     final role = authService.role?.toLowerCase() ?? 'operativo';
-    final user = authService.user;
     
     final isAdmin = role == 'admin' || role == 'administrador';
     final isClient = role == 'cliente' || role == 'empresa';
@@ -49,16 +50,17 @@ class _HomeLayoutState extends State<HomeLayout> {
         case 2: mainView = CompaniesScreen(onMenuPressed: openDrawer); break;
         case 3: mainView = ProjectsScreen(onMenuPressed: openDrawer); break;
         case 4: mainView = ActivitiesAdminScreen(onMenuPressed: openDrawer); break;
-        case 5: mainView = UsersScreen(onMenuPressed: openDrawer); break;
-        case 6: mainView = DepartmentsScreen(onMenuPressed: openDrawer); break;
-        case 7: mainView = PackagesScreen(onMenuPressed: openDrawer); break;
+        case 5: mainView = AgendaScreen(onMenuPressed: openDrawer); break;
+        case 6: mainView = UsersScreen(onMenuPressed: openDrawer); break;
+        case 7: mainView = DepartmentsScreen(onMenuPressed: openDrawer); break;
+        case 8: mainView = PackagesScreen(onMenuPressed: openDrawer); break;
         default: mainView = AdminScreen(onMenuPressed: openDrawer);
       }
     } else if (isClient) {
       switch (_drawerIndex) {
         case 0: mainView = AdminScreen(onMenuPressed: openDrawer); break; // Aprobaciones de su empresa
-        case 1: mainView = DashboardScreen(onMenuPressed: openDrawer); break;
-        // case 2: mainView = const ClientProjectsScreen(); break;
+        case 1: mainView = AgendaScreen(onMenuPressed: openDrawer); break; // Calendario / Agenda
+        case 2: mainView = DashboardScreen(onMenuPressed: openDrawer); break; // Portal Cliente
         default: mainView = AdminScreen(onMenuPressed: openDrawer);
       }
     } else {
@@ -75,7 +77,7 @@ class _HomeLayoutState extends State<HomeLayout> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: const Color(0xFF0A101D),
-      drawer: _buildDrawer(isAdmin, isClient, isOperative, user),
+      drawer: _buildDrawer(isAdmin, isClient, isOperative),
       body: IndexedStack(
         index: _currentIndex,
         children: pages,
@@ -102,15 +104,15 @@ class _HomeLayoutState extends State<HomeLayout> {
     );
   }
 
-  Widget _buildDrawer(bool isAdmin, bool isClient, bool isOperative, Map<String, dynamic>? user) {
+  Widget _buildDrawer(bool isAdmin, bool isClient, bool isOperative) {
     return Drawer(
       backgroundColor: const Color(0xFF15233D),
       child: Column(
         children: [
           UserAccountsDrawerHeader(
             decoration: const BoxDecoration(color: Color(0xFF0A101D)),
-            accountName: Text(user?['name'] ?? 'Usuario', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-            accountEmail: Text(user?['email'] ?? '', style: const TextStyle(color: Colors.white70)),
+            accountName: const Text('Alfa Prestige', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
+            accountEmail: Text(isAdmin ? 'Administrador' : isClient ? 'Portal Cliente' : 'Operativo', style: const TextStyle(color: Color(0xFF20CDFE))),
             currentAccountPicture: const CircleAvatar(
               backgroundColor: Color(0xFF20CDFE),
               child: Icon(Icons.person, color: Colors.black, size: 40),
@@ -126,14 +128,15 @@ class _HomeLayoutState extends State<HomeLayout> {
                   _drawerItem(2, Icons.business_outlined, 'Empresas'),
                   _drawerItem(3, Icons.folder_outlined, 'Proyectos'),
                   _drawerItem(4, Icons.task_alt_outlined, 'Todas las Actividades'),
+                  _drawerItem(5, Icons.calendar_month_outlined, 'Calendario / Agenda'),
                   const Divider(color: Colors.white10),
-                  _drawerItem(5, Icons.people_outline, 'Usuarios'),
-                  _drawerItem(6, Icons.domain_outlined, 'Departamentos'),
-                  _drawerItem(7, Icons.inventory_2_outlined, 'Paquetes'),
+                  _drawerItem(6, Icons.people_outline, 'Usuarios'),
+                  _drawerItem(7, Icons.domain_outlined, 'Departamentos'),
+                  _drawerItem(8, Icons.inventory_2_outlined, 'Paquetes'),
                 ] else if (isClient) ...[
                   _drawerItem(0, Icons.check_circle_outline, 'Aprobaciones'),
-                  _drawerItem(1, Icons.dashboard_outlined, 'Mi Rendimiento'),
-                  _drawerItem(2, Icons.folder_outlined, 'Mis Proyectos (Próximamente)'),
+                  _drawerItem(1, Icons.calendar_month_outlined, 'Calendario / Agenda'),
+                  _drawerItem(2, Icons.dashboard_outlined, 'Mi Portal'),
                 ] else ...[
                   _drawerItem(0, Icons.list_alt, 'Mis Actividades'),
                 ]

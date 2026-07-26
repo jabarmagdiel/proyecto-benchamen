@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
@@ -25,11 +26,13 @@ class MyApp extends StatelessWidget {
       title: 'Swinterno',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFF0A101D),
+        scaffoldBackgroundColor: const Color(0xFF05080F), // Aún más oscuro para mejor contraste neón
         primaryColor: const Color(0xFF20CDFE),
+        textTheme: GoogleFonts.outfitTextTheme(Theme.of(context).textTheme),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF20CDFE),
           brightness: Brightness.dark,
+          surface: const Color(0xFF15233D),
         ),
         useMaterial3: true,
       ),

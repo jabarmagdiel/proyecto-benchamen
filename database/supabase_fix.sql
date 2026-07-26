@@ -38,10 +38,17 @@ CREATE TABLE IF NOT EXISTS package_requests (
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- ─── 2. Columnas faltantes en tablas existentes ───────────────────────────────
+-- ─── 2. Columnas y ajustes en tablas existentes ───────────────────────────────
 
 ALTER TABLE companies
-    ADD COLUMN IF NOT EXISTS dashboard_url VARCHAR(500);
+    DROP COLUMN IF EXISTS dashboard_url;
+
+ALTER TABLE companies
+    ALTER COLUMN contact_name DROP NOT NULL,
+    ALTER COLUMN phone DROP NOT NULL,
+    ALTER COLUMN email DROP NOT NULL,
+    ALTER COLUMN address DROP NOT NULL,
+    ALTER COLUMN description DROP NOT NULL;
 
 ALTER TABLE activities
     ADD COLUMN IF NOT EXISTS workflow_id INT REFERENCES workflows(id) ON DELETE SET NULL;

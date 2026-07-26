@@ -17,7 +17,6 @@ const schema = z.object({
   address: z.string().optional().default(""),
   description: z.string().optional().default(""),
   status: z.enum(["activo", "inactivo"]).default("activo"),
-  dashboard_url: z.string().url("URL inválida").optional().or(z.literal("")),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -30,6 +29,7 @@ export default function EmpresasPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [errorModal, setErrorModal] = useState<string | null>(null);
 
   // Cotizador State
   const [quoterOpen, setQuoterOpen] = useState(false);
@@ -50,9 +50,17 @@ export default function EmpresasPage() {
     setLoading(true);
     try {
       const r = await companiesApi.list({ search });
-      setCompanies(r.data);
-      const p = await packagesApi.list();
-      setCatalog(p.data);
+      setCompanies(Array.isArray(r?.data) ? r.data : []);
+      try {
+        const p = await packagesApi.list();
+        setCatalog(Array.isArray(p?.data) ? p.data : []);
+      } catch {
+        setCatalog([]);
+      }
+    } catch (e: any) {
+      console.error("Error al cargar empresas:", e);
+      setErrorModal(e?.response?.data?.detail || e?.message || "Ocurrió un error al conectar con el servidor para cargar las empresas.");
+      setCompanies([]);
     } finally {
       setLoading(false);
     }
@@ -67,12 +75,12 @@ export default function EmpresasPage() {
 
   const openCreate = () => {
     setEditing(null);
-    reset({ name: "", contact_name: "", phone: "", email: "", address: "", description: "", dashboard_url: "", status: "activo" });
+    reset({ name: "", contact_name: "", phone: "", email: "", address: "", description: "", status: "activo" });
     setModalOpen(true);
   };
   const openEdit = (c: Company) => {
     setEditing(c);
-    reset({ name: c.name, contact_name: c.contact_name || "", phone: c.phone || "", email: c.email || "", address: c.address || "", description: c.description || "", dashboard_url: c.dashboard_url || "", status: c.status });
+    reset({ name: c.name, contact_name: c.contact_name || "", phone: c.phone || "", email: c.email || "", address: c.address || "", description: c.description || "", status: c.status });
     setModalOpen(true);
   };
 
@@ -89,7 +97,8 @@ export default function EmpresasPage() {
       setModalOpen(false);
       load();
     } catch (e: any) {
-      showToast(e?.response?.data?.detail || "Error al guardar", "error");
+      const errorMsg = e?.response?.data?.detail || e?.message || "Error al guardar la empresa";
+      setErrorModal(typeof errorMsg === "string" ? errorMsg : JSON.stringify(errorMsg));
     } finally {
       setSubmitting(false);
     }
@@ -102,7 +111,8 @@ export default function EmpresasPage() {
       showToast("Empresa eliminada");
       load();
     } catch (e: any) {
-      showToast(e?.response?.data?.detail || "Error al eliminar", "error");
+      const errorMsg = e?.response?.data?.detail || e?.message || "Error al eliminar";
+      setErrorModal(typeof errorMsg === "string" ? errorMsg : JSON.stringify(errorMsg));
     } finally {
       setDeleteId(null);
     }
@@ -304,11 +314,6 @@ export default function EmpresasPage() {
                   <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] resize-none" />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">URL de Dashboard de Rendimiento (Looker Studio, PowerBI, etc.)</label>
-                  <input {...register("dashboard_url")} type="url" placeholder="https://lookerstudio.google.com/embed/reporting/..." className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]" />
-                  {errors.dashboard_url && <p className="text-red-500 text-xs mt-1">{errors.dashboard_url.message}</p>}
-                </div>
-                <div>
                   <label className="block text-xs font-medium text-slate-300 mb-1">Estado</label>
                   <select {...register("status")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]">
                     <option value="activo">Activo</option>
@@ -468,6 +473,27 @@ export default function EmpresasPage() {
               <button onClick={() => setDeleteId(null)} className="flex-1 px-4 py-2.5 border border-slate-800/50 rounded-xl text-sm text-slate-300 hover:bg-[#15233D] transition-colors">Cancelar</button>
               <button onClick={confirmDelete} className="flex-1 bg-red-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-600 transition-colors">Eliminar</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Error Emergente */}
+      {errorModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-[#0A101D]/95 border border-red-500/30 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-[0_10px_50px_rgba(239,68,68,0.2)] text-center relative overflow-hidden">
+            <div className="w-16 h-16 bg-red-500/10 text-red-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-red-500/20">
+              <span className="text-3xl font-bold">⚠️</span>
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Ha ocurrido un error</h3>
+            <div className="text-red-300 text-xs leading-relaxed mb-6 bg-[#15233D]/70 p-4 rounded-2xl border border-red-500/20 break-words max-h-48 overflow-y-auto text-left font-mono">
+              {errorModal}
+            </div>
+            <button
+              onClick={() => setErrorModal(null)}
+              className="w-full py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-red-500/20"
+            >
+              Cerrar y continuar
+            </button>
           </div>
         </div>
       )}

@@ -20,7 +20,7 @@ const adminLinks = [
   { href: "/departamentos",    icon: Building2,       label: "Roles Operativos" },
   { href: "/paquetes",         icon: Package,         label: "Paquetes" },
   { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
-  { href: "/agenda",           icon: Calendar,        label: "Agenda" },
+  { href: "/agenda",           icon: Calendar,        label: "Calendario / Agenda" },
   { href: "/usuarios",         icon: Users,           label: "Usuarios" },
   { href: "/capacidad",        icon: BarChart3,       label: "Capacidad" },
   { href: "/reportes",         icon: BarChart3,       label: "Reportes" },
@@ -34,9 +34,8 @@ const operativeLinks = [
 const clientLinks = [
   { href: "/dashboard",        icon: LayoutDashboard, label: "Dashboard" },
   { href: "/mis-paquetes",     icon: Package,         label: "Catálogo de Paquetes" },
-  { href: "/rendimiento",      icon: BarChart3,       label: "Rendimiento" },
   { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
-  { href: "/agenda",           icon: Calendar,        label: "Agenda" },
+  { href: "/agenda",           icon: Calendar,        label: "Calendario / Agenda" },
 ];
 
 export default function Sidebar() {

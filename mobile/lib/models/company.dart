@@ -8,7 +8,6 @@ class Company {
   final String? email;
   final String? address;
   final String? description;
-  final String? dashboardUrl;
   final bool isActive;
   final String createdAt;
 
@@ -20,7 +19,6 @@ class Company {
     this.email,
     this.address,
     this.description,
-    this.dashboardUrl,
     this.isActive = true,
     required this.createdAt,
   });
@@ -34,7 +32,6 @@ class Company {
       email: json['email'],
       address: json['address'],
       description: json['description'],
-      dashboardUrl: json['dashboard_url'],
       isActive: json['is_active'] ?? true,
       createdAt: json['created_at'] ?? '',
     );
@@ -48,7 +45,6 @@ class Company {
       'email': email,
       'address': address,
       'description': description,
-      'dashboard_url': dashboardUrl,
       'is_active': isActive,
     };
   }

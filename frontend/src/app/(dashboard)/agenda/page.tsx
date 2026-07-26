@@ -196,13 +196,13 @@ export default function AgendaPage() {
           <div className="flex items-center gap-2 mb-3">
             <CalendarCheck size={22} className="text-[#20CDFE]" />
             <span className="font-black text-xl">
-              {isAdmin ? "Agenda de Disponibilidad" : "Solicitar una Cita"}
+              {isAdmin ? "Módulo de Calendario / Agenda (Disponibilidad)" : "Módulo de Calendario — Solicitar Cita"}
             </span>
           </div>
           <p className="text-slate-400 text-sm leading-relaxed max-w-2xl">
             {isAdmin
-              ? "Selecciona un día en el calendario y publica los horarios en los que estás disponible para reuniones con clientes. Gestiona y visualiza todas tus citas programadas."
-              : "Consulta los días y horarios disponibles del administrador y reserva la cita que mejor se adapte a tus necesidades."}
+              ? "Módulo principal de calendario para administración. Selecciona un día en el calendario y publica los horarios en los que estás disponible para reuniones con clientes."
+              : "Módulo principal de calendario y agenda para clientes. Consulta los días y horarios disponibles del administrador y reserva la cita que mejor se adapte a tus necesidades."}
           </p>
           {isAdmin && (
             <div className="flex flex-wrap gap-4 mt-5">

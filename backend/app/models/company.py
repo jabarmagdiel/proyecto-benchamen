@@ -16,7 +16,6 @@ class Company(Base):
     email: Mapped[str | None] = mapped_column(String(255))
     address: Mapped[str | None] = mapped_column(String(500))
     description: Mapped[str | None] = mapped_column(Text)
-    dashboard_url: Mapped[str | None] = mapped_column(String(500))
     status: Mapped[CompanyStatus] = mapped_column(
         SAEnum(CompanyStatus, name="company_status", values_callable=lambda x: [e.value for e in x]),
         default=CompanyStatus.ACTIVE,
