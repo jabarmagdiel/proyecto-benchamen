@@ -35,6 +35,9 @@ class ProjectsService {
   }
 
   Future<void> deleteProject(int id) async {
-    await _apiService.delete('/projects/$id');
+    final response = await _apiService.delete('/projects/$id');
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Error al eliminar proyecto: ${response.statusCode}');
+    }
   }
 }

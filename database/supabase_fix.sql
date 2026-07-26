@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS package_requests (
 
 -- ─── 2. Columnas y ajustes en tablas existentes ───────────────────────────────
 
+ALTER TYPE activity_status ADD VALUE IF NOT EXISTS 'bloqueada';
+
 ALTER TABLE companies
     DROP COLUMN IF EXISTS dashboard_url;
 

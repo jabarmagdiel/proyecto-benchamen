@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Search, Pencil, Trash2, Building2, Package, Percent } from "lucide-react";
 import { companiesApi, packagesApi } from "@/lib/api";
-import type { Company } from "@/types";
+import type { Company, ServicePackage, CompanyPackage } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,8 +34,8 @@ export default function EmpresasPage() {
   // Cotizador State
   const [quoterOpen, setQuoterOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [catalog, setCatalog] = useState<any[]>([]);
-  const [companyPackages, setCompanyPackages] = useState<any[]>([]);
+  const [catalog, setCatalog] = useState<ServicePackage[]>([]);
+  const [companyPackages, setCompanyPackages] = useState<CompanyPackage[]>([]);
   
   // Quote form state
   const [selectedPackageId, setSelectedPackageId] = useState<number | "">("");
@@ -66,7 +66,12 @@ export default function EmpresasPage() {
     }
   };
 
-  useEffect(() => { load(); }, [search]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      load();
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });

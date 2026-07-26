@@ -280,6 +280,26 @@ export interface Appointment {
   updated_at: string;
 }
 
+// ─── Service Package & Company Package ───────────────────────────────────────
+export interface ServicePackage {
+  id: number;
+  name: string;
+  description?: string;
+  base_price: number;
+  created_at: string;
+}
+
+export interface CompanyPackage {
+  id: number;
+  company_id: number;
+  package_id: number;
+  quantity: number;
+  discount_percentage: number;
+  final_price: number;
+  created_at: string;
+  package?: ServicePackage;
+}
+
 // ─── Helpers de labels ────────────────────────────────────────────────────────
 export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   filmacion: "Filmación",

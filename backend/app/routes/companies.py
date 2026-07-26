@@ -16,8 +16,14 @@ def list_companies(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    current_user=Depends(get_current_user),
 ):
+    # Si el usuario es cliente, solo puede ver su propia empresa
+    if current_user.role.value == "cliente":
+        if not current_user.company_id:
+            return []
+        company = company_svc.get_by_id(db, current_user.company_id)
+        return [company]
     return company_svc.get_all(db, search=search, skip=skip, limit=limit)
 
 

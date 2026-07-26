@@ -45,7 +45,7 @@ def get_company_packages(
 def assign_package(
     data: CompanyPackageCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),  # Solo administradores
 ):
     return package_svc.assign_package_to_company(db, data)
 
@@ -54,7 +54,7 @@ def assign_package(
 def remove_package(
     cp_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_admin),  # Solo administradores
 ):
     package_svc.remove_package_from_company(db, cp_id)
 

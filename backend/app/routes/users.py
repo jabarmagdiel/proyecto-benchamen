@@ -34,26 +34,6 @@ def create_user(data: UserCreate, db: Session = Depends(get_db), _=Depends(requi
     return user_svc.create(db, data)
 
 
-@router.get("/{user_id}", response_model=UserResponse)
-def get_user(user_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
-    return user_svc.get_by_id(db, user_id)
-
-
-@router.put("/{user_id}", response_model=UserResponse)
-def update_user(user_id: int, data: UserUpdate, db: Session = Depends(get_db), _=Depends(require_admin)):
-    return user_svc.update(db, user_id, data)
-
-
-@router.patch("/{user_id}/toggle", response_model=UserResponse)
-def toggle_user(user_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
-    return user_svc.toggle_active(db, user_id)
-
-
-@router.delete("/{user_id}", status_code=204)
-def delete_user(user_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
-    user_svc.delete(db, user_id)
-
-
 @router.put("/me/profile", response_model=UserResponse)
 def update_my_profile(
     data: UserProfileUpdate,
@@ -75,3 +55,23 @@ def change_my_password(
     current_user=Depends(get_current_user),
 ):
     return user_svc.change_password(db, current_user.id, data)
+
+
+@router.get("/{user_id}", response_model=UserResponse)
+def get_user(user_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
+    return user_svc.get_by_id(db, user_id)
+
+
+@router.put("/{user_id}", response_model=UserResponse)
+def update_user(user_id: int, data: UserUpdate, db: Session = Depends(get_db), _=Depends(require_admin)):
+    return user_svc.update(db, user_id, data)
+
+
+@router.patch("/{user_id}/toggle", response_model=UserResponse)
+def toggle_user(user_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
+    return user_svc.toggle_active(db, user_id)
+
+
+@router.delete("/{user_id}", status_code=204)
+def delete_user(user_id: int, db: Session = Depends(get_db), _=Depends(require_admin)):
+    user_svc.delete(db, user_id)

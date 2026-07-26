@@ -18,7 +18,7 @@ from app.services import automation_service as auto_svc
 
 
 def _enrich(db: Session, activity: Activity) -> Activity:
-    """Agrega conteos de evidencias y comentarios."""
+    """Agrega conteos de evidencias y comentarios a una sola actividad."""
     activity.evidence_count = db.query(func.count(Evidence.id)).filter(Evidence.activity_id == activity.id).scalar() or 0
     activity.comment_count = db.query(func.count(Comment.id)).filter(Comment.activity_id == activity.id).scalar() or 0
     if activity.project:
@@ -26,7 +26,6 @@ def _enrich(db: Session, activity: Activity) -> Activity:
         if activity.project.company:
             activity.company_name = activity.project.company.name
             
-    # If this is the "end" node, fetch the latest evidence of the project as the "Final Product"
     if activity.current_stage and activity.current_stage.node_type == 'end':
         latest_evidence = db.query(Evidence).join(Activity).filter(
             Activity.project_id == activity.project_id
@@ -37,6 +36,46 @@ def _enrich(db: Session, activity: Activity) -> Activity:
             activity.latest_evidence_name = latest_evidence.file_name or latest_evidence.drive_url or "Evidencia Final"
             
     return activity
+
+
+def _enrich_batch(db: Session, activities: List[Activity]) -> List[Activity]:
+    """Enriquece una lista de actividades eficientemente agrupando conteos en lote (evita N+1)."""
+    if not activities:
+        return []
+    act_ids = [a.id for a in activities]
+    
+    evidence_counts = dict(
+        db.query(Evidence.activity_id, func.count(Evidence.id))
+        .filter(Evidence.activity_id.in_(act_ids))
+        .group_by(Evidence.activity_id)
+        .all()
+    )
+    
+    comment_counts = dict(
+        db.query(Comment.activity_id, func.count(Comment.id))
+        .filter(Comment.activity_id.in_(act_ids))
+        .group_by(Comment.activity_id)
+        .all()
+    )
+    
+    for a in activities:
+        a.evidence_count = evidence_counts.get(a.id, 0)
+        a.comment_count = comment_counts.get(a.id, 0)
+        if a.project:
+            a.project_name = a.project.name
+            if a.project.company:
+                a.company_name = a.project.company.name
+                
+        if a.current_stage and a.current_stage.node_type == 'end':
+            latest_evidence = db.query(Evidence).join(Activity).filter(
+                Activity.project_id == a.project_id
+            ).order_by(Evidence.created_at.desc()).first()
+            
+            if latest_evidence:
+                a.latest_evidence_url = latest_evidence.drive_url or latest_evidence.file_url
+                a.latest_evidence_name = latest_evidence.file_name or latest_evidence.drive_url or "Evidencia Final"
+                
+    return activities
 
 
 def _add_history(
@@ -108,7 +147,7 @@ def get_all(
                 (Activity.current_stage_id == None) | (WorkflowStage.node_type != 'end')
             )
     activities = q.order_by(Activity.deadline.asc().nullslast(), Activity.created_at.desc()).offset(skip).limit(limit).all()
-    return [_enrich(db, a) for a in activities]
+    return _enrich_batch(db, activities)
 
 
 def get_my_activities(
@@ -122,7 +161,7 @@ def get_my_activities(
     if status:
         q = q.filter(Activity.status == status)
     activities = q.order_by(Activity.deadline.asc().nullslast()).offset(skip).limit(limit).all()
-    return [_enrich(db, a) for a in activities]
+    return _enrich_batch(db, activities)
 
 
 def get_by_id(db: Session, activity_id: int) -> Activity:
@@ -277,7 +316,7 @@ def evaluate_workflow_edges(db: Session, stage_id: int, act: str, project_id: in
                 
     return list(set(results))
 
-def _unlock_dependencies(db: Session, activity: Activity, action: str, current_user: User):
+def _unlock_dependencies(db: Session, activity: Activity, action: str, current_user: User, auto_commit: bool = True):
     """
     action: 'approve' or 'observe'
     """
@@ -326,7 +365,8 @@ def _unlock_dependencies(db: Session, activity: Activity, action: str, current_u
                     )
                 except Exception:
                     pass
-        db.commit()
+        if auto_commit:
+            db.commit()
 
 async def start_activity(db: Session, activity_id: int, current_user: User, bg: BackgroundTasks) -> Activity:
     """Operativo: Asignada → En Proceso"""
@@ -390,7 +430,17 @@ async def approve_activity(db: Session, activity_id: int, current_user: User, bg
     activity.approved_by_id = current_user.id
     activity.approved_at = datetime.now(timezone.utc)
     _add_history(db, activity_id, current_user.id, HistoryAction.APPROVED, "Actividad aprobada", prev, ActivityStatus.APPROVED.value)
+    
+    # Check if this activity is the 'end' node
+    if activity.current_stage and activity.current_stage.node_type == 'end':
+        activity.project.status = "finalizado"
+        
+    # Desbloquear dependencias (State Machine)
+    _unlock_dependencies(db, activity, "approve", current_user, auto_commit=False)
+    
+    # Commit único atómico
     db.commit()
+
     # Notificar al responsable
     if activity.assigned_user:
         bg.add_task(
@@ -407,14 +457,6 @@ async def approve_activity(db: Session, activity_id: int, current_user: User, bg
             )
         except Exception:
             pass
-            
-    # Check if this activity is the 'end' node
-    if activity.current_stage and activity.current_stage.node_type == 'end':
-        activity.project.status = "finalizado"
-        db.commit()
-        
-    # Desbloquear dependencias (State Machine)
-    _unlock_dependencies(db, activity, "approve", current_user)
         
     return get_by_id(db, activity_id)
 

@@ -66,6 +66,9 @@ class ActivityService {
   }
 
   Future<void> deleteActivity(int id) async {
-    await _api.delete('/activities/$id');
+    final response = await _api.delete('/activities/$id');
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Error al eliminar actividad: ${response.statusCode}');
+    }
   }
 }
