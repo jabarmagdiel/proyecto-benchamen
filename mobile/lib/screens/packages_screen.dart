@@ -85,6 +85,7 @@ class _PackagesScreenState extends State<PackagesScreen> {
                           style: const TextStyle(color: Colors.white),
                           items: const [
                             DropdownMenuItem(value: 'marketing', child: Text('Marketing & Audiovisual')),
+                            DropdownMenuItem(value: 'diseno', child: Text('Diseño Gráfico')),
                             DropdownMenuItem(value: 'software', child: Text('Software & Sistemas')),
                           ],
                           onChanged: (val) {
@@ -221,14 +222,19 @@ class _PackagesScreenState extends State<PackagesScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: const Color(0xFF15233D).withValues(alpha: 0.5),
-            child: Row(
-              children: [
-                _buildFilterChip('todos', 'Todas'),
-                const SizedBox(width: 8),
-                _buildFilterChip('marketing', 'Marketing'),
-                const SizedBox(width: 8),
-                _buildFilterChip('software', 'Software'),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildFilterChip('todos', 'Todas'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('marketing', 'Marketing'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('diseno', 'Diseño Gráfico'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('software', 'Software'),
+                ],
+              ),
             ),
           ),
           Expanded(

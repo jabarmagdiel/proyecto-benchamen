@@ -423,6 +423,7 @@ export default function PaquetesPage() {
             {[
               { id: "todos", label: "Todas" },
               { id: "marketing", label: "📢 Marketing & Audiovisual" },
+              { id: "diseno", label: "🎨 Diseño Gráfico" },
               { id: "software", label: "💻 Software & Sistemas" },
             ].map((cat) => (
               <button
@@ -513,8 +514,8 @@ export default function PaquetesPage() {
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
                         <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider mb-1.5 border bg-[#15233D] text-[#20CDFE] border-[#20CDFE]/30">
-                          {pkg.category === "software" ? <Code size={11} /> : <Megaphone size={11} />}
-                          {pkg.category === "software" ? "Software / Sistemas" : "Marketing"}
+                          {pkg.category === "software" ? <Code size={11} /> : pkg.category === "diseno" ? <ImageIcon size={11} /> : <Megaphone size={11} />}
+                          {pkg.category === "software" ? "Software / Sistemas" : pkg.category === "diseno" ? "Diseño Gráfico" : "Marketing"}
                         </div>
 
                         <h3 className="text-lg font-bold text-white group-hover:text-[#20CDFE] transition-colors">
@@ -799,6 +800,7 @@ export default function PaquetesPage() {
                     className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl bg-[#15233D]/60 text-white font-bold text-sm"
                   >
                     <option value="marketing">📢 Marketing & Audiovisual</option>
+                    <option value="diseno">🎨 Diseño Gráfico</option>
                     <option value="software">💻 Software & Sistemas</option>
                   </select>
                 </div>
