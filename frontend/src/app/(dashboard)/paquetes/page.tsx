@@ -290,6 +290,11 @@ export default function PaquetesPage() {
   const paymentRequests = requests.filter(r => r.request_type === "subscription_payment");
   const workRequests = requests.filter(r => r.request_type === "work_request");
 
+  const displayPackages = packages.filter(pkg => {
+    if (selectedCategoryFilter === "todos") return true;
+    return (pkg.category || "marketing").toLowerCase() === selectedCategoryFilter.toLowerCase();
+  });
+
   return (
     <>
       {toast && (
@@ -437,13 +442,13 @@ export default function PaquetesPage() {
               <div className="col-span-full flex justify-center py-20">
                 <div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
               </div>
-            ) : packages.length === 0 ? (
+            ) : displayPackages.length === 0 ? (
               <div className="col-span-full text-center py-20 text-slate-400 bg-[#0A101D]/50 border border-slate-800/50 rounded-2xl">
                 <PkgIcon size={48} className="mx-auto mb-3 opacity-30 text-[#20CDFE]" />
                 <p className="font-bold text-white text-base">No hay paquetes disponibles en esta categoría</p>
               </div>
             ) : (
-              packages.map((pkg) => (
+              displayPackages.map((pkg) => (
                 <div
                   key={pkg.id}
                   className={`bg-[#0A101D]/70 backdrop-blur-xl rounded-2xl border transition-all duration-300 flex flex-col justify-between p-6 shadow-xl relative overflow-hidden group ${

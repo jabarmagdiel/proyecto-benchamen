@@ -6,13 +6,14 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Building2, FolderKanban, ClipboardList,
   CheckSquare, Users, BarChart3, LogOut, ChevronLeft,
-  ChevronRight, Menu, X, User, Calendar, GitMerge, Package
+  ChevronRight, Menu, X, User, Calendar, GitMerge, Package, DollarSign
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
 const adminLinks = [
   { href: "/dashboard",        icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/finanzas",         icon: DollarSign,      label: "Finanzas & Pagos" },
   { href: "/empresas",         icon: Building2,       label: "Empresas" },
   { href: "/proyectos",        icon: FolderKanban,    label: "Proyectos" },
   { href: "/actividades",      icon: ClipboardList,   label: "Actividades" },

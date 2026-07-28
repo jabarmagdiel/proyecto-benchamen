@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.core.database import get_db
 from app.core.security import get_current_user, require_admin
@@ -15,10 +15,11 @@ router = APIRouter(prefix="/api/packages", tags=["Packages"])
 
 @router.get("", response_model=List[PackageResponse])
 def get_packages(
+    category: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return package_svc.list_packages(db, current_user=current_user)
+    return package_svc.list_packages(db, current_user=current_user, category=category)
 
 
 @router.post("", response_model=PackageResponse, status_code=201)
