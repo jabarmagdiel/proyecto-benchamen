@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.database import get_db
@@ -18,7 +18,7 @@ def get_packages(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return package_svc.list_packages(db)
+    return package_svc.list_packages(db, current_user=current_user)
 
 
 @router.post("", response_model=PackageResponse, status_code=201)
@@ -45,7 +45,7 @@ def get_company_packages(
 def assign_package(
     data: CompanyPackageCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),  # Solo administradores
+    current_user: User = Depends(require_admin),
 ):
     return package_svc.assign_package_to_company(db, data)
 
@@ -54,12 +54,21 @@ def assign_package(
 def remove_package(
     cp_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),  # Solo administradores
+    current_user: User = Depends(require_admin),
 ):
     package_svc.remove_package_from_company(db, cp_id)
 
 
 # ─── CRUD individual (DEBEN IR DESPUÉS de /company/*) ────────────────────────
+
+@router.patch("/{package_id}/toggle-visibility", response_model=PackageResponse)
+def toggle_package_visibility(
+    package_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_admin),
+):
+    return package_svc.toggle_package_visibility(db, package_id)
+
 
 @router.put("/{package_id}", response_model=PackageResponse)
 def update_package(

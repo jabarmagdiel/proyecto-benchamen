@@ -140,6 +140,7 @@ export const packagesApi = {
   list: () => api.get("/api/packages"),
   create: (data: object) => api.post("/api/packages", data),
   update: (id: number, data: object) => api.put(`/api/packages/${id}`, data),
+  toggleVisibility: (id: number) => api.patch(`/api/packages/${id}/toggle-visibility`),
   delete: (id: number) => api.delete(`/api/packages/${id}`),
 
   getCompanyPackages: (companyId: number) => api.get(`/api/packages/company/${companyId}`),
@@ -150,6 +151,8 @@ export const packagesApi = {
 export const packageRequestsApi = {
   list: () => api.get("/api/package-requests"),
   create: (data: object) => api.post("/api/package-requests", data),
+  verifyPayment: (id: number, data: object) => api.post(`/api/package-requests/${id}/verify-payment`, data),
+  workAction: (id: number, data: object) => api.post(`/api/package-requests/${id}/work-action`, data),
   updateStatus: (id: number, data: object) => api.patch(`/api/package-requests/${id}`, data),
 };
 

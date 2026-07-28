@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, Numeric, ForeignKey, DateTime, func
+from sqlalchemy import Column, Integer, String, Text, Numeric, ForeignKey, DateTime, Date, Boolean, func
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+
 
 class Package(Base):
     __tablename__ = "packages"
@@ -10,6 +11,15 @@ class Package(Base):
     name = Column(String(150), nullable=False)
     description = Column(Text, nullable=True)
     base_price = Column(Numeric(10, 2), nullable=False, default=0.00)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    # Contenidos mensualizados
+    videos_count = Column(Integer, nullable=False, default=0)
+    drone_count = Column(Integer, nullable=False, default=0)
+    arts_count = Column(Integer, nullable=False, default=0)
+    template_arts_count = Column(Integer, nullable=False, default=0)
+    ad_management = Column(Boolean, nullable=False, default=False)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company_packages = relationship("CompanyPackage", back_populates="package", cascade="all, delete-orphan")
@@ -24,6 +34,19 @@ class CompanyPackage(Base):
     quantity = Column(Integer, nullable=False, default=1)
     discount_percentage = Column(Numeric(5, 2), nullable=False, default=0.00)
     final_price = Column(Numeric(10, 2), nullable=False, default=0.00)
+
+    # Estado y fechas de suscripción
+    status = Column(String(20), nullable=False, default="activo")  # activo, expirado, cancelado
+    start_date = Column(Date, nullable=True)
+    end_date = Column(Date, nullable=True)
+
+    # Cupos restantes del mes
+    videos_remaining = Column(Integer, nullable=False, default=0)
+    drone_remaining = Column(Integer, nullable=False, default=0)
+    arts_remaining = Column(Integer, nullable=False, default=0)
+    template_arts_remaining = Column(Integer, nullable=False, default=0)
+    ad_management = Column(Boolean, nullable=False, default=False)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     company = relationship("Company", back_populates="packages")

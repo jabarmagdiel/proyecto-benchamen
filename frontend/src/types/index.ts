@@ -286,6 +286,12 @@ export interface ServicePackage {
   name: string;
   description?: string;
   base_price: number;
+  is_active: boolean;
+  videos_count: number;
+  drone_count: number;
+  arts_count: number;
+  template_arts_count: number;
+  ad_management: boolean;
   created_at: string;
 }
 
@@ -296,8 +302,37 @@ export interface CompanyPackage {
   quantity: number;
   discount_percentage: number;
   final_price: number;
+  status: "activo" | "expirado" | "cancelado";
+  start_date?: string;
+  end_date?: string;
+  videos_remaining: number;
+  drone_remaining: number;
+  arts_remaining: number;
+  template_arts_remaining: number;
+  ad_management: boolean;
   created_at: string;
   package?: ServicePackage;
+}
+
+export interface PackageRequest {
+  id: number;
+  company_id: number;
+  package_id: number;
+  client_user_id: number;
+  request_type: "subscription_payment" | "work_request";
+  deliverable_type?: "video" | "drone" | "art" | "template_art" | "ad";
+  quantity_requested: number;
+  status: "pendiente" | "aceptada" | "en_proceso" | "entregada" | "rechazada";
+  payment_status: "pendiente_verificacion" | "pago_verificado" | "rechazado";
+  payment_method?: string;
+  payment_reference?: string;
+  title?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  company?: Company;
+  package?: ServicePackage;
+  client_user?: User;
 }
 
 // ─── Helpers de labels ────────────────────────────────────────────────────────

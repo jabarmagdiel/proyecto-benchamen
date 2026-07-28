@@ -40,7 +40,12 @@ class _PackagesScreenState extends State<PackagesScreen> {
     final nameController = TextEditingController(text: package?.name ?? '');
     final descController = TextEditingController(text: package?.description ?? '');
     final priceController = TextEditingController(text: package?.price.toString() ?? '');
-    String selectedCycle = package?.billingCycle ?? 'mensual';
+    final videosController = TextEditingController(text: package?.videosCount.toString() ?? '0');
+    final droneController = TextEditingController(text: package?.droneCount.toString() ?? '0');
+    final artsController = TextEditingController(text: package?.artsCount.toString() ?? '0');
+    final templateArtsController = TextEditingController(text: package?.templateArtsCount.toString() ?? '0');
+    bool adManagement = package?.adManagement ?? false;
+    bool isActive = package?.isActive ?? true;
 
     showModalBottomSheet(
       context: context,
@@ -64,27 +69,39 @@ class _PackagesScreenState extends State<PackagesScreen> {
                     const SizedBox(height: 16),
                     _buildTextField('Nombre *', nameController),
                     _buildTextField('Descripción', descController),
-                    _buildTextField('Precio (\$)', priceController, isNumber: true),
-                    
-                    const Text('Ciclo de Facturación', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                    const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(color: const Color(0xFF0A101D), borderRadius: BorderRadius.circular(12)),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: selectedCycle,
-                          isExpanded: true,
-                          dropdownColor: const Color(0xFF0A101D),
-                          style: const TextStyle(color: Colors.white),
-                          items: ['mensual', 'anual', 'unico'].map((r) => DropdownMenuItem(value: r, child: Text(r.toUpperCase()))).toList(),
-                          onChanged: (val) {
-                            if (val != null) setModalState(() => selectedCycle = val);
-                          },
-                        ),
-                      ),
+                    _buildTextField('Precio Base (Bs.) *', priceController, isNumber: true),
+
+                    const Text('Contenido Mensual', style: TextStyle(color: Color(0xFF20CDFE), fontSize: 13, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('Videos', videosController, isNumber: true)),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('Dron', droneController, isNumber: true)),
+                      ],
                     ),
-                    
+                    Row(
+                      children: [
+                        Expanded(child: _buildTextField('Artes', artsController, isNumber: true)),
+                        const SizedBox(width: 8),
+                        Expanded(child: _buildTextField('Plantillas', templateArtsController, isNumber: true)),
+                      ],
+                    ),
+
+                    SwitchListTile(
+                      title: const Text('Gestión de Publicidad', style: TextStyle(color: Colors.white, fontSize: 13)),
+                      value: adManagement,
+                      activeColor: const Color(0xFF20CDFE),
+                      onChanged: (val) => setModalState(() => adManagement = val),
+                    ),
+
+                    SwitchListTile(
+                      title: const Text('Visible a Clientes', style: TextStyle(color: Colors.white, fontSize: 13)),
+                      value: isActive,
+                      activeColor: const Color(0xFF20CDFE),
+                      onChanged: (val) => setModalState(() => isActive = val),
+                    ),
+
                     const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
@@ -103,8 +120,13 @@ class _PackagesScreenState extends State<PackagesScreen> {
                             final data = {
                               'name': nameController.text,
                               'description': descController.text,
-                              'price': double.tryParse(priceController.text) ?? 0.0,
-                              'billing_cycle': selectedCycle,
+                              'base_price': double.tryParse(priceController.text) ?? 0.0,
+                              'videos_count': int.tryParse(videosController.text) ?? 0,
+                              'drone_count': int.tryParse(droneController.text) ?? 0,
+                              'arts_count': int.tryParse(artsController.text) ?? 0,
+                              'template_arts_count': int.tryParse(templateArtsController.text) ?? 0,
+                              'ad_management': adManagement,
+                              'is_active': isActive,
                             };
                             if (isEditing) {
                               await _packagesService.updatePackage(package.id, data);
@@ -157,7 +179,7 @@ class _PackagesScreenState extends State<PackagesScreen> {
         leading: widget.onMenuPressed != null 
           ? IconButton(icon: const Icon(Icons.menu, color: Colors.white), onPressed: widget.onMenuPressed)
           : null,
-        title: const Text('Paquetes', style: TextStyle(color: Colors.white)),
+        title: const Text('Paquetes y Suscripciones', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: const Color(0xFF15233D),
       ),
       body: _isLoading
@@ -167,16 +189,54 @@ class _PackagesScreenState extends State<PackagesScreen> {
               itemCount: _packages.length,
               itemBuilder: (context, index) {
                 final p = _packages[index];
-                return Card(
-                  color: const Color(0xFF15233D),
+                return Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    title: Text(p.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    subtitle: Text('\$${p.price.toStringAsFixed(2)} - ${p.billingCycle.toUpperCase()}', style: const TextStyle(color: Colors.white54)),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.white54),
-                      onPressed: () => _showPackageModal(p),
-                    ),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF15233D),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: p.isActive ? const Color(0xFF20CDFE).withValues(alpha: 0.2) : Colors.white10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              p.name,
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.white54, size: 20),
+                            onPressed: () => _showPackageModal(p),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${p.price.toStringAsFixed(2)} Bs. / mes',
+                        style: const TextStyle(color: Color(0xFF20CDFE), fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      if (p.description != null && p.description!.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        Text(p.description!, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                      ],
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _buildBadge('📹 ${p.videosCount} Videos'),
+                          _buildBadge('🛸 ${p.droneCount} Dron'),
+                          _buildBadge('🎨 ${p.artsCount} Artes'),
+                          _buildBadge('🖼️ ${p.templateArtsCount} Plantillas'),
+                          if (p.adManagement) _buildBadge('📢 Pub. Incluida', color: Colors.green),
+                        ],
+                      )
+                    ],
                   ),
                 );
               },
@@ -186,6 +246,18 @@ class _PackagesScreenState extends State<PackagesScreen> {
         onPressed: () => _showPackageModal(),
         child: const Icon(Icons.add, color: Colors.black),
       ),
+    );
+  }
+
+  Widget _buildBadge(String label, {Color color = const Color(0xFF20CDFE)}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
     );
   }
 }
