@@ -301,7 +301,8 @@ export interface ServicePackage {
   id: number;
   name: string;
   description?: string;
-  category: "marketing" | "software" | string;
+  offering_type: "package" | "individual_service";
+  category: "marketing" | "diseno" | "software" | string;
   price_type: "fixed" | "custom_text";
   price_text?: string;
   base_price: number;

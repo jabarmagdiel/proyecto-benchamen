@@ -8,11 +8,14 @@ from app.models.user import User
 from app.utils.enums import UserRole
 
 
-def list_packages(db: Session, current_user: Optional[User] = None, category: Optional[str] = None):
+def list_packages(db: Session, current_user: Optional[User] = None, category: Optional[str] = None, offering_type: Optional[str] = None):
     query = db.query(Package).options(joinedload(Package.items))
 
     if category:
         query = query.filter(Package.category == category)
+
+    if offering_type:
+        query = query.filter(Package.offering_type == offering_type)
 
     if current_user and current_user.role == UserRole.CLIENT:
         query = query.filter(Package.is_active == True)

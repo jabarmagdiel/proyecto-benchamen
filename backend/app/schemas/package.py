@@ -27,7 +27,8 @@ class PackageItemResponse(PackageItemBase):
 class PackageBase(BaseModel):
     name: str
     description: Optional[str] = None
-    category: str = "marketing"        # 'marketing', 'software', etc.
+    offering_type: str = "package"     # 'package' (paquete mensual) o 'individual_service' (servicio suelto)
+    category: str = "marketing"        # 'marketing', 'diseno', 'software', etc.
     price_type: str = "fixed"          # 'fixed' o 'custom_text'
     price_text: Optional[str] = "Por definir en reunión"
     base_price: Decimal = Decimal("0.00")
@@ -41,6 +42,7 @@ class PackageCreate(PackageBase):
 class PackageUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    offering_type: Optional[str] = None
     category: Optional[str] = None
     price_type: Optional[str] = None
     price_text: Optional[str] = None

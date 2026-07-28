@@ -11,7 +11,10 @@ class Package(Base):
     name = Column(String(150), nullable=False)
     description = Column(Text, nullable=True)
 
-    # Categoría: 'marketing', 'software', etc.
+    # Tipo de Oferta: 'package' (paquete mensual) o 'individual_service' (servicio suelto a la carta)
+    offering_type = Column(String(30), nullable=False, default="package")
+
+    # Categoría: 'marketing', 'diseno', 'software', etc.
     category = Column(String(50), nullable=False, default="marketing")
 
     # Precio: 'fixed' (definido en base_price) o 'custom_text' (ej. "Por definir en reunión")

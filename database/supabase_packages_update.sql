@@ -3,8 +3,9 @@
 -- Ejecutar en el Editor SQL de Supabase (SQL Editor)
 -- ==============================================================================
 
--- 1. Actualizar tabla de paquetes (Categoría, Tipo de Precio, Visibilidad)
+-- 1. Actualizar tabla de paquetes (Categoría, Tipo de Oferta, Tipo de Precio, Visibilidad)
 ALTER TABLE packages 
+  ADD COLUMN IF NOT EXISTS offering_type VARCHAR(30) NOT NULL DEFAULT 'package', -- 'package' o 'individual_service'
   ADD COLUMN IF NOT EXISTS category VARCHAR(50) NOT NULL DEFAULT 'marketing',
   ADD COLUMN IF NOT EXISTS price_type VARCHAR(30) NOT NULL DEFAULT 'fixed',
   ADD COLUMN IF NOT EXISTS price_text VARCHAR(100) DEFAULT 'Por definir en reunión',

@@ -33,7 +33,8 @@ class PackageModel {
   final int id;
   final String name;
   final String? description;
-  final String category; // 'marketing' o 'software'
+  final String offeringType; // 'package' o 'individual_service'
+  final String category; // 'marketing', 'diseno', 'software'
   final String priceType; // 'fixed' o 'custom_text'
   final String? priceText;
   final num price;
@@ -45,6 +46,7 @@ class PackageModel {
     required this.id,
     required this.name,
     this.description,
+    this.offeringType = 'package',
     this.category = 'marketing',
     this.priceType = 'fixed',
     this.priceText = 'Por definir en reunión',
@@ -62,6 +64,7 @@ class PackageModel {
       id: json['id'],
       name: json['name'] ?? '',
       description: json['description'],
+      offeringType: json['offering_type'] ?? 'package',
       category: json['category'] ?? 'marketing',
       priceType: json['price_type'] ?? 'fixed',
       priceText: json['price_text'] ?? 'Por definir en reunión',
@@ -76,6 +79,7 @@ class PackageModel {
     return {
       'name': name,
       'description': description,
+      'offering_type': offeringType,
       'category': category,
       'price_type': priceType,
       'price_text': priceText,

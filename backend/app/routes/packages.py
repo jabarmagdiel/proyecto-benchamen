@@ -16,10 +16,11 @@ router = APIRouter(prefix="/api/packages", tags=["Packages"])
 @router.get("", response_model=List[PackageResponse])
 def get_packages(
     category: Optional[str] = None,
+    offering_type: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return package_svc.list_packages(db, current_user=current_user, category=category)
+    return package_svc.list_packages(db, current_user=current_user, category=category, offering_type=offering_type)
 
 
 @router.post("", response_model=PackageResponse, status_code=201)

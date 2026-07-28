@@ -35,9 +35,12 @@ export default function PaquetesPage() {
   const [editing, setEditing] = useState<ServicePackage | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  /* Form State para Paquete */
+  const [selectedOfferingType, setSelectedOfferingType] = useState<"package" | "individual_service">("package");
+
+  /* Form State para Paquete / Servicio Individual */
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [offeringType, setOfferingType] = useState<"package" | "individual_service">("package");
   const [category, setCategory] = useState("marketing");
   const [priceType, setPriceType] = useState<"fixed" | "custom_text">("fixed");
   const [priceText, setPriceText] = useState("Por definir en reunión");
@@ -174,12 +177,13 @@ export default function PaquetesPage() {
     setEditing(null);
     setName("");
     setDescription("");
+    setOfferingType(selectedOfferingType);
     setCategory("marketing");
     setPriceType("fixed");
     setPriceText("Por definir en reunión");
     setBasePrice(0);
     setIsActive(true);
-    setDynamicItems([
+    setDynamicItems(selectedOfferingType === "individual_service" ? [] : [
       { name: "Videos", item_type: "por_cantidad", quantity: 4 },
       { name: "Filmaciones Dron", item_type: "por_cantidad", quantity: 2 },
       { name: "Arte de plantilla", item_type: "indefinido", quantity: 0 },
@@ -194,6 +198,7 @@ export default function PaquetesPage() {
     setEditing(p);
     setName(p.name);
     setDescription(p.description || "");
+    setOfferingType(p.offering_type || "package");
     setCategory(p.category || "marketing");
     setPriceType(p.price_type || "fixed");
     setPriceText(p.price_text || "Por definir en reunión");
@@ -203,11 +208,11 @@ export default function PaquetesPage() {
     setModalOpen(true);
   };
 
-  /* Enviar Paquete */
+  /* Enviar Paquete / Servicio */
   const onSubmitPackage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      showToast("El nombre del paquete es obligatorio", "error");
+      showToast("El nombre del servicio/paquete es obligatorio", "error");
       return;
     }
     setSubmitting(true);
@@ -215,6 +220,7 @@ export default function PaquetesPage() {
       const payload = {
         name,
         description,
+        offering_type: offeringType,
         category,
         price_type: priceType,
         price_text: priceText,
@@ -225,10 +231,10 @@ export default function PaquetesPage() {
 
       if (editing) {
         await packagesApi.update(editing.id, payload);
-        showToast("Paquete actualizado correctamente");
+        showToast("Actualizado correctamente");
       } else {
         await packagesApi.create(payload);
-        showToast("Paquete creado con éxito");
+        showToast("Guardado con éxito");
       }
       setModalOpen(false);
       load();
@@ -344,6 +350,9 @@ export default function PaquetesPage() {
   const workRequests = requests.filter(r => r.request_type === "work_request");
 
   const displayPackages = packages.filter(pkg => {
+    const pkgOffering = pkg.offering_type || "package";
+    if (pkgOffering !== selectedOfferingType) return false;
+
     if (selectedCategoryFilter === "todos") return true;
     return (pkg.category || "marketing").toLowerCase() === selectedCategoryFilter.toLowerCase();
   });
@@ -362,10 +371,10 @@ export default function PaquetesPage() {
           <div>
             <h2 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
               <Sparkles className="text-[#20CDFE]" size={24} />
-              Gestión de Paquetes y Suscripciones Mensuales
+              Catálogo de Paquetes y Servicios Individuales
             </h2>
             <p className="text-slate-400 text-sm mt-0.5">
-              Catálogo dinámico por contenidos, categorías y verificación de pagos.
+              Planes mensuales agrupados y actividades a la carta por categoría.
             </p>
           </div>
 
@@ -375,7 +384,7 @@ export default function PaquetesPage() {
                 onClick={() => setTab("catalogo")}
                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${tab === "catalogo" ? "bg-[#20CDFE]/20 text-[#20CDFE] border border-[#20CDFE]/30" : "text-slate-400 hover:text-white"}`}
               >
-                Catálogo de Paquetes
+                Catálogo Principal
               </button>
 
               <button
@@ -408,36 +417,70 @@ export default function PaquetesPage() {
                 onClick={openCreate}
                 className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-all shadow-lg shadow-[#20CDFE]/20"
               >
-                <Plus size={18} /> Nuevo Paquete
+                <Plus size={18} /> {selectedOfferingType === "package" ? "Nuevo Paquete" : "Nuevo Servicio Individual"}
               </button>
             )}
           </div>
         </div>
 
-        {/* Filtros por Categoría */}
+        {/* Filtros por Tipo de Oferta y Categorías */}
         {tab === "catalogo" && (
-          <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2 flex items-center gap-1">
-              <Tag size={13} className="text-[#20CDFE]" /> Categoría:
-            </span>
-            {[
-              { id: "todos", label: "Todas" },
-              { id: "marketing", label: "📢 Marketing & Audiovisual" },
-              { id: "diseno", label: "🎨 Diseño Gráfico" },
-              { id: "software", label: "💻 Software & Sistemas" },
-            ].map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategoryFilter(cat.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                  selectedCategoryFilter === cat.id
-                    ? "bg-[#20CDFE]/20 text-[#20CDFE] border-[#20CDFE]/40 shadow-md"
-                    : "bg-[#0A101D]/60 text-slate-400 border-slate-800 hover:text-white"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+          <div className="space-y-3 bg-[#0A101D]/60 border border-slate-800/80 p-4 rounded-2xl backdrop-blur-xl shadow-xl">
+            {/* 1. Selector de Tipo de Oferta */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setSelectedOfferingType("package")}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 border ${
+                    selectedOfferingType === "package"
+                      ? "bg-gradient-to-r from-[#20CDFE]/20 to-[#1ED1B4]/10 text-[#20CDFE] border-[#20CDFE]/40 shadow-lg shadow-[#20CDFE]/10"
+                      : "bg-[#15233D]/40 text-slate-400 border-slate-800 hover:text-white"
+                  }`}
+                >
+                  <PkgIcon size={16} /> 📦 Paquetes Mensuales (Planes Agrupados)
+                </button>
+
+                <button
+                  onClick={() => setSelectedOfferingType("individual_service")}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 border ${
+                    selectedOfferingType === "individual_service"
+                      ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-300 border-emerald-500/40 shadow-lg shadow-emerald-500/10"
+                      : "bg-[#15233D]/40 text-slate-400 border-slate-800 hover:text-white"
+                  }`}
+                >
+                  <Sparkles size={16} /> 🛠️ Servicios Individuales ("A la Carta")
+                </button>
+              </div>
+
+              <div className="text-xs text-slate-400 font-medium">
+                {selectedOfferingType === "package" ? "Mostrando planes de suscripción mensual" : "Mostrando actividades y servicios sueltos por unidad"}
+              </div>
+            </div>
+
+            {/* 2. Filtros por Categoría */}
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2 flex items-center gap-1">
+                <Tag size={13} className="text-[#20CDFE]" /> Categoría:
+              </span>
+              {[
+                { id: "todos", label: "Todas" },
+                { id: "marketing", label: "📢 Marketing & Audiovisual" },
+                { id: "diseno", label: "🎨 Diseño Gráfico" },
+                { id: "software", label: "💻 Software & Sistemas" },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategoryFilter(cat.id)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                    selectedCategoryFilter === cat.id
+                      ? "bg-[#20CDFE]/20 text-[#20CDFE] border-[#20CDFE]/40 shadow-md"
+                      : "bg-[#15233D]/40 text-slate-400 border-slate-800 hover:text-white"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
           </div>
         )}
 
@@ -790,6 +833,35 @@ export default function PaquetesPage() {
             </div>
 
             <form onSubmit={onSubmitPackage} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              {/* Tipo de Oferta */}
+              <div className="bg-[#15233D]/40 border border-slate-800/80 rounded-xl p-3 space-y-2">
+                <label className="block text-[11px] font-black text-[#20CDFE] uppercase tracking-wider">TIPO DE OFERTA EN EL CATÁLOGO</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOfferingType("package")}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all ${
+                      offeringType === "package"
+                        ? "bg-[#20CDFE]/20 text-[#20CDFE] border-[#20CDFE]/40"
+                        : "bg-[#0A101D] text-slate-400 border-slate-800"
+                    }`}
+                  >
+                    📦 Paquete Mensual
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOfferingType("individual_service")}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all ${
+                      offeringType === "individual_service"
+                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                        : "bg-[#0A101D] text-slate-400 border-slate-800"
+                    }`}
+                  >
+                    🛠️ Servicio Individual ("A la carta")
+                  </button>
+                </div>
+              </div>
+
               {/* Categoría y Nombre */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
