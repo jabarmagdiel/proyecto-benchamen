@@ -137,7 +137,7 @@ export const appointmentsApi = {
 
 // ─── Packages ──────────────────────────────────────────────────────────────────
 export const packagesApi = {
-  list: () => api.get("/api/packages"),
+  list: (params?: object) => api.get("/api/packages", { params }),
   create: (data: object) => api.post("/api/packages", data),
   update: (id: number, data: object) => api.put(`/api/packages/${id}`, data),
   toggleVisibility: (id: number) => api.patch(`/api/packages/${id}/toggle-visibility`),

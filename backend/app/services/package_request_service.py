@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 from app.models.package_request import PackageRequest
 from app.models.company import Company
-from app.models.package import Package, CompanyPackage
+from app.models.package import Package, PackageItem, CompanyPackage, CompanyPackageItem
 from app.models.user import User
 from app.schemas.package_request import PackageRequestCreate, PackageRequestUpdateStatus, VerifyPaymentPayload, WorkRequestActionPayload
 from app.services.notification_service import create_notification
@@ -12,7 +12,6 @@ from app.utils.enums import UserRole
 
 
 def create_request(db: Session, req: PackageRequestCreate, client_user_id: int) -> PackageRequest:
-    # Verificar que el paquete existe
     package = db.query(Package).filter(Package.id == req.package_id).first()
     if not package:
         raise HTTPException(status_code=404, detail="Paquete no encontrado")
@@ -35,14 +34,12 @@ def create_request(db: Session, req: PackageRequestCreate, client_user_id: int) 
     db.commit()
     db.refresh(db_req)
 
-    # Cargar relaciones
     db_req = db.query(PackageRequest).options(
         joinedload(PackageRequest.company),
         joinedload(PackageRequest.package),
         joinedload(PackageRequest.client_user)
     ).filter(PackageRequest.id == db_req.id).first()
 
-    # Notificar a administradores
     admins = db.query(User).filter(User.role == UserRole.ADMIN, User.is_active == True).all()
     client = db_req.client_user
     company_name = db_req.company.name if db_req.company else "Empresa"
@@ -79,7 +76,7 @@ def list_requests(db: Session, user: User) -> List[PackageRequest]:
 
 def verify_payment(db: Session, request_id: int, payload: VerifyPaymentPayload) -> PackageRequest:
     db_req = db.query(PackageRequest).options(
-        joinedload(PackageRequest.package),
+        joinedload(PackageRequest.package).joinedload(Package.items),
         joinedload(PackageRequest.company)
     ).filter(PackageRequest.id == request_id).first()
 
@@ -90,7 +87,6 @@ def verify_payment(db: Session, request_id: int, payload: VerifyPaymentPayload) 
         db_req.payment_status = "pago_verificado"
         db_req.status = "aceptada"
 
-        # Activar suscripción en la empresa del cliente
         package = db_req.package
         if package:
             start = date.today()
@@ -104,19 +100,28 @@ def verify_payment(db: Session, request_id: int, payload: VerifyPaymentPayload) 
                 status="activo",
                 start_date=start,
                 end_date=end,
-                videos_remaining=package.videos_count,
-                drone_remaining=package.drone_count,
-                arts_remaining=package.arts_count,
-                template_arts_remaining=package.template_arts_count,
-                ad_management=package.ad_management,
             )
             db.add(db_cp)
+            db.commit()
+            db.refresh(db_cp)
+
+            # Instanciar ítems dinámicos
+            for p_item in package.items:
+                cp_item = CompanyPackageItem(
+                    company_package_id=db_cp.id,
+                    package_item_id=p_item.id,
+                    name=p_item.name,
+                    item_type=p_item.item_type,
+                    quantity_initial=p_item.quantity,
+                    quantity_remaining=p_item.quantity,
+                )
+                db.add(cp_item)
 
         create_notification(
             db=db,
             user_id=db_req.client_user_id,
             title="✅ Pago Verificado y Suscripción Activada",
-            message=f"Tu pago para el paquete '{package.name if package else ''}' ha sido verificado correctamente. ¡Tus cupos del mes están disponibles!",
+            message=f"Tu pago para el paquete '{package.name if package else ''}' ha sido verificado correctamente. ¡Tus contenidos están disponibles!",
             link="/paquetes"
         )
     else:
@@ -127,7 +132,7 @@ def verify_payment(db: Session, request_id: int, payload: VerifyPaymentPayload) 
             db=db,
             user_id=db_req.client_user_id,
             title="❌ Comprobante de Pago Rechazado",
-            message=f"El comprobante de pago para '{db_req.package.name if db_req.package else ''}' ha sido rechazado. Por favor contacta al administrador.",
+            message=f"El comprobante de pago para '{db_req.package.name if db_req.package else ''}' ha sido rechazado.",
             link="/paquetes"
         )
 
@@ -148,9 +153,9 @@ def handle_work_request(db: Session, request_id: int, payload: WorkRequestAction
     if payload.action == "approve":
         db_req.status = "aceptada"
 
-        # Descontar -1 del cupo del cliente en su suscripción activa
         subscription = (
             db.query(CompanyPackage)
+            .options(joinedload(CompanyPackage.items))
             .filter(
                 CompanyPackage.company_id == db_req.company_id,
                 CompanyPackage.status == "activo"
@@ -160,22 +165,20 @@ def handle_work_request(db: Session, request_id: int, payload: WorkRequestAction
         )
 
         if subscription:
-            dtype = db_req.deliverable_type
+            deliverable_name = db_req.deliverable_type
             qty = db_req.quantity_requested or 1
-            if dtype == "video" and subscription.videos_remaining >= qty:
-                subscription.videos_remaining -= qty
-            elif dtype == "drone" and subscription.drone_remaining >= qty:
-                subscription.drone_remaining -= qty
-            elif dtype == "art" and subscription.arts_remaining >= qty:
-                subscription.arts_remaining -= qty
-            elif dtype == "template_art" and subscription.template_arts_remaining >= qty:
-                subscription.template_arts_remaining -= qty
+
+            for cp_item in subscription.items:
+                if cp_item.name.lower() == deliverable_name.lower() and cp_item.item_type == "por_cantidad":
+                    if cp_item.quantity_remaining >= qty:
+                        cp_item.quantity_remaining -= qty
+                    break
 
         create_notification(
             db=db,
             user_id=db_req.client_user_id,
             title="✅ Solicitud de Trabajo Aprobada",
-            message=f"Tu solicitud '{db_req.title or db_req.deliverable_type}' ha sido aprobada y el cupo se ha descontado de tu suscripción.",
+            message=f"Tu solicitud '{db_req.title or db_req.deliverable_type}' ha sido aprobada y el cupo se ha descontado.",
             link="/paquetes"
         )
     else:
@@ -184,7 +187,7 @@ def handle_work_request(db: Session, request_id: int, payload: WorkRequestAction
             db=db,
             user_id=db_req.client_user_id,
             title="❌ Solicitud de Trabajo Rechazada",
-            message=f"Tu solicitud '{db_req.title or db_req.deliverable_type}' no pudo ser procesada.",
+            message=f"Tu solicitud '{db_req.title or db_req.deliverable_type}' fue rechazada.",
             link="/paquetes"
         )
 

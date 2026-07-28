@@ -2,25 +2,48 @@ from datetime import date, timedelta
 from typing import Optional
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
-from app.models.package import Package, CompanyPackage
+from app.models.package import Package, PackageItem, CompanyPackage, CompanyPackageItem
 from app.schemas.package import PackageCreate, PackageUpdate, CompanyPackageCreate
 from app.models.user import User
 from app.utils.enums import UserRole
 
 
-def list_packages(db: Session, current_user: Optional[User] = None, only_active: bool = False):
-    query = db.query(Package)
-    # Si el usuario es cliente o se solicita solo activos, filtrar por is_active == True
-    if only_active or (current_user and current_user.role == UserRole.CLIENT):
+def list_packages(db: Session, current_user: Optional[User] = None, category: Optional[str] = None):
+    query = db.query(Package).options(joinedload(Package.items))
+
+    if category:
+        query = query.filter(Package.category == category)
+
+    if current_user and current_user.role == UserRole.CLIENT:
         query = query.filter(Package.is_active == True)
+
     return query.order_by(Package.name).all()
 
 
 def create_package(db: Session, package: PackageCreate):
-    db_pack = Package(**package.model_dump())
+    pack_data = package.model_dump(exclude={"items"})
+    db_pack = Package(**pack_data)
     db.add(db_pack)
     db.commit()
     db.refresh(db_pack)
+
+    if package.items:
+        for item in package.items:
+            db_item = PackageItem(
+                package_id=db_pack.id,
+                name=item.name,
+                item_type=item.item_type,
+                quantity=item.quantity,
+            )
+            db.add(db_item)
+        db.commit()
+
+    db_pack = (
+        db.query(Package)
+        .options(joinedload(Package.items))
+        .filter(Package.id == db_pack.id)
+        .first()
+    )
     return db_pack
 
 
@@ -29,12 +52,30 @@ def update_package(db: Session, package_id: int, package: PackageUpdate):
     if not db_pack:
         raise HTTPException(status_code=404, detail="Paquete no encontrado")
 
-    update_data = package.model_dump(exclude_unset=True)
+    update_data = package.model_dump(exclude_unset=True, exclude={"items"})
     for k, v in update_data.items():
         setattr(db_pack, k, v)
 
+    if package.items is not None:
+        # Eliminar ítems anteriores y recrear
+        db.query(PackageItem).filter(PackageItem.package_id == package_id).delete()
+        for item in package.items:
+            db_item = PackageItem(
+                package_id=db_pack.id,
+                name=item.name,
+                item_type=item.item_type,
+                quantity=item.quantity,
+            )
+            db.add(db_item)
+
     db.commit()
-    db.refresh(db_pack)
+
+    db_pack = (
+        db.query(Package)
+        .options(joinedload(Package.items))
+        .filter(Package.id == db_pack.id)
+        .first()
+    )
     return db_pack
 
 
@@ -45,7 +86,13 @@ def toggle_package_visibility(db: Session, package_id: int):
 
     db_pack.is_active = not db_pack.is_active
     db.commit()
-    db.refresh(db_pack)
+
+    db_pack = (
+        db.query(Package)
+        .options(joinedload(Package.items))
+        .filter(Package.id == db_pack.id)
+        .first()
+    )
     return db_pack
 
 
@@ -60,10 +107,13 @@ def delete_package(db: Session, package_id: int):
 # ─── Company Packages (Suscripciones) ─────────────────────────────────────────
 
 def list_company_packages(db: Session, company_id: int):
-    """Lista los paquetes suscritos a una empresa, verificando vencimientos mensualizados."""
+    """Lista los paquetes suscritos a una empresa con sus ítems de consumo del mes."""
     subscriptions = (
         db.query(CompanyPackage)
-        .options(joinedload(CompanyPackage.package))
+        .options(
+            joinedload(CompanyPackage.package).joinedload(Package.items),
+            joinedload(CompanyPackage.items)
+        )
         .filter(CompanyPackage.company_id == company_id)
         .order_by(CompanyPackage.id.desc())
         .all()
@@ -83,8 +133,13 @@ def list_company_packages(db: Session, company_id: int):
 
 
 def assign_package_to_company(db: Session, data: CompanyPackageCreate):
-    """Asigna un paquete a una empresa iniciando su suscripción mensualizada y cargando los cupos iniciales."""
-    package = db.query(Package).filter(Package.id == data.package_id).first()
+    """Asigna un paquete a una empresa iniciando su suscripción mensualizada e instanciando sus ítems."""
+    package = (
+        db.query(Package)
+        .options(joinedload(Package.items))
+        .filter(Package.id == data.package_id)
+        .first()
+    )
     if not package:
         raise HTTPException(status_code=404, detail="Paquete no encontrado")
 
@@ -100,19 +155,31 @@ def assign_package_to_company(db: Session, data: CompanyPackageCreate):
         status="activo",
         start_date=start,
         end_date=end,
-        videos_remaining=package.videos_count * data.quantity,
-        drone_remaining=package.drone_count * data.quantity,
-        arts_remaining=package.arts_count * data.quantity,
-        template_arts_remaining=package.template_arts_count * data.quantity,
-        ad_management=package.ad_management,
     )
     db.add(db_cp)
     db.commit()
     db.refresh(db_cp)
 
+    # Copiar ítems dinámicos del paquete a la suscripción de la empresa
+    for p_item in package.items:
+        cp_item = CompanyPackageItem(
+            company_package_id=db_cp.id,
+            package_item_id=p_item.id,
+            name=p_item.name,
+            item_type=p_item.item_type,
+            quantity_initial=p_item.quantity * data.quantity,
+            quantity_remaining=p_item.quantity * data.quantity,
+        )
+        db.add(cp_item)
+
+    db.commit()
+
     db_cp = (
         db.query(CompanyPackage)
-        .options(joinedload(CompanyPackage.package))
+        .options(
+            joinedload(CompanyPackage.package).joinedload(Package.items),
+            joinedload(CompanyPackage.items)
+        )
         .filter(CompanyPackage.id == db_cp.id)
         .first()
     )

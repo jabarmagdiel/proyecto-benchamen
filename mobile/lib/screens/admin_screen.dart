@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/auth_service.dart';
 import '../services/activity_service.dart';
 import '../models/activity.dart';
 import 'activity_detail_screen.dart';

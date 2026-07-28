@@ -281,17 +281,32 @@ export interface Appointment {
 }
 
 // ─── Service Package & Company Package ───────────────────────────────────────
+export interface PackageItem {
+  id?: number;
+  package_id?: number;
+  name: string;
+  item_type: "por_cantidad" | "indefinido";
+  quantity: number;
+}
+
+export interface CompanyPackageItem {
+  id: number;
+  name: string;
+  item_type: "por_cantidad" | "indefinido";
+  quantity_initial: number;
+  quantity_remaining: number;
+}
+
 export interface ServicePackage {
   id: number;
   name: string;
   description?: string;
+  category: "marketing" | "software" | string;
+  price_type: "fixed" | "custom_text";
+  price_text?: string;
   base_price: number;
   is_active: boolean;
-  videos_count: number;
-  drone_count: number;
-  arts_count: number;
-  template_arts_count: number;
-  ad_management: boolean;
+  items: PackageItem[];
   created_at: string;
 }
 
@@ -305,13 +320,9 @@ export interface CompanyPackage {
   status: "activo" | "expirado" | "cancelado";
   start_date?: string;
   end_date?: string;
-  videos_remaining: number;
-  drone_remaining: number;
-  arts_remaining: number;
-  template_arts_remaining: number;
-  ad_management: boolean;
   created_at: string;
   package?: ServicePackage;
+  items: CompanyPackageItem[];
 }
 
 export interface PackageRequest {
@@ -320,7 +331,7 @@ export interface PackageRequest {
   package_id: number;
   client_user_id: number;
   request_type: "subscription_payment" | "work_request";
-  deliverable_type?: "video" | "drone" | "art" | "template_art" | "ad";
+  deliverable_type?: string;
   quantity_requested: number;
   status: "pendiente" | "aceptada" | "en_proceso" | "entregada" | "rechazada";
   payment_status: "pendiente_verificacion" | "pago_verificado" | "rechazado";

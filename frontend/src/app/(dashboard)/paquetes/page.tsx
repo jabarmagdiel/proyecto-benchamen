@@ -4,41 +4,17 @@ import { useEffect, useState } from "react";
 import {
   Plus, Pencil, Trash2, Package as PkgIcon, CheckCircle2, Clock, XCircle, ArrowRight,
   Eye, EyeOff, Video, Camera, Image as ImageIcon, Layout, Megaphone, CreditCard,
-  Send, ShieldCheck, Calendar, Sparkles, RefreshCw
+  Send, ShieldCheck, Calendar, Sparkles, Code, Check, Layers, Tag
 } from "lucide-react";
 import { packagesApi, packageRequestsApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import type { ServicePackage, PackageRequest, CompanyPackage } from "@/types";
-
-const schema = z.object({
-  name: z.string().min(1, "Nombre requerido"),
-  description: z.string().optional().default(""),
-  base_price: z.preprocess((val) => Number(val), z.number().min(0)),
-  is_active: z.boolean().default(true),
-  videos_count: z.preprocess((val) => Number(val || 0), z.number().min(0)),
-  drone_count: z.preprocess((val) => Number(val || 0), z.number().min(0)),
-  arts_count: z.preprocess((val) => Number(val || 0), z.number().min(0)),
-  template_arts_count: z.preprocess((val) => Number(val || 0), z.number().min(0)),
-  ad_management: z.boolean().default(false),
-});
-type FormData = z.infer<typeof schema>;
+import type { ServicePackage, PackageRequest, CompanyPackage, PackageItem } from "@/types";
 
 const PAYMENT_STATUS_COLORS: Record<string, string> = {
   pendiente_verificacion: "bg-amber-500/20 text-amber-300 border-amber-500/30",
   pago_verificado: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
   rechazado: "bg-rose-500/20 text-rose-300 border-rose-500/30",
-};
-
-const DELIVERABLE_LABELS: Record<string, { label: string; icon: any }> = {
-  video: { label: "Edición de Video", icon: Video },
-  drone: { label: "Filmación con Dron", icon: Camera },
-  art: { label: "Arte / Diseño Gráfico", icon: ImageIcon },
-  template_art: { label: "Arte de Plantilla", icon: Layout },
-  ad: { label: "Gestión de Publicidad", icon: Megaphone },
 };
 
 export default function PaquetesPage() {
@@ -47,6 +23,8 @@ export default function PaquetesPage() {
   const isClient = user?.role === "cliente";
 
   const [tab, setTab] = useState<"catalogo" | "pagos" | "trabajos">("catalogo");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("todos");
+
   const [packages, setPackages] = useState<ServicePackage[]>([]);
   const [requests, setRequests] = useState<PackageRequest[]>([]);
   const [mySubscription, setMySubscription] = useState<CompanyPackage | null>(null);
@@ -57,6 +35,22 @@ export default function PaquetesPage() {
   const [editing, setEditing] = useState<ServicePackage | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  /* Form State para Paquete */
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("marketing");
+  const [priceType, setPriceType] = useState<"fixed" | "custom_text">("fixed");
+  const [priceText, setPriceText] = useState("Por definir en reunión");
+  const [basePrice, setBasePrice] = useState<number>(0);
+  const [isActive, setIsActive] = useState(true);
+  const [dynamicItems, setDynamicItems] = useState<PackageItem[]>([
+    { name: "Videos", item_type: "por_cantidad", quantity: 4 },
+    { name: "Filmaciones Dron", item_type: "por_cantidad", quantity: 2 },
+    { name: "Arte de plantilla", item_type: "indefinido", quantity: 0 },
+    { name: "Gestión de publicidad", item_type: "indefinido", quantity: 0 },
+    { name: "Cantidad de artes", item_type: "por_cantidad", quantity: 10 },
+  ]);
+
   /* Modal de Registro de Pago (Cliente) */
   const [subscribeModalPkg, setSubscribeModalPkg] = useState<ServicePackage | null>(null);
   const [payMethod, setPayMethod] = useState("QR");
@@ -65,7 +59,7 @@ export default function PaquetesPage() {
 
   /* Modal de Solicitar Trabajo (Cliente) */
   const [workModalOpen, setWorkModalOpen] = useState(false);
-  const [workDeliverable, setWorkDeliverable] = useState("video");
+  const [workDeliverable, setWorkDeliverable] = useState("");
   const [workQty, setWorkQty] = useState(1);
   const [workTitle, setWorkTitle] = useState("");
   const [workNotes, setWorkNotes] = useState("");
@@ -76,14 +70,11 @@ export default function PaquetesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
-  const { register, handleSubmit, reset, watch, setValue, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema) as any,
-  });
-
   const load = async () => {
     setLoading(true);
     try {
-      const p = await packagesApi.list();
+      const params = selectedCategoryFilter !== "todos" ? { category: selectedCategoryFilter } : {};
+      const p = await packagesApi.list(params);
       setPackages(p.data);
       const r = await packageRequestsApi.list();
       setRequests(r.data);
@@ -92,6 +83,9 @@ export default function PaquetesPage() {
         const subRes = await packagesApi.getCompanyPackages(user.company_id);
         const activeSub = subRes.data.find((s: CompanyPackage) => s.status === "activo") || subRes.data[0] || null;
         setMySubscription(activeSub);
+        if (activeSub && activeSub.items && activeSub.items.length > 0) {
+          setWorkDeliverable(activeSub.items[0].name);
+        }
       }
     } catch (e) {
       console.error("Error al cargar datos:", e);
@@ -100,54 +94,87 @@ export default function PaquetesPage() {
     }
   };
 
-  useEffect(() => { load(); }, [user]);
+  useEffect(() => { load(); }, [user, selectedCategoryFilter]);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
   };
 
-  /* Acciones de Paquete */
+  /* Manejo de ítems dinámicos */
+  const addDynamicItem = () => {
+    setDynamicItems([...dynamicItems, { name: "", item_type: "por_cantidad", quantity: 1 }]);
+  };
+
+  const updateDynamicItem = (index: number, field: keyof PackageItem, value: any) => {
+    const updated = [...dynamicItems];
+    updated[index] = { ...updated[index], [field]: value };
+    setDynamicItems(updated);
+  };
+
+  const removeDynamicItem = (index: number) => {
+    setDynamicItems(dynamicItems.filter((_, i) => i !== index));
+  };
+
+  /* Abrir Modal de Creación */
   const openCreate = () => {
     setEditing(null);
-    reset({
-      name: "",
-      description: "",
-      base_price: 0,
-      is_active: true,
-      videos_count: 0,
-      drone_count: 0,
-      arts_count: 0,
-      template_arts_count: 0,
-      ad_management: false,
-    });
+    setName("");
+    setDescription("");
+    setCategory("marketing");
+    setPriceType("fixed");
+    setPriceText("Por definir en reunión");
+    setBasePrice(0);
+    setIsActive(true);
+    setDynamicItems([
+      { name: "Videos", item_type: "por_cantidad", quantity: 4 },
+      { name: "Filmaciones Dron", item_type: "por_cantidad", quantity: 2 },
+      { name: "Arte de plantilla", item_type: "indefinido", quantity: 0 },
+      { name: "Gestión de publicidad", item_type: "indefinido", quantity: 0 },
+      { name: "Cantidad de artes", item_type: "por_cantidad", quantity: 10 },
+    ]);
     setModalOpen(true);
   };
 
+  /* Abrir Modal de Edición */
   const openEdit = (p: ServicePackage) => {
     setEditing(p);
-    reset({
-      name: p.name,
-      description: p.description || "",
-      base_price: p.base_price,
-      is_active: p.is_active,
-      videos_count: p.videos_count || 0,
-      drone_count: p.drone_count || 0,
-      arts_count: p.arts_count || 0,
-      template_arts_count: p.template_arts_count || 0,
-      ad_management: p.ad_management || false,
-    });
+    setName(p.name);
+    setDescription(p.description || "");
+    setCategory(p.category || "marketing");
+    setPriceType(p.price_type || "fixed");
+    setPriceText(p.price_text || "Por definir en reunión");
+    setBasePrice(p.base_price || 0);
+    setIsActive(p.is_active);
+    setDynamicItems(p.items && p.items.length > 0 ? p.items : []);
     setModalOpen(true);
   };
 
-  const onSubmitPackage = async (data: FormData) => {
+  /* Enviar Paquete */
+  const onSubmitPackage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      showToast("El nombre del paquete es obligatorio", "error");
+      return;
+    }
     setSubmitting(true);
     try {
+      const payload = {
+        name,
+        description,
+        category,
+        price_type: priceType,
+        price_text: priceText,
+        base_price: priceType === "fixed" ? basePrice : 0,
+        is_active: isActive,
+        items: dynamicItems.filter(i => i.name.trim() !== ""),
+      };
+
       if (editing) {
-        await packagesApi.update(editing.id, data);
+        await packagesApi.update(editing.id, payload);
         showToast("Paquete actualizado correctamente");
       } else {
-        await packagesApi.create(data);
+        await packagesApi.create(payload);
         showToast("Paquete creado con éxito");
       }
       setModalOpen(false);
@@ -182,7 +209,7 @@ export default function PaquetesPage() {
     }
   };
 
-  /* Enviar Solicitud de Pago / Suscripción (Cliente) */
+  /* Enviar Pago de Suscripción (Cliente) */
   const handleSubscribeSubmit = async () => {
     if (!subscribeModalPkg || !user?.company_id) return;
     setSubmitting(true);
@@ -208,6 +235,10 @@ export default function PaquetesPage() {
   /* Enviar Solicitud de Trabajo / Entregable (Cliente) */
   const handleWorkRequestSubmit = async () => {
     if (!mySubscription || !user?.company_id) return;
+    if (!workDeliverable) {
+      showToast("Seleccione el entregables a solicitar", "error");
+      return;
+    }
     setSubmitting(true);
     try {
       await packageRequestsApi.create({
@@ -216,7 +247,7 @@ export default function PaquetesPage() {
         request_type: "work_request",
         deliverable_type: workDeliverable,
         quantity_requested: workQty,
-        title: workTitle || `Solicitud de ${DELIVERABLE_LABELS[workDeliverable]?.label}`,
+        title: workTitle || `Solicitud de ${workDeliverable}`,
         notes: workNotes,
       });
       showToast("✅ Solicitud de trabajo enviada a revisión.");
@@ -276,7 +307,7 @@ export default function PaquetesPage() {
               Gestión de Paquetes y Suscripciones Mensuales
             </h2>
             <p className="text-slate-400 text-sm mt-0.5">
-              Catálogo de servicios, pagos mensualizados y solicitudes de entregables.
+              Catálogo dinámico por contenidos, categorías y verificación de pagos.
             </p>
           </div>
 
@@ -325,10 +356,35 @@ export default function PaquetesPage() {
           </div>
         </div>
 
-        {/* Banner Mi Suscripción Activa (Solo Visible para Clientes) */}
+        {/* Filtros por Categoría */}
+        {tab === "catalogo" && (
+          <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2 flex items-center gap-1">
+              <Tag size={13} className="text-[#20CDFE]" /> Categoría:
+            </span>
+            {[
+              { id: "todos", label: "Todas" },
+              { id: "marketing", label: "📢 Marketing & Audiovisual" },
+              { id: "software", label: "💻 Software & Sistemas" },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategoryFilter(cat.id)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  selectedCategoryFilter === cat.id
+                    ? "bg-[#20CDFE]/20 text-[#20CDFE] border-[#20CDFE]/40 shadow-md"
+                    : "bg-[#0A101D]/60 text-slate-400 border-slate-800 hover:text-white"
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Banner Mi Suscripción Activa (Cliente) */}
         {isClient && (
           <div className="bg-gradient-to-br from-[#15233D] to-[#0A101D] border border-[#20CDFE]/30 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-            <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-[#20CDFE]/10 rounded-full blur-3xl" />
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
               <div>
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#20CDFE] mb-1">
@@ -347,32 +403,16 @@ export default function PaquetesPage() {
 
               {mySubscription ? (
                 <div className="flex flex-wrap items-center gap-3">
-                  <div className="bg-[#0A101D]/80 border border-slate-800 rounded-xl px-3 py-2 text-center">
-                    <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1">
-                      <Video size={12} className="text-[#20CDFE]" /> Videos
+                  {mySubscription.items && mySubscription.items.map((item) => (
+                    <div key={item.id} className="bg-[#0A101D]/80 border border-slate-800 rounded-xl px-3.5 py-2 text-center">
+                      <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1">
+                        {item.item_type === "por_cantidad" ? "📊 " + item.name : "✨ " + item.name}
+                      </div>
+                      <div className="text-xs font-extrabold text-white mt-0.5">
+                        {item.item_type === "por_cantidad" ? `${item.quantity_remaining} rest.` : "Incluido (Plan)"}
+                      </div>
                     </div>
-                    <div className="text-sm font-extrabold text-white mt-0.5">
-                      {mySubscription.videos_remaining} rest.
-                    </div>
-                  </div>
-
-                  <div className="bg-[#0A101D]/80 border border-slate-800 rounded-xl px-3 py-2 text-center">
-                    <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1">
-                      <Camera size={12} className="text-indigo-400" /> Dron
-                    </div>
-                    <div className="text-sm font-extrabold text-white mt-0.5">
-                      {mySubscription.drone_remaining} rest.
-                    </div>
-                  </div>
-
-                  <div className="bg-[#0A101D]/80 border border-slate-800 rounded-xl px-3 py-2 text-center">
-                    <div className="text-[10px] text-slate-400 uppercase font-bold flex items-center justify-center gap-1">
-                      <ImageIcon size={12} className="text-purple-400" /> Artes
-                    </div>
-                    <div className="text-sm font-extrabold text-white mt-0.5">
-                      {mySubscription.arts_remaining} rest.
-                    </div>
-                  </div>
+                  ))}
 
                   <button
                     onClick={() => setWorkModalOpen(true)}
@@ -392,7 +432,7 @@ export default function PaquetesPage() {
 
         {/* ── TAB 1: CATÁLOGO DE PAQUETES ── */}
         {tab === "catalogo" && (
-          <div className="grid grid-[#0A101D] grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {loading ? (
               <div className="col-span-full flex justify-center py-20">
                 <div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
@@ -400,7 +440,7 @@ export default function PaquetesPage() {
             ) : packages.length === 0 ? (
               <div className="col-span-full text-center py-20 text-slate-400 bg-[#0A101D]/50 border border-slate-800/50 rounded-2xl">
                 <PkgIcon size={48} className="mx-auto mb-3 opacity-30 text-[#20CDFE]" />
-                <p className="font-bold text-white text-base">No hay paquetes disponibles en el catálogo</p>
+                <p className="font-bold text-white text-base">No hay paquetes disponibles en esta categoría</p>
               </div>
             ) : (
               packages.map((pkg) => (
@@ -414,18 +454,30 @@ export default function PaquetesPage() {
                     {/* Header Tarjeta */}
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div>
+                        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider mb-1.5 border bg-[#15233D] text-[#20CDFE] border-[#20CDFE]/30">
+                          {pkg.category === "software" ? <Code size={11} /> : <Megaphone size={11} />}
+                          {pkg.category === "software" ? "Software / Sistemas" : "Marketing"}
+                        </div>
+
                         <h3 className="text-lg font-bold text-white group-hover:text-[#20CDFE] transition-colors">
                           {pkg.name}
                         </h3>
+
                         <div className="text-xl font-black text-[#20CDFE] mt-1">
-                          {Number(pkg.base_price).toFixed(2)} <span className="text-xs font-semibold text-slate-400">Bs. / mes</span>
+                          {pkg.price_type === "custom_text" ? (
+                            <span className="text-sm font-bold text-amber-400">{pkg.price_text || "Por definir en reunión"}</span>
+                          ) : (
+                            <>
+                              {Number(pkg.base_price).toFixed(2)} <span className="text-xs font-semibold text-slate-400">Bs. / mes</span>
+                            </>
+                          )}
                         </div>
                       </div>
 
                       {isAdmin ? (
                         <button
                           onClick={() => handleToggleVisibility(pkg)}
-                          title={pkg.is_active ? "Visible para clientes (Clic para Ocultar)" : "Oculto para clientes (Clic para Mostrar)"}
+                          title={pkg.is_active ? "Visible para clientes" : "Oculto para clientes"}
                           className={`p-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
                             pkg.is_active
                               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
@@ -446,38 +498,36 @@ export default function PaquetesPage() {
                       {pkg.description || "Sin descripción disponible."}
                     </p>
 
-                    {/* Desglose de Contenidos Mensuales */}
+                    {/* Desglose Dinámico de Contenidos */}
                     <div className="space-y-2 py-3 border-t border-b border-slate-800/60 mb-5">
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                        Contenido Mensual Incluido:
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center justify-between">
+                        <span>Contenido Incluido:</span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="flex items-center gap-2 bg-[#15233D]/60 px-3 py-2 rounded-xl text-slate-300">
-                          <Video size={14} className="text-[#20CDFE]" />
-                          <span><strong className="text-white">{pkg.videos_count || 0}</strong> Videos</span>
-                        </div>
+                      {pkg.items && pkg.items.length > 0 ? (
+                        <div className="space-y-2">
+                          {/* Ítems Por Cantidad */}
+                          <div className="flex flex-wrap gap-1.5">
+                            {pkg.items.filter(i => i.item_type === "por_cantidad").map((item, idx) => (
+                              <span key={idx} className="bg-[#15233D]/80 border border-slate-700/50 text-slate-200 px-2.5 py-1 rounded-xl text-xs font-medium flex items-center gap-1">
+                                <strong className="text-[#20CDFE]">{item.quantity}</strong> {item.name}
+                              </span>
+                            ))}
+                          </div>
 
-                        <div className="flex items-center gap-2 bg-[#15233D]/60 px-3 py-2 rounded-xl text-slate-300">
-                          <Camera size={14} className="text-indigo-400" />
-                          <span><strong className="text-white">{pkg.drone_count || 0}</strong> Dron</span>
+                          {/* Ítems Indefinidos (Beneficios del plan) */}
+                          <div className="space-y-1 pt-1">
+                            {pkg.items.filter(i => i.item_type === "indefinido").map((item, idx) => (
+                              <div key={idx} className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
+                                <Check size={14} className="text-emerald-400" />
+                                <span>{item.name} <span className="text-[10px] text-slate-400">(Indefinido / Plan)</span></span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-
-                        <div className="flex items-center gap-2 bg-[#15233D]/60 px-3 py-2 rounded-xl text-slate-300">
-                          <ImageIcon size={14} className="text-purple-400" />
-                          <span><strong className="text-white">{pkg.arts_count || 0}</strong> Artes</span>
-                        </div>
-
-                        <div className="flex items-center gap-2 bg-[#15233D]/60 px-3 py-2 rounded-xl text-slate-300">
-                          <Layout size={14} className="text-amber-400" />
-                          <span><strong className="text-white">{pkg.template_arts_count || 0}</strong> Plantillas</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 bg-[#15233D]/60 px-3 py-2 rounded-xl text-xs text-slate-300 mt-2">
-                        <Megaphone size={14} className={pkg.ad_management ? "text-emerald-400" : "text-slate-500"} />
-                        <span>Gestión Publicitaria: <strong className={pkg.ad_management ? "text-emerald-400" : "text-slate-500"}>{pkg.ad_management ? "Incluida" : "No Incluida"}</strong></span>
-                      </div>
+                      ) : (
+                        <span className="text-xs text-slate-500 italic">Sin contenidos configurados</span>
+                      )}
                     </div>
                   </div>
 
@@ -503,7 +553,7 @@ export default function PaquetesPage() {
                         onClick={() => setSubscribeModalPkg(pkg)}
                         className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] py-3 rounded-xl text-xs font-extrabold hover:opacity-95 shadow-lg shadow-[#20CDFE]/20 transition-all"
                       >
-                        <CreditCard size={15} /> Suscribirme / Registrar Pago
+                        <CreditCard size={15} /> Suscribirme / Solicitar
                       </button>
                     )}
                   </div>
@@ -545,7 +595,9 @@ export default function PaquetesPage() {
 
                       <td className="px-5 py-4">
                         <div className="font-bold text-white">{r.package?.name}</div>
-                        <div className="text-xs text-emerald-400 font-semibold">{Number(r.package?.base_price || 0).toFixed(2)} Bs. / mes</div>
+                        <div className="text-xs text-emerald-400 font-semibold">
+                          {r.package?.price_type === "custom_text" ? r.package.price_text : `${Number(r.package?.base_price || 0).toFixed(2)} Bs. / mes`}
+                        </div>
                       </td>
 
                       <td className="px-5 py-4">
@@ -607,63 +659,58 @@ export default function PaquetesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/50">
-                  {workRequests.map((r) => {
-                    const iconConfig = DELIVERABLE_LABELS[r.deliverable_type || "video"] || DELIVERABLE_LABELS.video;
-                    const IconComp = iconConfig.icon;
-                    return (
-                      <tr key={r.id} className="hover:bg-[#15233D]/40 transition-colors">
-                        <td className="px-5 py-4">
-                          <div className="font-bold text-white">{r.client_user?.name || "Cliente"}</div>
-                          <div className="text-xs text-[#20CDFE] font-medium">{r.company?.name || "Empresa"}</div>
-                        </td>
+                  {workRequests.map((r) => (
+                    <tr key={r.id} className="hover:bg-[#15233D]/40 transition-colors">
+                      <td className="px-5 py-4">
+                        <div className="font-bold text-white">{r.client_user?.name || "Cliente"}</div>
+                        <div className="text-xs text-[#20CDFE] font-medium">{r.company?.name || "Empresa"}</div>
+                      </td>
 
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-2 text-xs font-bold text-white bg-[#15233D] px-3 py-1.5 rounded-xl border border-slate-700/50 w-fit">
-                            <IconComp size={15} className="text-[#20CDFE]" />
-                            <span>{iconConfig.label}</span>
-                            <span className="text-[10px] bg-[#20CDFE]/20 text-[#20CDFE] px-1.5 py-0.5 rounded-md font-mono">
-                              x{r.quantity_requested || 1}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4 max-w-xs">
-                          <div className="font-bold text-white text-xs truncate">{r.title || "Solicitud de trabajo"}</div>
-                          <div className="text-[11px] text-slate-400 line-clamp-1">{r.notes || "Sin notas adicionadas"}</div>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                            r.status === "pendiente" ? "bg-amber-500/20 text-amber-300" :
-                            r.status === "aceptada" ? "bg-emerald-500/20 text-emerald-300" : "bg-rose-500/20 text-rose-300"
-                          }`}>
-                            {r.status.toUpperCase()}
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2 text-xs font-bold text-white bg-[#15233D] px-3 py-1.5 rounded-xl border border-slate-700/50 w-fit">
+                          <span>{r.deliverable_type}</span>
+                          <span className="text-[10px] bg-[#20CDFE]/20 text-[#20CDFE] px-1.5 py-0.5 rounded-md font-mono">
+                            x{r.quantity_requested || 1}
                           </span>
-                        </td>
+                        </div>
+                      </td>
 
-                        <td className="px-5 py-4">
-                          {isAdmin && r.status === "pendiente" ? (
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleWorkAction(r.id, "approve")}
-                                className="bg-emerald-500 text-black font-extrabold px-3 py-1 rounded-xl text-xs hover:opacity-90"
-                              >
-                                Aprobar (-1 Cupo)
-                              </button>
-                              <button
-                                onClick={() => handleWorkAction(r.id, "reject")}
-                                className="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-xl text-xs hover:bg-rose-500/30"
-                              >
-                                Rechazar
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-xs text-slate-500 font-medium">Procesado</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                      <td className="px-5 py-4 max-w-xs">
+                        <div className="font-bold text-white text-xs truncate">{r.title || "Solicitud de trabajo"}</div>
+                        <div className="text-[11px] text-slate-400 line-clamp-1">{r.notes || "Sin notas adicionales"}</div>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                          r.status === "pendiente" ? "bg-amber-500/20 text-amber-300" :
+                          r.status === "aceptada" ? "bg-emerald-500/20 text-emerald-300" : "bg-rose-500/20 text-rose-300"
+                        }`}>
+                          {r.status.toUpperCase()}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        {isAdmin && r.status === "pendiente" ? (
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleWorkAction(r.id, "approve")}
+                              className="bg-emerald-500 text-black font-extrabold px-3 py-1 rounded-xl text-xs hover:opacity-90"
+                            >
+                              Aprobar (-1 Cupo)
+                            </button>
+                            <button
+                              onClick={() => handleWorkAction(r.id, "reject")}
+                              className="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-xl text-xs hover:bg-rose-500/30"
+                            >
+                              Rechazar
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-500 font-medium">Procesado</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             )}
@@ -671,10 +718,10 @@ export default function PaquetesPage() {
         )}
       </div>
 
-      {/* ── MODAL CREAR / EDITAR PAQUETE (Siguiendo el dibujo del usuario) ── */}
+      {/* ── MODAL CREAR / EDITAR PAQUETE DINÁMICO ── */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D] border border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in">
+          <div className="bg-[#0A101D] border border-slate-800 rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden animate-fade-in">
             <div className="flex items-center justify-between p-6 border-b border-slate-800/80 bg-[#15233D]/50">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
                 <Sparkles size={18} className="text-[#20CDFE]" />
@@ -683,120 +730,158 @@ export default function PaquetesPage() {
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-white text-2xl font-light">&times;</button>
             </div>
 
-            <form onSubmit={handleSubmit(onSubmitPackage)} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">NOMBRE</label>
-                <input
-                  {...register("name")}
-                  placeholder="Ej. Paquete Estándar - Alfa Bolivia"
-                  className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl bg-[#15233D]/60 text-white focus:ring-2 focus:ring-[#20CDFE] text-sm"
-                />
-                {errors.name && <p className="text-rose-500 text-xs mt-1">{errors.name.message}</p>}
+            <form onSubmit={onSubmitPackage} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              {/* Categoría y Nombre */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">CATEGORÍA</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl bg-[#15233D]/60 text-white font-bold text-sm"
+                  >
+                    <option value="marketing">📢 Marketing & Audiovisual</option>
+                    <option value="software">💻 Software & Sistemas</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">NOMBRE</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ej. Paquete Estándar - Alfa Bolivia"
+                    className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl bg-[#15233D]/60 text-white focus:ring-2 focus:ring-[#20CDFE] text-sm"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">DESCRIPCIÓN</label>
                 <textarea
-                  {...register("description")}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   rows={2}
-                  placeholder="Descripción concisa de lo que ofrece el paquete..."
+                  placeholder="Descripción del servicio..."
                   className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl bg-[#15233D]/60 text-white focus:ring-2 focus:ring-[#20CDFE] text-sm"
                 />
               </div>
 
-              {/* SECCIÓN CONTENIDO (DIBUJO DEL USUARIO: Video, Artes, Dron, etc conselector de Cantidad) */}
-              <div className="bg-[#15233D]/40 border border-slate-800 rounded-2xl p-4 space-y-3">
-                <label className="block text-xs font-black text-[#20CDFE] uppercase tracking-wider flex items-center gap-1.5">
-                  <Layout size={14} /> CONTENIDO MENSUAL DEL PAQUETE
-                </label>
+              {/* SECCIÓN PRECIO FLEXIBLE */}
+              <div className="bg-[#15233D]/30 border border-slate-800/80 rounded-2xl p-4 space-y-3">
+                <label className="block text-xs font-black text-[#20CDFE] uppercase tracking-wider">TIPO DE PRECIO</label>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-300 mb-1 flex items-center gap-1">
-                      <Video size={13} className="text-[#20CDFE]" /> Videos (Cantidad)
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      {...register("videos_count")}
-                      className="w-full px-3 py-2 border border-slate-800 rounded-xl bg-[#0A101D] text-white text-sm font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-300 mb-1 flex items-center gap-1">
-                      <Camera size={13} className="text-indigo-400" /> Filmaciones Dron
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      {...register("drone_count")}
-                      className="w-full px-3 py-2 border border-slate-800 rounded-xl bg-[#0A101D] text-white text-sm font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-300 mb-1 flex items-center gap-1">
-                      <ImageIcon size={13} className="text-purple-400" /> Cantidad de Artes
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      {...register("arts_count")}
-                      className="w-full px-3 py-2 border border-slate-800 rounded-xl bg-[#0A101D] text-white text-sm font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-300 mb-1 flex items-center gap-1">
-                      <Layout size={13} className="text-amber-400" /> Artes de Plantilla
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      {...register("template_arts_count")}
-                      className="w-full px-3 py-2 border border-slate-800 rounded-xl bg-[#0A101D] text-white text-sm font-bold"
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPriceType("fixed")}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all ${priceType === "fixed" ? "bg-[#20CDFE]/20 text-[#20CDFE] border-[#20CDFE]/40" : "bg-[#0A101D] text-slate-400 border-slate-800"}`}
+                  >
+                    Precio Fijo en Bs.
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPriceType("custom_text")}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all ${priceType === "custom_text" ? "bg-[#20CDFE]/20 text-[#20CDFE] border-[#20CDFE]/40" : "bg-[#0A101D] text-slate-400 border-slate-800"}`}
+                  >
+                    Texto (Por definir en reunión)
+                  </button>
                 </div>
 
-                <div className="pt-2 flex items-center justify-between border-t border-slate-800/60">
-                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5 cursor-pointer">
-                    <Megaphone size={14} className="text-emerald-400" /> ¿Incluye Gestión de Publicidad?
+                {priceType === "fixed" ? (
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1">Monto Mensual (Bs.)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={basePrice}
+                      onChange={(e) => setBasePrice(Number(e.target.value))}
+                      className="w-full px-3.5 py-2 border border-slate-800 rounded-xl bg-[#0A101D] text-[#20CDFE] font-bold text-sm"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 mb-1">Texto de Precio</label>
+                    <input
+                      type="text"
+                      value={priceText}
+                      onChange={(e) => setPriceText(e.target.value)}
+                      className="w-full px-3.5 py-2 border border-slate-800 rounded-xl bg-[#0A101D] text-amber-300 font-bold text-sm"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* SECCIÓN CONTENIDOS DINÁMICOS */}
+              <div className="bg-[#15233D]/40 border border-slate-800 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-[#20CDFE] uppercase tracking-wider flex items-center gap-1.5">
+                    <Layers size={14} /> CONTENIDOS DEL PAQUETE
                   </label>
-                  <input
-                    type="checkbox"
-                    {...register("ad_management")}
-                    className="w-4 h-4 accent-[#20CDFE] rounded cursor-pointer"
-                  />
+                  <button
+                    type="button"
+                    onClick={addDynamicItem}
+                    className="flex items-center gap-1 bg-[#20CDFE]/20 text-[#20CDFE] px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-[#20CDFE]/30"
+                  >
+                    <Plus size={13} /> Agregar Contenido
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {dynamicItems.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-[#0A101D] p-2 rounded-xl border border-slate-800">
+                      <input
+                        type="text"
+                        placeholder="Nombre de contenido (ej. Videos, Dron, Plantillas)"
+                        value={item.name}
+                        onChange={(e) => updateDynamicItem(idx, "name", e.target.value)}
+                        className="flex-1 px-2.5 py-1.5 bg-[#15233D]/50 border border-slate-800 rounded-lg text-white text-xs"
+                      />
+
+                      <select
+                        value={item.item_type}
+                        onChange={(e) => updateDynamicItem(idx, "item_type", e.target.value)}
+                        className="px-2 py-1.5 bg-[#15233D]/50 border border-slate-800 rounded-lg text-slate-200 text-xs font-bold"
+                      >
+                        <option value="por_cantidad">Por Cantidad</option>
+                        <option value="indefinido">Indefinido / Plan</option>
+                      </select>
+
+                      {item.item_type === "por_cantidad" && (
+                        <input
+                          type="number"
+                          min={0}
+                          value={item.quantity}
+                          onChange={(e) => updateDynamicItem(idx, "quantity", Number(e.target.value))}
+                          className="w-16 px-2 py-1.5 bg-[#15233D]/50 border border-slate-800 rounded-lg text-white text-xs font-bold text-center"
+                        />
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => removeDynamicItem(idx)}
+                        className="p-1.5 text-rose-400 hover:text-rose-300"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">PRECIO BASE (Bs.)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    {...register("base_price")}
-                    className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl bg-[#15233D]/60 text-[#20CDFE] font-bold focus:ring-2 focus:ring-[#20CDFE] text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1 uppercase tracking-wider">VISIBILIDAD</label>
-                  <div className="flex items-center gap-2 h-10">
-                    <input
-                      type="checkbox"
-                      id="is_active_cb"
-                      {...register("is_active")}
-                      className="w-4 h-4 accent-[#20CDFE] rounded cursor-pointer"
-                    />
-                    <label htmlFor="is_active_cb" className="text-xs font-bold text-slate-200 cursor-pointer">
-                      {watch("is_active") ? "Visible a Clientes" : "Oculto en Catálogo"}
-                    </label>
-                  </div>
-                </div>
+              {/* Visibilidad */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="is_active_cb"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  className="w-4 h-4 accent-[#20CDFE] rounded cursor-pointer"
+                />
+                <label htmlFor="is_active_cb" className="text-xs font-bold text-slate-200 cursor-pointer">
+                  {isActive ? "Visible a Clientes en el Catálogo" : "Oculto en el Catálogo"}
+                </label>
               </div>
 
               <div className="flex gap-3 pt-4 border-t border-slate-800">
@@ -828,7 +913,7 @@ export default function PaquetesPage() {
               <CreditCard className="text-[#20CDFE]" /> Suscripción a {subscribeModalPkg.name}
             </h3>
             <p className="text-xs text-slate-400">
-              Monto a transferir / pagar: <strong className="text-[#20CDFE]">{Number(subscribeModalPkg.base_price).toFixed(2)} Bs. / mes</strong>
+              Monto / Precio: <strong className="text-[#20CDFE]">{subscribeModalPkg.price_type === "custom_text" ? subscribeModalPkg.price_text : `${Number(subscribeModalPkg.base_price).toFixed(2)} Bs. / mes`}</strong>
             </p>
 
             <div className="space-y-3">
@@ -892,21 +977,22 @@ export default function PaquetesPage() {
               <Send className="text-[#20CDFE]" /> Solicitar Entregable / Trabajo
             </h3>
             <p className="text-xs text-slate-400">
-              Usa los cupos incluidos en tu paquete suscrito para enviar una solicitud de trabajo.
+              Selecciona el contenido de tu plan suscrito para enviar una solicitud.
             </p>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Tipo de Entregable</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Seleccionar Entregable</label>
                 <select
                   value={workDeliverable}
                   onChange={(e) => setWorkDeliverable(e.target.value)}
                   className="w-full px-3 py-2.5 border border-slate-800 rounded-xl bg-[#15233D] text-white text-xs font-bold"
                 >
-                  <option value="video">Edición de Video (Disponibles: {mySubscription?.videos_remaining || 0})</option>
-                  <option value="drone">Filmación con Dron (Disponibles: {mySubscription?.drone_remaining || 0})</option>
-                  <option value="art">Arte / Diseño Gráfico (Disponibles: {mySubscription?.arts_remaining || 0})</option>
-                  <option value="template_art">Arte de Plantilla (Disponibles: {mySubscription?.template_arts_remaining || 0})</option>
+                  {mySubscription?.items && mySubscription.items.map((item) => (
+                    <option key={item.id} value={item.name}>
+                      {item.name} ({item.item_type === "por_cantidad" ? `Disponibles: ${item.quantity_remaining}` : "Plan Indefinido"})
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -928,7 +1014,7 @@ export default function PaquetesPage() {
                   type="text"
                   value={workTitle}
                   onChange={(e) => setWorkTitle(e.target.value)}
-                  placeholder="Ej. Video promocional de Campaña de Agosto"
+                  placeholder="Ej. Video promocional de Campaña"
                   className="w-full px-3 py-2.5 border border-slate-800 rounded-xl bg-[#15233D] text-white text-xs"
                 />
               </div>
@@ -939,7 +1025,7 @@ export default function PaquetesPage() {
                   value={workNotes}
                   onChange={(e) => setWorkNotes(e.target.value)}
                   rows={2}
-                  placeholder="Describa el requerimiento para el equipo..."
+                  placeholder="Describa el requerimiento..."
                   className="w-full px-3 py-2.5 border border-slate-800 rounded-xl bg-[#15233D] text-white text-xs"
                 />
               </div>
@@ -969,7 +1055,7 @@ export default function PaquetesPage() {
             <h3 className="text-lg font-bold text-white">¿Verificar Pago del Cliente?</h3>
             <p className="text-xs text-slate-300">
               Cliente: <strong className="text-white">{verifyModalReq.client_user?.name}</strong> (<span className="text-[#20CDFE]">{verifyModalReq.company?.name}</span>)<br />
-              Paquete: <strong className="text-emerald-400">{verifyModalReq.package?.name}</strong> ({Number(verifyModalReq.package?.base_price || 0).toFixed(2)} Bs.)<br />
+              Paquete: <strong className="text-emerald-400">{verifyModalReq.package?.name}</strong><br />
               Ref: <span className="font-mono text-slate-300">{verifyModalReq.payment_reference || "N/A"}</span>
             </p>
 
