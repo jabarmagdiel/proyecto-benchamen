@@ -91,14 +91,14 @@ class _PackagesScreenState extends State<PackagesScreen> {
                     SwitchListTile(
                       title: const Text('Gestión de Publicidad', style: TextStyle(color: Colors.white, fontSize: 13)),
                       value: adManagement,
-                      activeColor: const Color(0xFF20CDFE),
+                      activeThumbColor: const Color(0xFF20CDFE),
                       onChanged: (val) => setModalState(() => adManagement = val),
                     ),
 
                     SwitchListTile(
                       title: const Text('Visible a Clientes', style: TextStyle(color: Colors.white, fontSize: 13)),
                       value: isActive,
-                      activeColor: const Color(0xFF20CDFE),
+                      activeThumbColor: const Color(0xFF20CDFE),
                       onChanged: (val) => setModalState(() => isActive = val),
                     ),
 

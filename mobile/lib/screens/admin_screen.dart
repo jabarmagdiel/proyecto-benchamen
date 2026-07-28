@@ -51,8 +51,6 @@ class _AdminScreenState extends State<AdminScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context, listen: false);
-
     return Scaffold(
       backgroundColor: const Color(0xFF0A101D),
       appBar: AppBar(
