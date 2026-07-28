@@ -907,37 +907,80 @@ export default function PaquetesPage() {
 
       {/* ── MODAL SUSCRIPCIÓN / REGISTRAR PAGO (Cliente) ── */}
       {subscribeModalPkg && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D] border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-fade-in">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <CreditCard className="text-[#20CDFE]" /> Suscripción a {subscribeModalPkg.name}
-            </h3>
-            <p className="text-xs text-slate-400">
-              Monto / Precio: <strong className="text-[#20CDFE]">{subscribeModalPkg.price_type === "custom_text" ? subscribeModalPkg.price_text : `${Number(subscribeModalPkg.base_price).toFixed(2)} Bs. / mes`}</strong>
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A101D] border border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4 animate-fade-in max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <CreditCard className="text-[#20CDFE]" /> Suscripción: {subscribeModalPkg.name}
+              </h3>
+              <button onClick={() => setSubscribeModalPkg(null)} className="text-slate-400 hover:text-white text-xl font-light">&times;</button>
+            </div>
+
+            <p className="text-xs text-slate-300">
+              Monto a pagar: <strong className="text-emerald-400 text-sm font-black">{subscribeModalPkg.price_type === "custom_text" ? subscribeModalPkg.price_text : `${Number(subscribeModalPkg.base_price).toFixed(2)} Bs. / mes`}</strong>
             </p>
 
-            <div className="space-y-3">
+            {/* SECCIÓN MOSTRAR QR DE PAGO */}
+            {payMethod === "QR" && (
+              <div className="bg-[#15233D]/60 border border-[#20CDFE]/30 rounded-2xl p-4 text-center space-y-2">
+                <div className="text-xs font-extrabold text-[#20CDFE] uppercase tracking-wider">
+                  Escanea el Código QR de Banco Fortaleza
+                </div>
+
+                <div className="bg-white p-3 rounded-2xl inline-block shadow-lg mx-auto">
+                  <img
+                    src="/qr-payment.png"
+                    alt="QR Pago Banco Fortaleza - ADDONS"
+                    className="w-48 h-auto object-contain mx-auto"
+                  />
+                </div>
+
+                <div className="text-[11px] text-slate-300 space-y-0.5 font-medium">
+                  <div>Titular: <strong className="text-white">BENJAMIN CABA EGUEZ</strong></div>
+                  <div>Banco: <strong className="text-amber-400">Banco Fortaleza</strong></div>
+                  <div className="text-slate-400 text-[10px]">Glosa / Detalle: PAGOS ADDONS</div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3 pt-1">
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">Método de Pago</label>
                 <select
                   value={payMethod}
                   onChange={(e) => setPayMethod(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-slate-800 rounded-xl bg-[#15233D] text-white text-xs font-bold"
+                  className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl bg-[#15233D] text-white text-xs font-bold focus:ring-2 focus:ring-[#20CDFE]"
                 >
-                  <option value="QR">Transferencia QR</option>
-                  <option value="Transferencia">Transferencia Bancaria</option>
+                  <option value="QR">Transferencia Simple QR (Banco Fortaleza)</option>
+                  <option value="Transferencia">Transferencia Bancaria Directa</option>
                   <option value="Efectivo">Pago en Efectivo / Oficina</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Número de Referencia / Comprobante</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Adjuntar Comprobante de Pago (Imagen / Captura)</label>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setPayRef(`Comprobante_${file.name}_${Date.now().toString().slice(-4)}`);
+                      setPayNotes(`Archivo adjunto: ${file.name}`);
+                    }
+                  }}
+                  className="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#20CDFE]/20 file:text-[#20CDFE] hover:file:bg-[#20CDFE]/30 cursor-pointer bg-[#15233D]/50 border border-slate-800 rounded-xl p-1.5"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Número de Referencia / Transacción</label>
                 <input
                   type="text"
                   value={payRef}
                   onChange={(e) => setPayRef(e.target.value)}
-                  placeholder="Ej. Nro de Transacción #98412"
-                  className="w-full px-3 py-2.5 border border-slate-800 rounded-xl bg-[#15233D] text-white text-xs"
+                  placeholder="Ej. Nro de Transacción #984120"
+                  className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl bg-[#15233D] text-white text-xs focus:ring-2 focus:ring-[#20CDFE]"
                 />
               </div>
 
@@ -947,22 +990,22 @@ export default function PaquetesPage() {
                   value={payNotes}
                   onChange={(e) => setPayNotes(e.target.value)}
                   rows={2}
-                  placeholder="Detalles sobre la transferencia..."
-                  className="w-full px-3 py-2.5 border border-slate-800 rounded-xl bg-[#15233D] text-white text-xs"
+                  placeholder="Detalles o comentarios sobre el pago enviado..."
+                  className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl bg-[#15233D] text-white text-xs focus:ring-2 focus:ring-[#20CDFE]"
                 />
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <button onClick={() => setSubscribeModalPkg(null)} className="flex-1 py-2.5 border border-slate-800 rounded-xl text-slate-300 text-xs font-bold">
+            <div className="flex gap-3 pt-3 border-t border-slate-800">
+              <button onClick={() => setSubscribeModalPkg(null)} className="flex-1 py-2.5 border border-slate-800 rounded-xl text-slate-300 text-xs font-bold hover:bg-[#15233D]">
                 Cancelar
               </button>
               <button
                 onClick={handleSubscribeSubmit}
                 disabled={submitting}
-                className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] py-2.5 rounded-xl font-extrabold text-xs"
+                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-2.5 rounded-xl font-extrabold text-xs shadow-lg shadow-emerald-500/20 hover:opacity-90"
               >
-                {submitting ? "Registrando..." : "Confirmar y Enviar Pago"}
+                {submitting ? "Enviando..." : "Confirmar y Enviar Comprobante"}
               </button>
             </div>
           </div>

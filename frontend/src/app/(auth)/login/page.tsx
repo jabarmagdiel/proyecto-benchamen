@@ -62,13 +62,9 @@ export default function LoginPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#20CDFE]/10 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="relative text-center z-10 flex flex-col items-center">
-          {/* Logo representation */}
-          <div className="flex flex-col items-center justify-center mb-8 bg-[#15233D] p-6 rounded-3xl border border-slate-800/50 backdrop-blur-md shadow-[0_0_40px_rgba(32,205,254,0.1)]">
-            <span className="text-sm font-bold tracking-[0.2em] text-white/80 -mb-2 ml-[-60px]">TU</span>
-            <div className="flex items-center">
-              <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] tracking-tighter">CREA</span>
-            </div>
-            <span className="text-sm font-bold tracking-[0.3em] text-white -mt-1 ml-[60px]">TEGA</span>
+          {/* Logo official ADDONS */}
+          <div className="flex items-center justify-center mb-8 p-4 rounded-3xl backdrop-blur-md">
+            <img src="/logo.png" alt="ADDONS" className="w-64 h-auto object-contain drop-shadow-[0_0_25px_rgba(32,205,254,0.2)]" />
           </div>
 
           <p className="text-slate-300 text-lg leading-relaxed max-w-md font-light">
@@ -96,12 +92,8 @@ export default function LoginPage() {
         
         <div className="w-full max-w-md animate-fade-in relative z-10">
           {/* Logo mobile */}
-          <div className="flex lg:hidden flex-col items-center mb-10">
-            <span className="text-xs font-bold tracking-[0.2em] text-white/80 -mb-1 ml-[-40px]">TU</span>
-            <div className="flex items-center">
-              <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] tracking-tighter">CREA</span>
-            </div>
-            <span className="text-xs font-bold tracking-[0.3em] text-white ml-[40px]">TEGA</span>
+          <div className="flex lg:hidden flex-col items-center mb-8">
+            <img src="/logo.png" alt="ADDONS" className="w-48 h-auto object-contain" />
           </div>
 
           <div className="bg-[#15233D] rounded-3xl shadow-2xl p-8 lg:p-10 border border-slate-800/50 backdrop-blur-xl">
