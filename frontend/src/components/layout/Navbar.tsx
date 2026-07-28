@@ -27,7 +27,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/aprobaciones":   "Aprobaciones",
   "/agenda":         "Agenda & Disponibilidad",
   "/usuarios":       "Gestión de Usuarios",
-  "/capacidad":      "Carga Laboral (Capacidad)",
   "/reportes":       "Reportes",
   "/perfil":         "Mi Perfil",
 };

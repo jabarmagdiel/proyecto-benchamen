@@ -23,7 +23,6 @@ const adminLinks = [
   { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
   { href: "/agenda",           icon: Calendar,        label: "Calendario / Agenda" },
   { href: "/usuarios",         icon: Users,           label: "Usuarios" },
-  { href: "/capacidad",        icon: BarChart3,       label: "Capacidad" },
   { href: "/reportes",         icon: BarChart3,       label: "Reportes" },
 ];
 
