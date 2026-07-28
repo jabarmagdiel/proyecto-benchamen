@@ -51,6 +51,59 @@ export default function PaquetesPage() {
     { name: "Cantidad de artes", item_type: "por_cantidad", quantity: 10 },
   ]);
 
+  /* Sub-módulo: Catálogo de Plantillas Guardadas de Contenido */
+  const [savedTemplates, setSavedTemplates] = useState<Array<{ name: string; item_type: "por_cantidad" | "indefinido"; quantity: number }>>([
+    { name: "Videos", item_type: "por_cantidad", quantity: 4 },
+    { name: "Filmaciones Dron", item_type: "por_cantidad", quantity: 2 },
+    { name: "Arte de plantilla", item_type: "indefinido", quantity: 0 },
+    { name: "Gestión de publicidad", item_type: "indefinido", quantity: 0 },
+    { name: "Cantidad de artes", item_type: "por_cantidad", quantity: 10 },
+    { name: "Desarrollo Web / Sistema", item_type: "indefinido", quantity: 0 },
+    { name: "Mantenimiento & Servidor", item_type: "indefinido", quantity: 0 },
+    { name: "Soporte Técnico / Asesoría", item_type: "indefinido", quantity: 0 },
+  ]);
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [newTplName, setNewTplName] = useState("");
+  const [newTplType, setNewTplType] = useState<"por_cantidad" | "indefinido">("por_cantidad");
+  const [newTplQty, setNewTplQty] = useState(1);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const local = localStorage.getItem("addons_saved_content_templates");
+      if (local) {
+        try { setSavedTemplates(JSON.parse(local)); } catch (e) {}
+      }
+    }
+  }, []);
+
+  const handleAddSavedTemplate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTplName.trim()) return;
+    const updated = [
+      ...savedTemplates.filter(t => t.name.toLowerCase() !== newTplName.trim().toLowerCase()),
+      { name: newTplName.trim(), item_type: newTplType, quantity: newTplType === "por_cantidad" ? newTplQty : 0 }
+    ];
+    setSavedTemplates(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("addons_saved_content_templates", JSON.stringify(updated));
+    }
+    setNewTplName("");
+    showToast("Plantilla de contenido guardada");
+  };
+
+  const handleDeleteSavedTemplate = (name: string) => {
+    const updated = savedTemplates.filter(t => t.name !== name);
+    setSavedTemplates(updated);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("addons_saved_content_templates", JSON.stringify(updated));
+    }
+    showToast("Plantilla eliminada");
+  };
+
+  const addPresetItem = (preset: { name: string; item_type: "por_cantidad" | "indefinido"; quantity: number }) => {
+    setDynamicItems(prev => [...prev, { name: preset.name, item_type: preset.item_type, quantity: preset.quantity }]);
+  };
+
   /* Modal de Registro de Pago (Cliente) */
   const [subscribeModalPkg, setSubscribeModalPkg] = useState<ServicePackage | null>(null);
   const [payMethod, setPayMethod] = useState("QR");
@@ -818,32 +871,100 @@ export default function PaquetesPage() {
                 )}
               </div>
 
-              {/* SECCIÓN CONTENIDOS DINÁMICOS */}
+              {/* SECCIÓN CONTENIDOS DINÁMICOS CON PLANTILLAS GUARDADAS */}
               <div className="bg-[#15233D]/40 border border-slate-800 rounded-2xl p-4 space-y-3">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <label className="text-xs font-black text-[#20CDFE] uppercase tracking-wider flex items-center gap-1.5">
                     <Layers size={14} /> CONTENIDOS DEL PAQUETE
                   </label>
-                  <button
-                    type="button"
-                    onClick={addDynamicItem}
-                    className="flex items-center gap-1 bg-[#20CDFE]/20 text-[#20CDFE] px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-[#20CDFE]/30"
-                  >
-                    <Plus size={13} /> Agregar Contenido
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTemplateModalOpen(true)}
+                      className="text-[11px] font-bold text-slate-400 hover:text-white flex items-center gap-1 bg-[#0A101D] px-2.5 py-1 rounded-lg border border-slate-800"
+                    >
+                      ⚙️ Mis Plantillas
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addDynamicItem}
+                      className="flex items-center gap-1 bg-[#20CDFE]/20 text-[#20CDFE] px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-[#20CDFE]/30"
+                    >
+                      <Plus size={13} /> Agregar
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {/* BARRA DE SELECCIÓN RÁPIDA DE PLANTILLAS GUARDADAS */}
+                <div className="space-y-1 bg-[#0A101D]/70 p-2.5 rounded-xl border border-slate-800/80">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                    <span>⚡ Selección Rápida de Plantillas Guardadas (Haz clic para agregar):</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pt-1">
+                    {savedTemplates.map((tpl, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => addPresetItem(tpl)}
+                        className="bg-[#15233D] hover:bg-[#20CDFE]/20 hover:border-[#20CDFE]/40 border border-slate-700/60 text-slate-200 hover:text-[#20CDFE] px-2 py-0.5 rounded-lg text-[11px] font-medium transition-all flex items-center gap-1"
+                      >
+                        <Plus size={11} className="text-[#20CDFE]" />
+                        <span>{tpl.name}</span>
+                        {tpl.item_type === "por_cantidad" && (
+                          <span className="text-[10px] bg-[#20CDFE]/20 text-[#20CDFE] px-1 rounded font-bold">{tpl.quantity}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Datalist para Autocompletado */}
+                <datalist id="addons_saved_templates_datalist">
+                  {savedTemplates.map((tpl, i) => (
+                    <option key={i} value={tpl.name} />
+                  ))}
+                </datalist>
+
+                {/* LISTA DE CONTENIDOS DEL PAQUETE */}
+                <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
                   {dynamicItems.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-[#0A101D] p-2 rounded-xl border border-slate-800">
+                    <div key={idx} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-[#0A101D] p-2 rounded-xl border border-slate-800">
+                      {/* Dropdown de Plantilla Rápida */}
+                      <select
+                        onChange={(e) => {
+                          const selectedName = e.target.value;
+                          if (!selectedName) return;
+                          const found = savedTemplates.find(t => t.name === selectedName);
+                          if (found) {
+                            updateDynamicItem(idx, "name", found.name);
+                            updateDynamicItem(idx, "item_type", found.item_type);
+                            if (found.item_type === "por_cantidad") {
+                              updateDynamicItem(idx, "quantity", found.quantity || 1);
+                            }
+                          }
+                        }}
+                        defaultValue=""
+                        className="w-full sm:w-36 px-2 py-1.5 bg-[#15233D]/60 border border-slate-800 rounded-lg text-slate-300 text-xs font-semibold"
+                      >
+                        <option value="" disabled>⚡ Elegir plantilla...</option>
+                        {savedTemplates.map((tpl, i) => (
+                          <option key={i} value={tpl.name}>
+                            {tpl.name} ({tpl.item_type === "por_cantidad" ? `Cant: ${tpl.quantity}` : "Plan"})
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Nombre Input con Datalist */}
                       <input
                         type="text"
-                        placeholder="Nombre de contenido (ej. Videos, Dron, Plantillas)"
+                        list="addons_saved_templates_datalist"
+                        placeholder="Nombre de contenido"
                         value={item.name}
                         onChange={(e) => updateDynamicItem(idx, "name", e.target.value)}
-                        className="flex-1 px-2.5 py-1.5 bg-[#15233D]/50 border border-slate-800 rounded-lg text-white text-xs"
+                        className="flex-1 px-2.5 py-1.5 bg-[#15233D]/50 border border-slate-800 rounded-lg text-white text-xs font-bold"
                       />
 
+                      {/* Tipo Selector */}
                       <select
                         value={item.item_type}
                         onChange={(e) => updateDynamicItem(idx, "item_type", e.target.value)}
@@ -853,6 +974,7 @@ export default function PaquetesPage() {
                         <option value="indefinido">Indefinido / Plan</option>
                       </select>
 
+                      {/* Cantidad Input */}
                       {item.item_type === "por_cantidad" && (
                         <input
                           type="number"
@@ -866,7 +988,7 @@ export default function PaquetesPage() {
                       <button
                         type="button"
                         onClick={() => removeDynamicItem(idx)}
-                        className="p-1.5 text-rose-400 hover:text-rose-300"
+                        className="p-1.5 text-rose-400 hover:text-rose-300 self-end sm:self-center"
                       >
                         <Trash2 size={15} />
                       </button>
@@ -1141,6 +1263,108 @@ export default function PaquetesPage() {
               </button>
               <button onClick={confirmDelete} className="flex-1 bg-rose-500 text-white py-2.5 rounded-xl text-xs font-extrabold hover:bg-rose-600">
                 Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ── MODAL GESTIÓN DE PLANTILLAS GUARDADAS DE CONTENIDO ── */}
+      {templateModalOpen && (
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A101D] border border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-4 animate-fade-in max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Layers className="text-[#20CDFE]" size={20} /> Catálogo de Plantillas de Contenido
+              </h3>
+              <button onClick={() => setTemplateModalOpen(false)} className="text-slate-400 hover:text-white text-xl font-light">&times;</button>
+            </div>
+
+            <p className="text-xs text-slate-400">
+              Guarda tus contenidos habituales aquí para no tener que escribirlos manualmente cada vez que crees o edites un paquete.
+            </p>
+
+            {/* FORMULARIO AGREGAR NUEVA PLANTILLA */}
+            <form onSubmit={handleAddSavedTemplate} className="bg-[#15233D]/60 border border-slate-800 rounded-2xl p-4 space-y-3">
+              <div className="text-xs font-black text-[#20CDFE] uppercase tracking-wider">
+                + Crear Nueva Plantilla de Contenido
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="Nombre (ej. Animación 2D, Hosting, etc)"
+                  value={newTplName}
+                  onChange={(e) => setNewTplName(e.target.value)}
+                  className="px-3 py-2 bg-[#0A101D] border border-slate-800 rounded-xl text-white text-xs font-bold"
+                />
+
+                <select
+                  value={newTplType}
+                  onChange={(e) => setNewTplType(e.target.value as any)}
+                  className="px-3 py-2 bg-[#0A101D] border border-slate-800 rounded-xl text-slate-200 text-xs font-bold"
+                >
+                  <option value="por_cantidad">Por Cantidad</option>
+                  <option value="indefinido">Indefinido / Plan</option>
+                </select>
+              </div>
+
+              {newTplType === "por_cantidad" && (
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-slate-300 font-medium">Cantidad por defecto:</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={newTplQty}
+                    onChange={(e) => setNewTplQty(Number(e.target.value))}
+                    className="w-20 px-2.5 py-1.5 bg-[#0A101D] border border-slate-800 rounded-xl text-white text-xs font-bold text-center"
+                  />
+                </div>
+              )}
+
+              <button
+                type="submit"
+                className="w-full bg-[#20CDFE]/20 hover:bg-[#20CDFE]/30 text-[#20CDFE] border border-[#20CDFE]/40 py-2 rounded-xl text-xs font-extrabold transition-all"
+              >
+                Guardar Plantilla en el Catálogo
+              </button>
+            </form>
+
+            {/* LISTADO DE PLANTILLAS GUARDADAS */}
+            <div className="space-y-2 pt-2">
+              <div className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                Plantillas Disponibles en Sistema ({savedTemplates.length})
+              </div>
+
+              <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                {savedTemplates.map((tpl, idx) => (
+                  <div key={idx} className="flex items-center justify-between bg-[#15233D]/40 border border-slate-800/80 px-3 py-2 rounded-xl text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white">{tpl.name}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                        tpl.item_type === "por_cantidad" ? "bg-[#20CDFE]/20 text-[#20CDFE]" : "bg-emerald-500/20 text-emerald-300"
+                      }`}>
+                        {tpl.item_type === "por_cantidad" ? `Por Cantidad (${tpl.quantity})` : "Indefinido (Plan)"}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => handleDeleteSavedTemplate(tpl.name)}
+                      className="text-rose-400 hover:text-rose-300 p-1"
+                      title="Eliminar plantilla"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => setTemplateModalOpen(false)}
+                className="w-full py-2.5 border border-slate-800 rounded-xl text-slate-300 text-xs font-bold hover:bg-[#15233D]"
+              >
+                Cerrar
               </button>
             </div>
           </div>
