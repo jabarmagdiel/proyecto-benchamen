@@ -7,8 +7,8 @@ import { WebSocketProvider } from "@/context/WebSocketContext";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "TuCreatega",
-  description: "Sistema de gestión de proyectos y actividades para empresas de marketing",
+  title: "ADDONS",
+  description: "Sistema de gestión de proyectos y actividades para agencias de marketing y software",
 };
 
 export default function RootLayout({

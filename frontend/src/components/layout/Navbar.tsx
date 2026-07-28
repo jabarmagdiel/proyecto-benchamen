@@ -19,8 +19,14 @@ const PAGE_TITLES: Record<string, string> = {
   "/proyectos":      "Gestión de Proyectos",
   "/actividades":    "Gestión de Actividades",
   "/mis-actividades":"Mis Actividades",
+  "/workflows":      "Flujos de Trabajo",
+  "/departamentos":  "Roles Operativos",
+  "/paquetes":       "Gestión de Paquetes",
+  "/mis-paquetes":   "Catálogo de Paquetes",
+  "/aprobaciones":   "Aprobaciones",
   "/agenda":         "Agenda & Disponibilidad",
   "/usuarios":       "Gestión de Usuarios",
+  "/capacidad":      "Carga Laboral (Capacidad)",
   "/reportes":       "Reportes",
   "/perfil":         "Mi Perfil",
 };
@@ -30,7 +36,7 @@ export default function Navbar() {
   const { subscribe } = useWebSocket();
   const pathname = usePathname();
   const router = useRouter();
-  const title = PAGE_TITLES[pathname] || "TuCreatega";
+  const title = PAGE_TITLES[pathname] || "ADDONS";
 
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
