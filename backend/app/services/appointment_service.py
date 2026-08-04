@@ -58,6 +58,27 @@ def _emit_appointment_update():
         pass
 
 
+def _generate_hourly_slots(start_time_str: str, end_time_str: str) -> List[tuple]:
+    """Convierte un rango HH:MM a HH:MM (ej 07:00 a 16:00) en intervalos individuales de 1 hora."""
+    sh, sm = map(int, start_time_str.split(":"))
+    eh, em = map(int, end_time_str.split(":"))
+    start_minutes = sh * 60 + sm
+    end_minutes = eh * 60 + em
+
+    slots = []
+    curr = start_minutes
+    while curr + 60 <= end_minutes:
+        s_h, s_m = divmod(curr, 60)
+        e_h, e_m = divmod(curr + 60, 60)
+        slots.append((f"{s_h:02d}:{s_m:02d}", f"{e_h:02d}:{e_m:02d}"))
+        curr += 60
+
+    if len(slots) == 0 and start_minutes < end_minutes:
+        slots.append((start_time_str, end_time_str))
+
+    return slots
+
+
 def create_availability(db: Session, admin_id: int, data: AppointmentCreate) -> AppointmentResponse:
     # Validar que la hora de inicio sea menor a la de fin
     if data.start_time >= data.end_time:
@@ -66,35 +87,43 @@ def create_availability(db: Session, admin_id: int, data: AppointmentCreate) -> 
             detail="La hora de inicio debe ser anterior a la hora de fin",
         )
 
-    # Validar que no se traslape con otra ranura del mismo admin en la misma fecha
-    overlap = db.query(Appointment).filter(
-        Appointment.admin_id == admin_id,
-        Appointment.date == data.date,
-        Appointment.status != "cancelled",
-        and_(
-            Appointment.start_time < data.end_time,
-            Appointment.end_time > data.start_time,
-        )
-    ).first()
+    hourly_intervals = _generate_hourly_slots(data.start_time, data.end_time)
+    created_apts = []
 
-    if overlap:
+    for s_start, s_end in hourly_intervals:
+        overlap = db.query(Appointment).filter(
+            Appointment.admin_id == admin_id,
+            Appointment.date == data.date,
+            Appointment.status != "cancelled",
+            and_(
+                Appointment.start_time < s_end,
+                Appointment.end_time > s_start,
+            )
+        ).first()
+
+        if not overlap:
+            apt = Appointment(
+                admin_id=admin_id,
+                date=data.date,
+                start_time=s_start,
+                end_time=s_end,
+                status="available",
+            )
+            db.add(apt)
+            created_apts.append(apt)
+
+    if not created_apts:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ya existe una ranura de disponibilidad que se traslapa en esta fecha y horario",
+            detail="Todas las ranuras de este rango ya existen o se traslapan con horarios publicados.",
         )
 
-    apt = Appointment(
-        admin_id=admin_id,
-        date=data.date,
-        start_time=data.start_time,
-        end_time=data.end_time,
-        status="available",
-    )
-    db.add(apt)
     db.commit()
-    db.refresh(apt)
+    for apt in created_apts:
+        db.refresh(apt)
+
     _emit_appointment_update()
-    return _to_response(apt)
+    return _to_response(created_apts[0])
 
 
 def get_available_slots(db: Session, selected_date: Optional[date] = None) -> List[AppointmentResponse]:

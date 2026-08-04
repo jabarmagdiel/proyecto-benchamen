@@ -237,7 +237,7 @@ export default function AgendaPage() {
     appointments.filter(a => a.date === dateStr);
 
   const availForDay = (dateStr: string) =>
-    availableSlots.filter(a => a.date === dateStr);
+    availableSlots.filter(a => a.date === dateStr && a.date >= todayStr);
 
   const prevMonth = () => {
     if (calMonth === 0) { setCalYear(y => y - 1); setCalMonth(11); }
@@ -254,11 +254,13 @@ export default function AgendaPage() {
     ? (isAdmin ? slotsForDay(selectedDay) : availForDay(selectedDay))
     : [];
 
-  const slotsByDate = availableSlots.reduce((acc, slot) => {
-    if (!acc[slot.date]) acc[slot.date] = [];
-    acc[slot.date].push(slot);
-    return acc;
-  }, {} as Record<string, Appointment[]>);
+  const slotsByDate = availableSlots
+    .filter(slot => slot.date >= todayStr)
+    .reduce((acc, slot) => {
+      if (!acc[slot.date]) acc[slot.date] = [];
+      acc[slot.date].push(slot);
+      return acc;
+    }, {} as Record<string, Appointment[]>);
 
   const totalSlots     = appointments.filter(a => a.status !== "cancelled").length;
   const bookedSlots    = appointments.filter(a => a.status === "booked").length;

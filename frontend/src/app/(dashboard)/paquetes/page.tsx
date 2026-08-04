@@ -448,7 +448,7 @@ export default function PaquetesPage() {
                       : "bg-[#15233D]/40 text-slate-400 border-slate-800 hover:text-white"
                   }`}
                 >
-                  <Sparkles size={16} /> 🛠️ Servicios Individuales ("A la Carta")
+                  <Sparkles size={16} /> 🛠️ Servicios Individuales
                 </button>
               </div>
 
