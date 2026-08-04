@@ -180,7 +180,7 @@ export default function DashboardPage() {
     loadNotifications();
     loadStats();
     loadClientProjects();
-  }, [user]);
+  }, [user?.id]); // Solo re-ejecutar si cambia el usuario (no en cada render)
 
   // Manejar cambio de filtros
   const handleCompanyChange = (compId: string) => {

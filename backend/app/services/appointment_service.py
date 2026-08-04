@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -194,7 +194,7 @@ def book_slot(db: Session, appointment_id: int, client_id: int, data: Appointmen
     apt.title = data.title
     apt.notes = data.notes
     apt.status = "booked"
-    apt.updated_at = datetime.now()
+    apt.updated_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(apt)
@@ -228,15 +228,20 @@ def book_slot(db: Session, appointment_id: int, client_id: int, data: Appointmen
 
 
 def get_my_appointments(db: Session, user: User) -> List[AppointmentResponse]:
-    if user.role == "administrador":
-        # Administrador ve todo su horario
+    role_val = user.role.value if hasattr(user.role, 'value') else str(user.role)
+    if role_val == "administrador":
+        # Administrador ve su horario: últimos 30 días + futuro
+        cutoff = date.today() - timedelta(days=30)
         apts = db.query(Appointment).filter(
-            Appointment.admin_id == user.id
+            Appointment.admin_id == user.id,
+            Appointment.date >= cutoff,
         ).order_by(Appointment.date.desc(), Appointment.start_time.desc()).all()
-    elif user.role == "cliente":
-        # Cliente ve solo sus reservas
+    elif role_val == "cliente":
+        # Cliente ve solo sus reservas (futuras + recientes)
+        cutoff = date.today() - timedelta(days=30)
         apts = db.query(Appointment).filter(
-            Appointment.client_id == user.id
+            Appointment.client_id == user.id,
+            Appointment.date >= cutoff,
         ).order_by(Appointment.date.desc(), Appointment.start_time.desc()).all()
     else:
         apts = []
@@ -319,7 +324,8 @@ def cancel_appointment(db: Session, appointment_id: int, user: User) -> Appointm
             detail="No tienes permisos para realizar esta acción",
         )
 
-    apt.updated_at = datetime.now()
+    apt.updated_at = datetime.now(timezone.utc)
+
     db.commit()
     db.refresh(apt)
     _emit_appointment_update()

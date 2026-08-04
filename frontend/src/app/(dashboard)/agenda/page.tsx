@@ -306,8 +306,7 @@ export default function AgendaPage() {
               </p>
             </div>
 
-            {/* Alternador de Pestañas Principales */}
-            <div className="bg-[#07060B]/80 border border-slate-800 rounded-2xl p-1.5 flex gap-1 shadow-lg shrink-0">
+              {/* Alternador de Pestañas Principales */}
               <button
                 onClick={() => setMainTab("citas")}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
@@ -320,18 +319,20 @@ export default function AgendaPage() {
                 Citas con Clientes
               </button>
 
-              <button
-                onClick={() => setMainTab("disponibilidad")}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
-                  mainTab === "disponibilidad"
-                    ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-300 border border-emerald-500/30 shadow-md"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                <Users size={15} />
-                Disponibilidad del Equipo Freelance
-              </button>
-            </div>
+              {/* Solo Admin y Operativo ven la disponibilidad del equipo */}
+              {user?.role !== "cliente" && (
+                <button
+                  onClick={() => setMainTab("disponibilidad")}
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+                    mainTab === "disponibilidad"
+                      ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-300 border border-emerald-500/30 shadow-md"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <Users size={15} />
+                  Disponibilidad del Equipo Freelance
+                </button>
+              )}
           </div>
 
           {isAdmin && mainTab === "citas" && (

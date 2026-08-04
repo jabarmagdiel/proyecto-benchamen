@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { usersApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
@@ -50,6 +50,7 @@ export default function PerfilPage() {
   const {
     register: regProfile,
     handleSubmit: handleProfileSubmit,
+    reset: resetProfileForm,
     formState: { errors: profileErrors },
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema) as any,
@@ -59,6 +60,17 @@ export default function PerfilPage() {
       position: profile?.position || "",
     },
   });
+
+  // Sincronizar el formulario si el perfil carga después del montaje
+  useEffect(() => {
+    if (profile) {
+      resetProfileForm({
+        name: profile.name || "",
+        email: profile.email || "",
+        position: profile.position || "",
+      });
+    }
+  }, [profile?.id]);
 
   const {
     register: regPassword,

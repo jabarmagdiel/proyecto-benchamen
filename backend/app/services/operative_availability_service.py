@@ -36,6 +36,9 @@ def get_user_availabilities(db: Session, user_id: int, target_date: Optional[dat
     query = db.query(OperativeAvailability).filter(OperativeAvailability.user_id == user_id)
     if target_date:
         query = query.filter(OperativeAvailability.date == target_date)
+    else:
+        # Sin fecha específica: solo mostrar bloques actuales y futuros (no histórico)
+        query = query.filter(OperativeAvailability.date >= date.today())
     return query.order_by(OperativeAvailability.date.asc(), OperativeAvailability.start_time.asc()).all()
 
 
