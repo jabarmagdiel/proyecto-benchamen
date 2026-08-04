@@ -11,6 +11,7 @@ from app.models.workflow import Workflow, WorkflowStage, WorkflowAutomation, Wor
 from app.models.department import Department
 from app.models.package import Package, CompanyPackage
 from app.models.package_request import PackageRequest
+from app.models.operative_availability import OperativeAvailability
 
 __all__ = [
     "User",
@@ -30,4 +31,5 @@ __all__ = [
     "Package",
     "CompanyPackage",
     "PackageRequest",
+    "OperativeAvailability",
 ]

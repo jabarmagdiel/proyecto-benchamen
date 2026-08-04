@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { OperativeAvailability, OperativeAvailabilitySummary } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -223,4 +224,15 @@ export const reportsApi = {
       console.error("Error exporting PDF:", error);
     }
   },
+};
+
+/* ── Operative Availability API ── */
+export const operativeAvailabilityApi = {
+  create: (data: { date: string; start_time?: string; end_time?: string; is_full_day?: boolean; status?: string; reason?: string; user_id?: number }) =>
+    api.post<OperativeAvailability>("/api/operative-availability", data),
+  my: (target_date?: string) =>
+    api.get<OperativeAvailability[]>("/api/operative-availability/my", { params: { target_date } }),
+  team: (target_date: string) =>
+    api.get<OperativeAvailabilitySummary[]>("/api/operative-availability/team", { params: { target_date } }),
+  delete: (id: number) => api.delete(`/api/operative-availability/${id}`),
 };

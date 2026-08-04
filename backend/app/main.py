@@ -100,12 +100,23 @@ def run_migrations():
             );
             """,
         ),
-        # Índices de company_packages
+        # Tabla operative_availabilities
         (
-            "idx_company_packages",
+            "operative_availabilities",
             """
-            CREATE INDEX IF NOT EXISTS idx_company_packages_company ON company_packages(company_id);
-            CREATE INDEX IF NOT EXISTS idx_company_packages_package ON company_packages(package_id);
+            CREATE TABLE IF NOT EXISTS operative_availabilities (
+                id SERIAL PRIMARY KEY,
+                user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                date DATE NOT NULL,
+                start_time VARCHAR(5) NOT NULL DEFAULT '08:00',
+                end_time VARCHAR(5) NOT NULL DEFAULT '18:00',
+                is_full_day BOOLEAN NOT NULL DEFAULT FALSE,
+                status VARCHAR(20) NOT NULL DEFAULT 'busy',
+                reason VARCHAR(250),
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_op_avail_user_date ON operative_availabilities (user_id, date);
             """,
         ),
     ]
@@ -157,6 +168,7 @@ from app.routes import (
     appointments,
     packages,
     package_requests,
+    operative_availability,
     websocket,
 )
 
@@ -175,6 +187,7 @@ app.include_router(workflows.router)
 app.include_router(appointments.router)
 app.include_router(packages.router)
 app.include_router(package_requests.router)
+app.include_router(operative_availability.router)
 app.include_router(websocket.router)
 
 

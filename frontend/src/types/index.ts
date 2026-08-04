@@ -398,3 +398,27 @@ export interface NotificationItem {
   created_at: string;
 }
 
+export interface OperativeAvailability {
+  id: number;
+  user_id: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  is_full_day: boolean;
+  status: "busy" | "available" | string;
+  reason?: string | null;
+  created_at: string;
+}
+
+export interface OperativeAvailabilitySummary {
+  user_id: number;
+  user_name: string;
+  user_email: string;
+  user_role: string;
+  user_position?: string | null;
+  overall_status: "libre" | "ocupado" | "en_trabajo" | string;
+  busy_blocks: OperativeAvailability[];
+  assigned_activities_count: number;
+  assigned_activities_titles: string[];
+}
+
