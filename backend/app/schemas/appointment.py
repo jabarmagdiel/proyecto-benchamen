@@ -12,6 +12,8 @@ class AppointmentCreate(BaseModel):
 class AppointmentBook(BaseModel):
     title: str
     notes: Optional[str] = None
+    start_time: Optional[str] = None  # HH:MM escogido por el cliente
+    end_time: Optional[str] = None    # HH:MM escogido por el cliente
 
 
 class AppointmentResponse(BaseModel):

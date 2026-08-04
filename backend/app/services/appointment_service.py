@@ -87,43 +87,36 @@ def create_availability(db: Session, admin_id: int, data: AppointmentCreate) -> 
             detail="La hora de inicio debe ser anterior a la hora de fin",
         )
 
-    hourly_intervals = _generate_hourly_slots(data.start_time, data.end_time)
-    created_apts = []
+    # Validar traslape con otra ranura del mismo admin en la misma fecha
+    overlap = db.query(Appointment).filter(
+        Appointment.admin_id == admin_id,
+        Appointment.date == data.date,
+        Appointment.status != "cancelled",
+        and_(
+            Appointment.start_time < data.end_time,
+            Appointment.end_time > data.start_time,
+        )
+    ).first()
 
-    for s_start, s_end in hourly_intervals:
-        overlap = db.query(Appointment).filter(
-            Appointment.admin_id == admin_id,
-            Appointment.date == data.date,
-            Appointment.status != "cancelled",
-            and_(
-                Appointment.start_time < s_end,
-                Appointment.end_time > s_start,
-            )
-        ).first()
-
-        if not overlap:
-            apt = Appointment(
-                admin_id=admin_id,
-                date=data.date,
-                start_time=s_start,
-                end_time=s_end,
-                status="available",
-            )
-            db.add(apt)
-            created_apts.append(apt)
-
-    if not created_apts:
+    if overlap:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Todas las ranuras de este rango ya existen o se traslapan con horarios publicados.",
+            detail="Ya existe una ranura de disponibilidad que se traslapa en esta fecha y horario",
         )
 
+    apt = Appointment(
+        admin_id=admin_id,
+        date=data.date,
+        start_time=data.start_time,
+        end_time=data.end_time,
+        status="available",
+    )
+    db.add(apt)
     db.commit()
-    for apt in created_apts:
-        db.refresh(apt)
+    db.refresh(apt)
 
     _emit_appointment_update()
-    return _to_response(created_apts[0])
+    return _to_response(apt)
 
 
 def get_available_slots(db: Session, selected_date: Optional[date] = None) -> List[AppointmentResponse]:
@@ -153,7 +146,51 @@ def book_slot(db: Session, appointment_id: int, client_id: int, data: Appointmen
             detail="Esta ranura ya no está disponible para reserva",
         )
 
+    # Determinar horario de reserva (si el cliente eligió un sub-intervalo)
+    req_start = data.start_time if data.start_time else apt.start_time
+    req_end   = data.end_time if data.end_time else apt.end_time
+
+    if req_start >= req_end:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La hora de inicio debe ser anterior a la hora de fin",
+        )
+
+    if req_start < apt.start_time or req_end > apt.end_time:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"El horario reservado debe estar dentro del rango disponible ({apt.start_time} - {apt.end_time})",
+        )
+
+    orig_start = apt.start_time
+    orig_end   = apt.end_time
+
+    # 1. Crear residuo anterior si la reserva empieza después del inicio disponible
+    if req_start > orig_start:
+        before_apt = Appointment(
+            admin_id=apt.admin_id,
+            date=apt.date,
+            start_time=orig_start,
+            end_time=req_start,
+            status="available",
+        )
+        db.add(before_apt)
+
+    # 2. Crear residuo posterior si la reserva termina antes del fin disponible
+    if req_end < orig_end:
+        after_apt = Appointment(
+            admin_id=apt.admin_id,
+            date=apt.date,
+            start_time=req_end,
+            end_time=orig_end,
+            status="available",
+        )
+        db.add(after_apt)
+
+    # 3. Actualizar la ranura reservada con el sub-intervalo elegido por el cliente
     apt.client_id = client_id
+    apt.start_time = req_start
+    apt.end_time   = req_end
     apt.title = data.title
     apt.notes = data.notes
     apt.status = "booked"

@@ -61,6 +61,8 @@ export default function AgendaPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const [selectedSlot, setSelectedSlot]   = useState<Appointment | null>(null);
+  const [bookStartTime, setBookStartTime] = useState("");
+  const [bookEndTime, setBookEndTime]     = useState("");
   const [bookTitle,    setBookTitle]       = useState("");
   const [bookNotes,    setBookNotes]       = useState("");
 
@@ -168,9 +170,18 @@ export default function AgendaPage() {
   const handleBookSlot = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSlot || !bookTitle) { showToast("El título es obligatorio", "error"); return; }
+    if (bookStartTime >= bookEndTime) {
+      showToast("La hora de inicio debe ser anterior a la hora de fin", "error");
+      return;
+    }
     setSubmitting(true);
     try {
-      await appointmentsApi.book(selectedSlot.id, { title: bookTitle, notes: bookNotes });
+      await appointmentsApi.book(selectedSlot.id, {
+        title: bookTitle,
+        notes: bookNotes,
+        start_time: bookStartTime,
+        end_time: bookEndTime,
+      });
       showToast("🎉 ¡Cita reservada con éxito!");
       setSelectedSlot(null); setBookTitle(""); setBookNotes("");
       loadData();
@@ -652,7 +663,13 @@ export default function AgendaPage() {
                       {daySlots.map(slot => (
                         <button
                           key={slot.id}
-                          onClick={() => setSelectedSlot(slot)}
+                          onClick={() => {
+                            setSelectedSlot(slot);
+                            setBookStartTime(slot.start_time);
+                            setBookEndTime(slot.end_time);
+                            setBookTitle("");
+                            setBookNotes("");
+                          }}
                           className="flex items-center justify-center gap-1.5 px-3 py-2.5 border border-slate-800 bg-[#20CDFE]/10 hover:bg-[#20CDFE] hover:text-[#07060B] hover:border-[#20CDFE] rounded-xl text-xs font-bold text-[#20CDFE] transition-all duration-200 shadow-sm"
                         >
                           <Clock size={12} />
@@ -1001,15 +1018,51 @@ export default function AgendaPage() {
 
             <form onSubmit={handleBookSlot} className="p-6 space-y-4">
               <div className="bg-[#0A101D]/50 border border-slate-800 rounded-xl p-3.5 space-y-2 text-xs">
-                <p className="font-bold text-[#20CDFE] flex items-center gap-1.5"><HelpCircle size={14} /> ¿Qué ocurre ahora?</p>
+                <p className="font-bold text-[#20CDFE] flex items-center gap-1.5"><HelpCircle size={14} /> Horario Disponible</p>
                 <div className="flex items-center gap-2 text-slate-300 font-semibold">
                   <CalendarIcon size={13} className="shrink-0" />
                   {formatDate(selectedSlot.date)}
                 </div>
                 <div className="flex items-center gap-2 text-slate-300 font-semibold">
                   <Clock size={13} className="shrink-0" />
-                  {selectedSlot.start_time} – {selectedSlot.end_time}
+                  Rango publicado: {selectedSlot.start_time} – {selectedSlot.end_time}
                 </div>
+              </div>
+
+              {/* Selección del Horario Específico de la Cita */}
+              <div className="bg-[#15233D]/60 border border-slate-800/80 p-3.5 rounded-xl space-y-2">
+                <label className="block text-[11px] font-black text-[#20CDFE] uppercase tracking-wider">
+                  ELIGE EL HORARIO DE TU REUNIÓN
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] text-slate-400 font-bold mb-1">Hora Inicio</label>
+                    <input
+                      type="time"
+                      required
+                      value={bookStartTime}
+                      min={selectedSlot.start_time}
+                      max={selectedSlot.end_time}
+                      onChange={e => setBookStartTime(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-800 rounded-xl bg-[#0A101D] text-white text-xs font-bold focus:ring-2 focus:ring-[#20CDFE] outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] text-slate-400 font-bold mb-1">Hora Fin</label>
+                    <input
+                      type="time"
+                      required
+                      value={bookEndTime}
+                      min={bookStartTime || selectedSlot.start_time}
+                      max={selectedSlot.end_time}
+                      onChange={e => setBookEndTime(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-800 rounded-xl bg-[#0A101D] text-white text-xs font-bold focus:ring-2 focus:ring-[#20CDFE] outline-none"
+                    />
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Puedes agendar la duración que necesites dentro de las {selectedSlot.start_time} y las {selectedSlot.end_time}. El tiempo restante seguirá disponible para otros clientes.
+                </p>
               </div>
 
               <div>
