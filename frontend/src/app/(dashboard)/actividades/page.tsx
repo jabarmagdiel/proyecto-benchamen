@@ -510,22 +510,10 @@ export default function ActividadesPage() {
                   {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                 </div>
 
-                {creationMode === "custom" && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Descripción</label>
-                    <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 resize-none" placeholder="Detalles de la tarea..." />
-                  </div>
-                )}
-
-                {creationMode === "workflow" && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Plantilla de Flujo</label>
-                    <select {...register("workflow_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#0A101D]/80">
-                      {workflows.length === 0 && <option value="">No hay flujos disponibles</option>}
-                      {workflows.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                    </select>
-                  </div>
-                )}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5">Concepto / Descripción del Trabajo</label>
+                  <textarea {...register("description")} rows={3} className="w-full px-3.5 py-2.5 border border-slate-800/80 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#0A101D]/80 resize-none text-white" placeholder="Detalla el concepto, requerimientos e instrucciones del trabajo..." />
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>

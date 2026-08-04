@@ -151,6 +151,13 @@ export default function MisActividadesPage() {
                             {overdue && <span className="text-red-600 font-medium">⚠️ Atrasada</span>}
                           </div>
 
+                          {a.description && (
+                            <div className="bg-[#15233D]/60 border border-slate-800/80 rounded-xl p-3 text-xs text-slate-200 space-y-1">
+                              <span className="text-[#20CDFE] font-extrabold text-[11px] uppercase tracking-wider block">📝 Concepto del Trabajo:</span>
+                              <p className="line-clamp-3 leading-relaxed text-slate-300">{a.description}</p>
+                            </div>
+                          )}
+
                           {a.deadline && (
                             <div className="flex items-center gap-1.5 text-xs">
                               <Clock size={12} className={overdue ? "text-red-500" : "text-slate-400"} />

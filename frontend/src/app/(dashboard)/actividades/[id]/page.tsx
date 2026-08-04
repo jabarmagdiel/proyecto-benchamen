@@ -205,41 +205,21 @@ export default function ActivityDetailPage() {
           </div>
         )}
         
-        {/* Botones de acción y Timer */}
+        {/* Botones de acción directos */}
         <div className="flex flex-col gap-2 items-end">
-          {activity.status === "en_proceso" && (isOwner || isAdmin) && (
-            <div className="flex items-center gap-3 bg-[#15233D] border border-slate-800/50 p-2 rounded-xl">
-              <div className="flex items-center gap-1.5 px-2 text-white font-mono font-medium">
-                <Timer size={14} className={activity.timer_started_at ? "text-[#20CDFE] animate-pulse" : "text-slate-400"} />
-                {Math.floor(currentTimerSeconds / 3600).toString().padStart(2, "0")}:
-                {Math.floor((currentTimerSeconds % 3600) / 60).toString().padStart(2, "0")}:
-                {(currentTimerSeconds % 60).toString().padStart(2, "0")}
-              </div>
-              {activity.timer_started_at ? (
-                <button onClick={handleStopTimer} className="p-1.5 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors" title="Detener tiempo">
-                  <Square size={14} className="fill-current" />
-                </button>
-              ) : (
-                <button onClick={handleStartTimer} className="p-1.5 bg-green-100 text-green-600 hover:bg-green-200 rounded-lg transition-colors" title="Iniciar tiempo">
-                  <Play size={14} className="fill-current" />
-                </button>
-              )}
-            </div>
-          )}
-
           {canStart && (
-            <button onClick={handleStart} className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-violet-700 transition-colors w-full justify-center">
-              <Play size={14} /> Iniciar
+            <button onClick={handleStart} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-5 py-2.5 rounded-xl text-sm font-extrabold hover:opacity-90 transition-all shadow-lg shadow-[#20CDFE]/20 w-full justify-center">
+              <Play size={15} /> Iniciar Trabajo
             </button>
           )}
           {canSendReview && (
-            <button onClick={handleSendReview} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors w-full justify-center">
-              <AlertCircle size={14} /> Enviar a revisión
+            <button onClick={handleSendReview} className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-extrabold hover:bg-blue-700 transition-all w-full justify-center shadow-lg">
+              <AlertCircle size={15} /> Enviar a Revisión
             </button>
           )}
           {canApprove && (
-            <button onClick={handleApprove} className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-green-700 transition-colors w-full justify-center">
-              <CheckCircle size={14} /> Aprobar
+            <button onClick={handleApprove} className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-extrabold hover:bg-emerald-700 transition-all w-full justify-center shadow-lg">
+              <CheckCircle size={15} /> Aprobar Trabajo
             </button>
           )}
         </div>
@@ -248,7 +228,7 @@ export default function ActivityDetailPage() {
       {/* Tabs */}
       <div className="flex border-b border-slate-800/50 gap-1">
         {(["info", "evidencias", "comentarios", "historial"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2.5 text-sm font-medium capitalize rounded-t-lg transition-colors ${tab === t ? "text-[#20CDFE] border-b-2 border-violet-600 bg-violet-50/50" : "text-slate-400 hover:text-white"}`}>
+          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2.5 text-sm font-medium capitalize rounded-t-lg transition-colors ${tab === t ? "text-[#20CDFE] border-b-2 border-[#20CDFE] bg-[#20CDFE]/10 font-bold" : "text-slate-400 hover:text-white"}`}>
             {t === "evidencias" ? `Evidencias (${evidences.length})` : t === "comentarios" ? `Comentarios (${comments.length})` : t}
           </button>
         ))}
@@ -258,20 +238,36 @@ export default function ActivityDetailPage() {
       {tab === "info" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm p-5 space-y-4">
-            <h3 className="font-semibold text-white">Información general</h3>
-            {activity.description && <p className="text-slate-300 text-sm">{activity.description}</p>}
-            <div className="space-y-3 text-sm">
+            <h3 className="font-bold text-white text-base">Información del Trabajo</h3>
+            
+            {/* Concepto / Descripción Destacado */}
+            {activity.description ? (
+              <div className="bg-[#15233D]/80 border border-slate-800 p-4 rounded-xl space-y-1.5 shadow-md">
+                <span className="text-[#20CDFE] text-xs font-black uppercase tracking-wider block flex items-center gap-1.5">
+                  📝 Concepto / Descripción del Trabajo:
+                </span>
+                <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap font-medium">
+                  {activity.description}
+                </p>
+              </div>
+            ) : (
+              <div className="text-slate-500 text-xs italic bg-[#15233D]/30 p-3 rounded-xl border border-slate-800/50">
+                Sin descripción adicional registrada para esta actividad.
+              </div>
+            )}
+
+            <div className="space-y-3 text-sm pt-2">
               {[
-                { label: "Responsable", value: activity.assigned_user?.name || "Sin asignar" },
+                { label: "Responsable Asignado", value: activity.assigned_user?.name || "Sin asignar" },
                 { label: "Creado por",  value: activity.created_by?.name },
                 { label: "Fecha inicio", value: formatDate(activity.start_date) },
                 { label: "Fecha límite", value: formatDate(activity.deadline) },
                 { label: "Aprobado por", value: activity.approved_by?.name || "-" },
                 { label: "Aprobado el", value: formatDateTime(activity.approved_at) },
               ].map(({ label, value }) => (
-                <div key={label} className="flex justify-between items-start gap-4">
-                  <span className="text-slate-400 shrink-0">{label}</span>
-                  <span className="text-white font-medium text-right">{value}</span>
+                <div key={label} className="flex justify-between items-start gap-4 border-b border-slate-800/40 pb-2 last:border-0">
+                  <span className="text-slate-400 shrink-0 font-medium">{label}</span>
+                  <span className="text-white font-bold text-right">{value}</span>
                 </div>
               ))}
             </div>

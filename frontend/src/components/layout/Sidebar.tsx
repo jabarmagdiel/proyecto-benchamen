@@ -17,7 +17,6 @@ const adminLinks = [
   { href: "/empresas",         icon: Building2,       label: "Empresas" },
   { href: "/proyectos",        icon: FolderKanban,    label: "Proyectos" },
   { href: "/actividades",      icon: ClipboardList,   label: "Actividades" },
-  { href: "/workflows",        icon: GitMerge,        label: "Flujos" },
   { href: "/departamentos",    icon: Building2,       label: "Roles Operativos" },
   { href: "/paquetes",         icon: Package,         label: "Paquetes" },
   { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
