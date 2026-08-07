@@ -236,3 +236,13 @@ export const operativeAvailabilityApi = {
     api.get<OperativeAvailabilitySummary[]>("/api/operative-availability/team", { params: { target_date } }),
   delete: (id: number) => api.delete(`/api/operative-availability/${id}`),
 };
+
+/* ── Subscriptions Admin API ── */
+export const subscriptionsApi = {
+  list: () => api.get("/api/subscriptions"),
+  renew: (cpId: number, days?: number) => api.patch(`/api/subscriptions/${cpId}/renew`, { days: days ?? 30 }),
+  cancel: (cpId: number) => api.patch(`/api/subscriptions/${cpId}/cancel`),
+  addQuota: (cpId: number, itemName: string, quantity: number) =>
+    api.patch(`/api/subscriptions/${cpId}/add-quota`, { item_name: itemName, quantity }),
+};
+

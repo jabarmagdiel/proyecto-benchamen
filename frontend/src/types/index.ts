@@ -39,6 +39,8 @@ export interface AuthUser {
   access_token: string;
   token_type: string;
   user_id: number;
+  /** Alias for user_id — convenience shorthand */
+  id?: number;
   name: string;
   email: string;
   role: UserRole;
@@ -323,6 +325,7 @@ export interface CompanyPackage {
   end_date?: string;
   created_at: string;
   package?: ServicePackage;
+  company?: { id: number; name: string; [key: string]: any };
   items: CompanyPackageItem[];
 }
 

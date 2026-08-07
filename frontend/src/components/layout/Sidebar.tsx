@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Building2, FolderKanban, ClipboardList,
   CheckSquare, Users, BarChart3, LogOut, ChevronLeft,
-  ChevronRight, Menu, X, User, Calendar, GitMerge, Package, DollarSign
+  ChevronRight, Menu, X, User, Calendar, GitMerge, Package, DollarSign, ShieldCheck, Sparkles
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ const adminLinks = [
   { href: "/actividades",      icon: ClipboardList,   label: "Actividades" },
   { href: "/departamentos",    icon: Building2,       label: "Roles Operativos" },
   { href: "/paquetes",         icon: Package,         label: "Paquetes" },
+  { href: "/suscripciones",    icon: ShieldCheck,     label: "Suscripciones" },
   { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
   { href: "/agenda",           icon: Calendar,        label: "Calendario / Agenda" },
   { href: "/usuarios",         icon: Users,           label: "Usuarios" },
@@ -32,7 +33,8 @@ const operativeLinks = [
 
 const clientLinks = [
   { href: "/dashboard",        icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/mis-paquetes",     icon: Package,         label: "Catálogo de Paquetes" },
+  { href: "/mis-paquetes",     icon: Package,         label: "Mis Paquetes" },
+  { href: "/mis-servicios",    icon: Sparkles,        label: "Solicitar Servicios" },
   { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
   { href: "/agenda",           icon: Calendar,        label: "Calendario / Agenda" },
 ];

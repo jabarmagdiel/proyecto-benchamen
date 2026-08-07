@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     MAX_FILE_SIZE_MB: int = 20
 
+    # Google Calendar OAuth2
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "http://localhost:3000/agenda/google-callback"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

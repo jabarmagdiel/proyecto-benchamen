@@ -119,6 +119,15 @@ def run_migrations():
             CREATE INDEX IF NOT EXISTS idx_op_avail_user_date ON operative_availabilities (user_id, date);
             """,
         ),
+        # Google Calendar OAuth columns on users
+        (
+            "users.google_calendar_token",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_calendar_token TEXT;",
+        ),
+        (
+            "users.google_calendar_connected",
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_calendar_connected BOOLEAN NOT NULL DEFAULT FALSE;",
+        ),
     ]
 
     for name, sql in migrations:
@@ -169,6 +178,8 @@ from app.routes import (
     packages,
     package_requests,
     operative_availability,
+    subscriptions,
+    google_calendar,
     websocket,
 )
 
@@ -188,6 +199,8 @@ app.include_router(appointments.router)
 app.include_router(packages.router)
 app.include_router(package_requests.router)
 app.include_router(operative_availability.router)
+app.include_router(subscriptions.router)
+app.include_router(google_calendar.router)
 app.include_router(websocket.router)
 
 

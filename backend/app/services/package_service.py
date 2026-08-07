@@ -1,8 +1,10 @@
 from datetime import date, timedelta
-from typing import Optional
+from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 from app.models.package import Package, PackageItem, CompanyPackage, CompanyPackageItem
+from app.models.package_request import PackageRequest
+from app.models.company import Company
 from app.schemas.package import PackageCreate, PackageUpdate, CompanyPackageCreate
 from app.models.user import User
 from app.utils.enums import UserRole
@@ -60,7 +62,6 @@ def update_package(db: Session, package_id: int, package: PackageUpdate):
         setattr(db_pack, k, v)
 
     if package.items is not None:
-        # Eliminar ítems anteriores y recrear
         db.query(PackageItem).filter(PackageItem.package_id == package_id).delete()
         for item in package.items:
             db_item = PackageItem(
@@ -163,7 +164,6 @@ def assign_package_to_company(db: Session, data: CompanyPackageCreate):
     db.commit()
     db.refresh(db_cp)
 
-    # Copiar ítems dinámicos del paquete a la suscripción de la empresa
     for p_item in package.items:
         cp_item = CompanyPackageItem(
             company_package_id=db_cp.id,
@@ -195,3 +195,95 @@ def remove_package_from_company(db: Session, cp_id: int):
         raise HTTPException(status_code=404, detail="Suscripción no encontrada")
     db.delete(db_cp)
     db.commit()
+
+
+# ─── Admin: Gestión global de suscripciones ───────────────────────────────────
+
+def list_all_subscriptions(db: Session) -> List[CompanyPackage]:
+    """Lista TODAS las suscripciones del sistema con datos de empresa y paquete (solo admin)."""
+    today = date.today()
+
+    subs = (
+        db.query(CompanyPackage)
+        .options(
+            joinedload(CompanyPackage.company),
+            joinedload(CompanyPackage.package).joinedload(Package.items),
+            joinedload(CompanyPackage.items),
+        )
+        .order_by(CompanyPackage.id.desc())
+        .all()
+    )
+
+    # Auto-expirar suscripciones vencidas
+    updated = False
+    for sub in subs:
+        if sub.end_date and sub.end_date < today and sub.status == "activo":
+            sub.status = "expirado"
+            updated = True
+
+    if updated:
+        db.commit()
+
+    return subs
+
+
+def renew_subscription(db: Session, cp_id: int, days: int = 30) -> CompanyPackage:
+    """Extiende la suscripción por N días desde la fecha de fin actual (o hoy si ya expiró)."""
+    sub = (
+        db.query(CompanyPackage)
+        .options(
+            joinedload(CompanyPackage.company),
+            joinedload(CompanyPackage.package).joinedload(Package.items),
+            joinedload(CompanyPackage.items),
+        )
+        .filter(CompanyPackage.id == cp_id)
+        .first()
+    )
+    if not sub:
+        raise HTTPException(status_code=404, detail="Suscripción no encontrada")
+
+    today = date.today()
+    base = sub.end_date if (sub.end_date and sub.end_date >= today) else today
+    sub.end_date = base + timedelta(days=days)
+    sub.status = "activo"
+    db.commit()
+    db.refresh(sub)
+    return sub
+
+
+def cancel_subscription(db: Session, cp_id: int) -> CompanyPackage:
+    """Cancela una suscripción activa."""
+    sub = db.query(CompanyPackage).filter(CompanyPackage.id == cp_id).first()
+    if not sub:
+        raise HTTPException(status_code=404, detail="Suscripción no encontrada")
+    sub.status = "cancelado"
+    db.commit()
+    db.refresh(sub)
+    return sub
+
+
+def add_quota(db: Session, cp_id: int, item_name: str, quantity: int) -> CompanyPackage:
+    """Agrega cupos adicionales a un ítem específico de la suscripción."""
+    sub = (
+        db.query(CompanyPackage)
+        .options(joinedload(CompanyPackage.items))
+        .filter(CompanyPackage.id == cp_id)
+        .first()
+    )
+    if not sub:
+        raise HTTPException(status_code=404, detail="Suscripción no encontrada")
+
+    found = False
+    for item in sub.items:
+        if item.name.lower() == item_name.lower() and item.item_type == "por_cantidad":
+            item.quantity_remaining += quantity
+            item.quantity_initial += quantity
+            found = True
+            break
+
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Ítem '{item_name}' no encontrado en esta suscripción")
+
+    db.commit()
+    db.refresh(sub)
+    return sub
