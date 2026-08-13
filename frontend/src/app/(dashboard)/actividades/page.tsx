@@ -8,6 +8,7 @@ import {
   User as UserIcon, Calendar as CalendarIcon
 } from "lucide-react";
 import { activitiesApi, projectsApi, companiesApi, usersApi, workflowsApi, departmentsApi } from "@/lib/api";
+import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
 import type { Activity, ActivityStatus, Company, Project, User, Workflow, WorkflowStage } from "@/types";
 import { ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_LABELS, PRIORITY_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
@@ -189,14 +190,49 @@ export default function ActividadesPage() {
         </div>
 
         {/* Detalles e iconos */}
-        <div className="flex items-center justify-between text-xs text-slate-400 mt-1 border-t border-[#2E455C]/20 pt-3">
-          <div className={`flex items-center gap-1 font-semibold ${overdue ? "text-red-500" : ""}`}>
-            <CalendarIcon size={12} />
-            {a.deadline ? formatDate(a.deadline) : "Sin fecha"}
+        <div className="flex flex-col gap-1.5 text-xs text-slate-400 mt-1 border-t border-[#2E455C]/20 pt-3">
+          <div className="flex items-center justify-between">
+            <div className={`flex items-center gap-1 font-semibold ${overdue ? "text-red-500" : ""}`}>
+              <CalendarIcon size={12} />
+              {a.deadline ? formatDate(a.deadline) : "Sin fecha"}
+            </div>
+            {(a.evidence_count || 0) > 0 && (
+              <div className="flex items-center gap-1 font-semibold text-[#20CDFE] bg-violet-50 px-2 py-0.5 rounded-md">
+                <ClipboardList size={12} /> {a.evidence_count} ev.
+              </div>
+            )}
           </div>
-          {(a.evidence_count || 0) > 0 && (
-            <div className="flex items-center gap-1 font-semibold text-[#20CDFE] bg-violet-50 px-2 py-0.5 rounded-md">
-              <ClipboardList size={12} /> {a.evidence_count} ev.
+
+          {a.deadline && (
+            <div className="flex items-center gap-1.5 pt-1">
+              <a
+                href={getGoogleCalendarUrl({
+                  title: `[Benchamen] ${a.title}`,
+                  description: `${a.description || ""}\nProyecto: ${a.project_name || ""}\nEmpresa: ${a.company_name || ""}`,
+                  date: a.deadline,
+                  startTime: "09:00",
+                  endTime: "18:00"
+                })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/30 flex items-center gap-1 transition-colors"
+                title="Añadir a Google Calendar"
+              >
+                📅 Google Calendar
+              </a>
+              <button
+                onClick={() => downloadIcsFile({
+                  title: `[Benchamen] ${a.title}`,
+                  description: `${a.description || ""}\nProyecto: ${a.project_name || ""}\nEmpresa: ${a.company_name || ""}`,
+                  date: a.deadline!,
+                  startTime: "09:00",
+                  endTime: "18:00"
+                })}
+                className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-colors"
+                title="Descargar iCal (.ics)"
+              >
+                📥 iCal
+              </button>
             </div>
           )}
         </div>
@@ -416,9 +452,41 @@ export default function ActividadesPage() {
                       </td>
                       <td className="px-4 py-3.5">
                         {a.deadline ? (
-                          <span className={`text-xs font-medium ${overdue ? "text-red-600" : "text-slate-400"}`}>
-                            {overdue ? "⚠️ " : ""}{formatDate(a.deadline)}
-                          </span>
+                          <div className="space-y-1">
+                            <span className={`text-xs font-medium block ${overdue ? "text-red-500 font-bold" : "text-slate-300"}`}>
+                              {overdue ? "⚠️ " : ""}{formatDate(a.deadline)}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <a
+                                href={getGoogleCalendarUrl({
+                                  title: `[Benchamen] ${a.title}`,
+                                  description: `${a.description || ""}\nProyecto: ${a.project_name || ""}\nEmpresa: ${a.company_name || ""}`,
+                                  date: a.deadline,
+                                  startTime: "09:00",
+                                  endTime: "18:00"
+                                })}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/30 transition-colors"
+                                title="Añadir a Google Calendar"
+                              >
+                                📅 Google
+                              </a>
+                              <button
+                                onClick={() => downloadIcsFile({
+                                  title: `[Benchamen] ${a.title}`,
+                                  description: `${a.description || ""}\nProyecto: ${a.project_name || ""}\nEmpresa: ${a.company_name || ""}`,
+                                  date: a.deadline!,
+                                  startTime: "09:00",
+                                  endTime: "18:00"
+                                })}
+                                className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition-colors"
+                                title="Descargar iCal (.ics)"
+                              >
+                                📥 iCal
+                              </button>
+                            </div>
+                          </div>
                         ) : "-"}
                       </td>
                       <td className="px-4 py-3.5">

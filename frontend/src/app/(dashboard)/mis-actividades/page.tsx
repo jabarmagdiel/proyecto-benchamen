@@ -8,7 +8,7 @@ import type { Activity, ActivityStatus } from "@/types";
 import { ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { formatDate, isOverdue, STATUS_COLORS } from "@/lib/utils";
-import { getGoogleCalendarUrl } from "@/lib/calendarUtils";
+import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
 import { useAuth } from "@/context/AuthContext";
 
 const MONTHS = [
@@ -167,21 +167,36 @@ export default function MisActividadesPage() {
                                   Vence: {formatDate(a.deadline)}
                                 </span>
                               </div>
-                              <a
-                                href={getGoogleCalendarUrl({
-                                  title: `[Benchamen] ${a.title}`,
-                                  description: `${a.description || ""}\nProyecto: ${a.project_name || ""}\nEmpresa: ${a.company_name || ""}`,
-                                  date: a.deadline,
-                                  startTime: "09:00",
-                                  endTime: "18:00"
-                                })}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/30 flex items-center gap-1 transition-colors"
-                                title="Añadir fecha de entrega a Google Calendar"
-                              >
-                                📅 Google Calendar
-                              </a>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <a
+                                  href={getGoogleCalendarUrl({
+                                    title: `[Benchamen] ${a.title}`,
+                                    description: `${a.description || ""}\nProyecto: ${a.project_name || ""}\nEmpresa: ${a.company_name || ""}`,
+                                    date: a.deadline,
+                                    startTime: "09:00",
+                                    endTime: "18:00"
+                                  })}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/30 flex items-center gap-1 transition-colors"
+                                  title="Añadir fecha de entrega a Google Calendar"
+                                >
+                                  📅 Google Calendar
+                                </a>
+                                <button
+                                  onClick={() => downloadIcsFile({
+                                    title: `[Benchamen] ${a.title}`,
+                                    description: `${a.description || ""}\nProyecto: ${a.project_name || ""}\nEmpresa: ${a.company_name || ""}`,
+                                    date: a.deadline!,
+                                    startTime: "09:00",
+                                    endTime: "18:00"
+                                  })}
+                                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-colors"
+                                  title="Descargar iCal (.ics)"
+                                >
+                                  📥 iCal
+                                </button>
+                              </div>
                             </div>
                           )}
 

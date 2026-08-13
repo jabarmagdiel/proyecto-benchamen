@@ -8,6 +8,7 @@ import type { Activity, Evidence, Comment, ActivityHistory as HistEntry } from "
 import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { formatDate, formatDateTime, formatFileSize } from "@/lib/utils";
+import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
 import { useAuth } from "@/context/AuthContext";
 
 export default function ActivityDetailPage() {
@@ -267,7 +268,41 @@ export default function ActivityDetailPage() {
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between items-start gap-4 border-b border-slate-800/40 pb-2 last:border-0">
                   <span className="text-slate-400 shrink-0 font-medium">{label}</span>
-                  <span className="text-white font-bold text-right">{value}</span>
+                  <div className="text-right">
+                    <span className="text-white font-bold block">{value}</span>
+                    {label === "Fecha límite" && activity.deadline && (
+                      <div className="flex items-center justify-end gap-1.5 mt-1">
+                        <a
+                          href={getGoogleCalendarUrl({
+                            title: `[Benchamen] ${activity.title}`,
+                            description: `${activity.description || ""}\nProyecto: ${activity.project_name || ""}\nEmpresa: ${activity.company_name || ""}`,
+                            date: activity.deadline,
+                            startTime: "09:00",
+                            endTime: "18:00"
+                          })}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/30 flex items-center gap-1 transition-colors"
+                          title="Añadir fecha de entrega a Google Calendar"
+                        >
+                          📅 Google Calendar
+                        </a>
+                        <button
+                          onClick={() => downloadIcsFile({
+                            title: `[Benchamen] ${activity.title}`,
+                            description: `${activity.description || ""}\nProyecto: ${activity.project_name || ""}\nEmpresa: ${activity.company_name || ""}`,
+                            date: activity.deadline!,
+                            startTime: "09:00",
+                            endTime: "18:00"
+                          })}
+                          className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-colors"
+                          title="Descargar iCal (.ics)"
+                        >
+                          📥 iCal
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -565,12 +565,40 @@ export default function AgendaPage() {
                           </div>
 
                           {apt.status === "booked" && (
-                            <div className="space-y-1">
+                            <div className="space-y-1.5">
                               {apt.title && <p className="text-xs font-bold text-white truncate">{apt.title}</p>}
                               {apt.notes && <p className="text-[11px] text-slate-400 line-clamp-2">{apt.notes}</p>}
                               <div className="flex items-center gap-1.5 text-[11px] text-slate-300 font-medium pt-1 border-t border-slate-800/50">
                                 <User size={11} className="text-slate-400 shrink-0" />
                                 <span className="truncate">{apt.client_name} · {apt.company_name}</span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                <a
+                                  href={getGoogleCalendarUrl({
+                                    title: apt.title || `Cita con ${apt.client_name || "Cliente"}`,
+                                    description: apt.notes || `Reunión agendada para ${apt.company_name || ""}`,
+                                    date: apt.date,
+                                    startTime: apt.start_time,
+                                    endTime: apt.end_time
+                                  })}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2 py-1 rounded-lg text-[10px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/40 flex items-center gap-1 transition-all"
+                                >
+                                  📅 Google Calendar
+                                </a>
+                                <button
+                                  onClick={() => downloadIcsFile({
+                                    title: apt.title || `Cita con ${apt.client_name || "Cliente"}`,
+                                    description: apt.notes || `Reunión agendada para ${apt.company_name || ""}`,
+                                    date: apt.date,
+                                    startTime: apt.start_time,
+                                    endTime: apt.end_time
+                                  })}
+                                  className="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-all"
+                                >
+                                  📥 iCal (.ics)
+                                </button>
                               </div>
                             </div>
                           )}
@@ -634,6 +662,38 @@ export default function AgendaPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
+                            {apt.status === "booked" && (
+                              <div className="flex items-center gap-1.5">
+                                <a
+                                  href={getGoogleCalendarUrl({
+                                    title: apt.title || `Cita con ${apt.client_name || "Cliente"}`,
+                                    description: apt.notes || `Reunión agendada para ${apt.company_name || ""}`,
+                                    date: apt.date,
+                                    startTime: apt.start_time,
+                                    endTime: apt.end_time
+                                  })}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/40 flex items-center gap-1 transition-all"
+                                  title="Exportar a Google Calendar"
+                                >
+                                  📅 Google Calendar
+                                </a>
+                                <button
+                                  onClick={() => downloadIcsFile({
+                                    title: apt.title || `Cita con ${apt.client_name || "Cliente"}`,
+                                    description: apt.notes || `Reunión agendada para ${apt.company_name || ""}`,
+                                    date: apt.date,
+                                    startTime: apt.start_time,
+                                    endTime: apt.end_time
+                                  })}
+                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-all"
+                                  title="Descargar archivo iCal (.ics)"
+                                >
+                                  📥 iCal (.ics)
+                                </button>
+                              </div>
+                            )}
                             {apt.status === "booked" ? (
                               <button onClick={() => handleCancel(apt.id)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Cancelar"><XCircle size={15} /></button>
                             ) : apt.status === "available" ? (
