@@ -7,7 +7,8 @@ import { activitiesApi } from "@/lib/api";
 import type { Activity, ActivityStatus } from "@/types";
 import { ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
-import { formatDate, isOverdue } from "@/lib/utils";
+import { formatDate, isOverdue, STATUS_COLORS } from "@/lib/utils";
+import { getGoogleCalendarUrl } from "@/lib/calendarUtils";
 import { useAuth } from "@/context/AuthContext";
 
 const MONTHS = [
@@ -159,11 +160,28 @@ export default function MisActividadesPage() {
                           )}
 
                           {a.deadline && (
-                            <div className="flex items-center gap-1.5 text-xs">
-                              <Clock size={12} className={overdue ? "text-red-500" : "text-slate-400"} />
-                              <span className={overdue ? "text-red-600 font-medium" : "text-slate-400"}>
-                                Vence: {formatDate(a.deadline)}
-                              </span>
+                            <div className="flex items-center justify-between gap-1.5 text-xs pt-1 border-t border-slate-800/40">
+                              <div className="flex items-center gap-1.5">
+                                <Clock size={12} className={overdue ? "text-red-500" : "text-slate-400"} />
+                                <span className={overdue ? "text-red-600 font-medium" : "text-slate-400"}>
+                                  Vence: {formatDate(a.deadline)}
+                                </span>
+                              </div>
+                              <a
+                                href={getGoogleCalendarUrl({
+                                  title: `[Benchamen] ${a.title}`,
+                                  description: `${a.description || ""}\nProyecto: ${a.project_name || ""}\nEmpresa: ${a.company_name || ""}`,
+                                  date: a.deadline,
+                                  startTime: "09:00",
+                                  endTime: "18:00"
+                                })}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/30 flex items-center gap-1 transition-colors"
+                                title="Añadir fecha de entrega a Google Calendar"
+                              >
+                                📅 Google Calendar
+                              </a>
                             </div>
                           )}
 

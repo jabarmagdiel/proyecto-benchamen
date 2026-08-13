@@ -6,6 +6,7 @@ import { appointmentsApi, operativeAvailabilityApi } from "@/lib/api";
 import api from "@/lib/api";
 import type { Appointment, OperativeAvailability, OperativeAvailabilitySummary } from "@/types";
 import { formatDate } from "@/lib/utils";
+import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
 import {
   Calendar as CalendarIcon, Clock, User, Plus, Trash2,
   CalendarCheck, HelpCircle, X, CheckCircle2, XCircle, ChevronLeft, ChevronRight,
@@ -808,12 +809,44 @@ export default function AgendaPage() {
                 ) : (
                   <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
                     {appointments.map(apt => (
-                      <div key={apt.id} className="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/20 flex flex-col gap-2">
+                      <div key={apt.id} className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-950/20 flex flex-col gap-2 shadow-sm">
                         <div className="flex items-center justify-between text-xs text-[#20CDFE] font-bold">
                           <span>{formatDate(apt.date)}</span>
                           <span>{apt.start_time} – {apt.end_time}</span>
                         </div>
-                        <h4 className="font-bold text-white text-sm">{apt.title || "Reunión"}</h4>
+                        <h4 className="font-bold text-white text-sm">{apt.title || "Reunión Benchamen"}</h4>
+                        {apt.notes && <p className="text-xs text-slate-400">{apt.notes}</p>}
+                        
+                        <div className="flex items-center gap-2 pt-2 border-t border-slate-800/60 mt-1">
+                          <a
+                            href={getGoogleCalendarUrl({
+                              title: apt.title || "Reunión Benchamen Marketing",
+                              description: apt.notes || `Cita agendada el ${apt.date} de ${apt.start_time} a ${apt.end_time}`,
+                              date: apt.date,
+                              startTime: apt.start_time,
+                              endTime: apt.end_time
+                            })}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/40 flex items-center gap-1 transition-all"
+                            title="Añadir a mi Google Calendar"
+                          >
+                            📅 Google Calendar
+                          </a>
+                          <button
+                            onClick={() => downloadIcsFile({
+                              title: apt.title || "Reunión Benchamen Marketing",
+                              description: apt.notes || `Cita agendada el ${apt.date} de ${apt.start_time} a ${apt.end_time}`,
+                              date: apt.date,
+                              startTime: apt.start_time,
+                              endTime: apt.end_time
+                            })}
+                            className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-all"
+                            title="Descargar archivo iCal (.ics)"
+                          >
+                            📥 iCal (.ics)
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
