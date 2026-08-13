@@ -5,11 +5,12 @@ import {
   ShieldCheck, RefreshCw, Calendar, CheckCircle2, XCircle,
   Clock, AlertTriangle, Plus, Trash2, RotateCcw, ChevronDown,
   Building2, Package as PkgIcon, TrendingUp, X, BadgeCheck,
-  Timer, Info, ChevronRight, Layers
+  Timer, Info, ChevronRight, Layers, Eye, FileText, Check, ExternalLink,
+  CreditCard
 } from "lucide-react";
-import { subscriptionsApi } from "@/lib/api";
+import { subscriptionsApi, packageRequestsApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
-import type { CompanyPackage } from "@/types";
+import type { CompanyPackage, PackageRequest } from "@/types";
 
 /* ── Helpers ── */
 const STATUS_STYLES: Record<string, { pill: string; dot: string; label: string }> = {
@@ -25,6 +26,7 @@ function getDaysRemaining(endDate?: string | null): number {
 
 export default function SuscripcionesPage() {
   const [subs, setSubs] = useState<CompanyPackage[]>([]);
+  const [requests, setRequests] = useState<PackageRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
@@ -36,6 +38,11 @@ export default function SuscripcionesPage() {
   const [detailSub, setDetailSub] = useState<CompanyPackage | null>(null);
   const [addQuotaItem, setAddQuotaItem] = useState<string>("");
   const [addQuotaQty, setAddQuotaQty] = useState<number>(1);
+
+  /* Modal visor de comprobante */
+  const [previewReceiptUrl, setPreviewReceiptUrl] = useState<string | null>(null);
+  const [previewReceiptTitle, setPreviewReceiptTitle] = useState<string>("");
+
   const [submitting, setSubmitting] = useState(false);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
@@ -46,8 +53,12 @@ export default function SuscripcionesPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const res = await subscriptionsApi.list();
-      setSubs(res.data);
+      const [subsRes, reqsRes] = await Promise.all([
+        subscriptionsApi.list(),
+        packageRequestsApi.list()
+      ]);
+      setSubs(subsRes.data);
+      setRequests(reqsRes.data);
     } catch (e) {
       console.error(e);
     } finally {
@@ -56,6 +67,19 @@ export default function SuscripcionesPage() {
   };
 
   useEffect(() => { load(); }, []);
+
+  const handleVerifyPayment = async (requestId: number, status: "pago_verificado" | "rechazado") => {
+    setSubmitting(true);
+    try {
+      await packageRequestsApi.verifyPayment(requestId, { payment_status: status });
+      showToast(status === "pago_verificado" ? "✅ Pago aprobado y suscripción activada" : "❌ Pago rechazado");
+      load();
+    } catch (e: any) {
+      showToast(e?.response?.data?.detail || "Error al procesar el pago", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   /* ── Acciones ── */
   const handleRenew = async (cpId: number) => {
@@ -148,6 +172,108 @@ export default function SuscripcionesPage() {
             </button>
           </div>
         </div>
+
+        {/* ── Seccion Solicitudes de Pago Pendientes de Verificación ── */}
+        {(() => {
+          const pendingRequests = requests.filter((r) => r.request_type === "subscription_payment" && r.payment_status === "pendiente_verificacion");
+          if (pendingRequests.length === 0) return null;
+
+          return (
+            <div className="bg-gradient-to-br from-amber-500/10 via-[#0A101D] to-[#0D1F37] border border-amber-500/40 rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-400 font-bold shrink-0">
+                    <CreditCard size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white flex items-center gap-2">
+                      Comprobantes de Pago Pendientes
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-xs font-black border border-amber-500/30">
+                        {pendingRequests.length} por verificar
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Revisa la imagen o referencia enviada por el cliente para verificar el pago y activar su plan.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                {pendingRequests.map((req) => (
+                  <div key={req.id} className="bg-[#0A101D]/90 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between gap-4 hover:border-amber-500/40 transition-all">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-300 text-[10px] font-bold border border-amber-500/20 uppercase tracking-wider">
+                          Pendiente de Verificación
+                        </span>
+                        <span className="text-[11px] text-slate-500">{formatDate(req.created_at)}</span>
+                      </div>
+
+                      <div>
+                        <h4 className="font-extrabold text-white text-base">{req.package?.name || "Paquete"}</h4>
+                        <p className="text-xs text-[#20CDFE] font-semibold">
+                          Empresa: {req.company?.name || "—"} ({req.client_user?.name || "Cliente"})
+                        </p>
+                      </div>
+
+                      <div className="bg-[#15233D]/60 rounded-xl p-3 border border-slate-800 text-xs space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">Método de pago:</span>
+                          <span className="font-bold text-white">{req.payment_method || "No especificado"}</span>
+                        </div>
+                        {req.payment_reference && (
+                          <div className="flex justify-between">
+                            <span className="text-slate-400">Referencia:</span>
+                            <span className="font-mono text-amber-300 font-bold">{req.payment_reference}</span>
+                          </div>
+                        )}
+                        {req.notes && (
+                          <div className="pt-1 text-[11px] text-slate-400 italic">
+                            &quot;{req.notes}&quot;
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/60">
+                      {req.payment_receipt_url ? (
+                        <button
+                          onClick={() => {
+                            setPreviewReceiptUrl(req.payment_receipt_url || null);
+                            setPreviewReceiptTitle(`${req.company?.name} - Comprobante de ${req.package?.name}`);
+                          }}
+                          className="flex-1 py-2 px-3 rounded-xl bg-[#20CDFE]/10 border border-[#20CDFE]/30 text-[#20CDFE] text-xs font-bold hover:bg-[#20CDFE]/20 transition-all flex items-center justify-center gap-1.5"
+                        >
+                          <Eye size={14} /> Ver Comprobante
+                        </button>
+                      ) : (
+                        <span className="text-[11px] text-slate-500 italic py-1 px-2">Sin imagen subida</span>
+                      )}
+
+                      <button
+                        onClick={() => handleVerifyPayment(req.id, "pago_verificado")}
+                        disabled={submitting}
+                        className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-extrabold hover:opacity-90 transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1 disabled:opacity-50"
+                      >
+                        <Check size={14} /> Aprobar
+                      </button>
+
+                      <button
+                        onClick={() => handleVerifyPayment(req.id, "rechazado")}
+                        disabled={submitting}
+                        className="py-2 px-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold hover:bg-rose-500/20 transition-all flex items-center justify-center gap-1 disabled:opacity-50"
+                        title="Rechazar comprobante"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── KPIs ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -454,6 +580,60 @@ export default function SuscripcionesPage() {
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Visor de Comprobante de Pago ── */}
+      {previewReceiptUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#0A101D] border border-[#20CDFE]/40 rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-[#15233D]/60">
+              <h3 className="font-extrabold text-white text-sm truncate flex items-center gap-2">
+                <CreditCard size={16} className="text-[#20CDFE]" />
+                {previewReceiptTitle || "Comprobante de Pago"}
+              </h3>
+              <button
+                onClick={() => setPreviewReceiptUrl(null)}
+                className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-4 flex-1 overflow-auto flex items-center justify-center bg-[#07060B]">
+              {previewReceiptUrl.endsWith(".pdf") ? (
+                <iframe
+                  src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${previewReceiptUrl}`}
+                  className="w-full h-[60vh] rounded-xl border border-slate-800"
+                />
+              ) : (
+                /* eslint-disable-next-html-element-suppress */
+                <img
+                  src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${previewReceiptUrl}`}
+                  alt="Comprobante de Pago"
+                  className="max-w-full max-h-[70vh] object-contain rounded-xl shadow-lg border border-slate-800"
+                />
+              )}
+            </div>
+
+            <div className="p-4 border-t border-slate-800 flex justify-between items-center bg-[#0A101D]">
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${previewReceiptUrl}`}
+                target="_blank"
+                rel="noreferrer"
+                className="px-4 py-2 rounded-xl bg-[#15233D] text-[#20CDFE] text-xs font-bold hover:bg-[#20CDFE]/20 transition-all flex items-center gap-1.5"
+              >
+                <ExternalLink size={13} /> Abrir en ventana nueva
+              </a>
+
+              <button
+                onClick={() => setPreviewReceiptUrl(null)}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] text-xs font-extrabold hover:opacity-90 transition-all"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>

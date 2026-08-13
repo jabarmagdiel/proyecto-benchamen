@@ -72,6 +72,11 @@ def run_migrations():
             "projects.department_id",
             "ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id INT REFERENCES departments(id) ON DELETE SET NULL;",
         ),
+        # payment_receipt_url en package_requests
+        (
+            "package_requests.payment_receipt_url",
+            "ALTER TABLE package_requests ADD COLUMN IF NOT EXISTS payment_receipt_url VARCHAR(500);",
+        ),
         # Tabla packages
         (
             "packages",

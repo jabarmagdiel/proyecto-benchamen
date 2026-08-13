@@ -12,9 +12,40 @@ from app.schemas.package_request import (
     VerifyPaymentPayload,
     WorkRequestActionPayload,
 )
+import os
+import uuid
+from fastapi import UploadFile, File
 import app.services.package_request_service as request_svc
+from app.core.config import settings
 
 router = APIRouter(prefix="/api/package-requests", tags=["Package Requests"])
+
+ALLOWED_RECEIPT_TYPES = {
+    "image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"
+}
+
+
+@router.post("/upload-receipt")
+async def upload_receipt(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    if file.content_type not in ALLOWED_RECEIPT_TYPES:
+        raise HTTPException(status_code=400, detail="Formato no permitido. Usa JPG, PNG, WEBP o PDF.")
+    
+    content = await file.read()
+    if len(content) > 15 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="El archivo no debe superar los 15MB.")
+
+    receipt_dir = os.path.join(settings.UPLOAD_DIR, "receipts")
+    os.makedirs(receipt_dir, exist_ok=True)
+    ext = os.path.splitext(file.filename)[1] or ".png"
+    unique_name = f"receipt_{uuid.uuid4().hex}{ext}"
+    file_path = os.path.join(receipt_dir, unique_name)
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    return {"url": f"/uploads/receipts/{unique_name}"}
 
 
 @router.post("", response_model=PackageRequestResponse, status_code=201)

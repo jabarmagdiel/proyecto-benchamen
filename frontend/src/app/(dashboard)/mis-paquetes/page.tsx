@@ -5,7 +5,8 @@ import {
   Package as PkgIcon, Send, CheckCircle2, Clock, XCircle,
   AlertTriangle, CreditCard, ShieldCheck, Calendar, Sparkles,
   Check, RefreshCw, ChevronRight, Layers, BadgeCheck, Timer,
-  Code, Image as ImageIcon, Megaphone, Tag, X, RotateCcw
+  Code, Image as ImageIcon, Megaphone, Tag, X, RotateCcw,
+  Upload, FileText, Eye
 } from "lucide-react";
 import { packagesApi, packageRequestsApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
@@ -43,11 +44,30 @@ export default function MisPaquetesPage() {
   const [payMethod, setPayMethod] = useState("QR");
   const [payRef, setPayRef] = useState("");
   const [payNotes, setPayNotes] = useState("");
+  const [receiptUrl, setReceiptUrl] = useState("");
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleReceiptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingReceipt(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await packageRequestsApi.uploadReceipt(formData);
+      setReceiptUrl(res.data.url);
+      showToast("✅ Comprobante de pago subido");
+    } catch (err: any) {
+      showToast(err?.response?.data?.detail || "Error al subir comprobante", "error");
+    } finally {
+      setUploadingReceipt(false);
+    }
   };
 
   const load = async () => {
@@ -102,6 +122,7 @@ export default function MisPaquetesPage() {
         request_type: "subscription_payment",
         payment_method: payMethod,
         payment_reference: payRef || undefined,
+        payment_receipt_url: receiptUrl || undefined,
         notes: payNotes || undefined,
         quantity_requested: 1,
       });
@@ -109,6 +130,7 @@ export default function MisPaquetesPage() {
       setSubscribeModalPkg(null);
       setPayRef("");
       setPayNotes("");
+      setReceiptUrl("");
       setPayMethod("QR");
       load();
     } catch (e: any) {
@@ -502,6 +524,56 @@ export default function MisPaquetesPage() {
                   placeholder="Ej. TXN-123456, Ref. banco, etc."
                   className="w-full px-4 py-3 bg-[#15233D]/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]"
                 />
+              </div>
+
+              {/* Subir Comprobante (Imagen/PDF) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                  <span>Adjuntar Comprobante (Imagen o PDF)</span>
+                  {receiptUrl && <span className="text-emerald-400 text-[11px] font-bold flex items-center gap-1"><CheckCircle2 size={12}/> Adjuntado</span>}
+                </label>
+                
+                <div className="relative border-2 border-dashed border-slate-700 hover:border-[#20CDFE]/50 rounded-2xl p-4 text-center bg-[#15233D]/30 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={handleReceiptFileChange}
+                    disabled={uploadingReceipt}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+                  />
+                  
+                  {uploadingReceipt ? (
+                    <div className="flex items-center justify-center gap-2 text-xs text-[#20CDFE] py-2">
+                      <div className="w-4 h-4 border-2 border-[#20CDFE] border-t-transparent rounded-full animate-spin" />
+                      Subiendo comprobante...
+                    </div>
+                  ) : receiptUrl ? (
+                    <div className="flex items-center justify-between gap-3 text-xs text-white">
+                      <div className="flex items-center gap-2 truncate">
+                        {receiptUrl.endsWith(".pdf") ? (
+                          <FileText size={18} className="text-rose-400 shrink-0" />
+                        ) : (
+                          <ImageIcon size={18} className="text-emerald-400 shrink-0" />
+                        )}
+                        <span className="truncate font-semibold text-slate-200">{receiptUrl.split('/').pop()}</span>
+                      </div>
+                      <a
+                        href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${receiptUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-2.5 py-1 rounded-lg bg-[#20CDFE]/10 text-[#20CDFE] font-bold text-[11px] hover:bg-[#20CDFE]/20 z-20 flex items-center gap-1 shrink-0"
+                      >
+                        <Eye size={12} /> Ver
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="py-2 text-slate-400 flex flex-col items-center gap-1">
+                      <Upload size={20} className="text-[#20CDFE]" />
+                      <p className="text-xs font-semibold text-slate-300">Haz clic o arrastra aquí tu comprobante</p>
+                      <p className="text-[10px] text-slate-500">Formatos permitidos: JPG, PNG, WEBP, PDF (Máx 15MB)</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Notas */}

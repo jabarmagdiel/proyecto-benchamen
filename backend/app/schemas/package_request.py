@@ -14,6 +14,7 @@ class PackageRequestBase(BaseModel):
     quantity_requested: int = 1
     payment_method: Optional[str] = None
     payment_reference: Optional[str] = None
+    payment_receipt_url: Optional[str] = None
     title: Optional[str] = None
     notes: Optional[str] = None
 

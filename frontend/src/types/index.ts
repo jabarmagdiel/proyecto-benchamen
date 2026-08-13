@@ -341,6 +341,7 @@ export interface PackageRequest {
   payment_status: "pendiente_verificacion" | "pago_verificado" | "rechazado";
   payment_method?: string;
   payment_reference?: string;
+  payment_receipt_url?: string;
   title?: string;
   notes?: string;
   created_at: string;

@@ -26,6 +26,7 @@ class PackageRequest(Base):
     payment_status = Column(String(30), nullable=False, default="pendiente_verificacion")
     payment_method = Column(String(50), nullable=True)  # "QR", "Transferencia", "Efectivo"
     payment_reference = Column(String(100), nullable=True)  # Nro comprobante o referencia
+    payment_receipt_url = Column(String(500), nullable=True)  # URL de la imagen o archivo del comprobante de pago
 
     title = Column(String(250), nullable=True)
     notes = Column(Text, nullable=True)

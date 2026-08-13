@@ -25,6 +25,7 @@ def create_request(db: Session, req: PackageRequestCreate, client_user_id: int) 
         quantity_requested=req.quantity_requested,
         payment_method=req.payment_method,
         payment_reference=req.payment_reference,
+        payment_receipt_url=req.payment_receipt_url,
         title=req.title,
         notes=req.notes,
         status="pendiente",
@@ -53,7 +54,7 @@ def create_request(db: Session, req: PackageRequestCreate, client_user_id: int) 
             user_id=admin.id,
             title=notif_title,
             message=notif_msg,
-            link="/paquetes"
+            link="/suscripciones"
         )
 
     return db_req
@@ -122,7 +123,7 @@ def verify_payment(db: Session, request_id: int, payload: VerifyPaymentPayload) 
             user_id=db_req.client_user_id,
             title="✅ Pago Verificado y Suscripción Activada",
             message=f"Tu pago para el paquete '{package.name if package else ''}' ha sido verificado correctamente. ¡Tus contenidos están disponibles!",
-            link="/paquetes"
+            link="/mis-paquetes"
         )
     else:
         db_req.payment_status = "rechazado"
@@ -133,7 +134,7 @@ def verify_payment(db: Session, request_id: int, payload: VerifyPaymentPayload) 
             user_id=db_req.client_user_id,
             title="❌ Comprobante de Pago Rechazado",
             message=f"El comprobante de pago para '{db_req.package.name if db_req.package else ''}' ha sido rechazado.",
-            link="/paquetes"
+            link="/mis-paquetes"
         )
 
     db.commit()

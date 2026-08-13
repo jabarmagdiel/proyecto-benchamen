@@ -152,6 +152,10 @@ export const packagesApi = {
 export const packageRequestsApi = {
   list: () => api.get("/api/package-requests"),
   create: (data: object) => api.post("/api/package-requests", data),
+  uploadReceipt: (formData: FormData) =>
+    api.post("/api/package-requests/upload-receipt", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
   verifyPayment: (id: number, data: object) => api.post(`/api/package-requests/${id}/verify-payment`, data),
   workAction: (id: number, data: object) => api.post(`/api/package-requests/${id}/work-action`, data),
   updateStatus: (id: number, data: object) => api.patch(`/api/package-requests/${id}`, data),
