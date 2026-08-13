@@ -65,19 +65,17 @@ def get_full_dashboard(
         
     active_projects = act_proj_q.distinct().scalar() or 0
 
-    # 3. Distribución de Actividades por Estado
-    status_counts = {}
-    for st in ActivityStatus:
-        q = db.query(func.count(Activity.id)).filter(Activity.status == st)
-        if role_val == "operativo":
-            q = q.filter(Activity.assigned_user_id == current_user.id)
-            
-        if project_id:
-            q = q.filter(Activity.project_id == project_id)
-        elif company_id:
-            q = q.join(Project, Project.id == Activity.project_id).filter(Project.company_id == company_id)
-            
-        status_counts[st.value] = q.scalar() or 0
+    # 3. Distribución de Actividades por Estado (1 sola consulta SQL agrupada)
+    status_q = db.query(Activity.status, func.count(Activity.id))
+    if role_val == "operativo":
+        status_q = status_q.filter(Activity.assigned_user_id == current_user.id)
+    if project_id:
+        status_q = status_q.filter(Activity.project_id == project_id)
+    elif company_id:
+        status_q = status_q.join(Project, Project.id == Activity.project_id).filter(Project.company_id == company_id)
+
+    status_rows = status_q.group_by(Activity.status).all()
+    status_counts = { (st.value if hasattr(st, "value") else str(st)): cnt for st, cnt in status_rows }
 
     # 4. Total Actividades Demoradas (Contador)
     late_q = db.query(func.count(Activity.id)).filter(

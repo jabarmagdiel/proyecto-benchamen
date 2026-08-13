@@ -125,9 +125,11 @@ export default function DashboardPage() {
   const loadFilters = async () => {
     if (user?.role === "cliente") return;
     try {
-      const compRes = await companiesApi.list();
+      const [compRes, projRes] = await Promise.all([
+        companiesApi.list(),
+        projectsApi.list()
+      ]);
       setCompanies(compRes.data);
-      const projRes = await projectsApi.list();
       setProjects(projRes.data);
     } catch (err) {
       console.error("Error al cargar filtros del dashboard", err);
@@ -176,10 +178,12 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    loadFilters();
-    loadNotifications();
-    loadStats();
-    loadClientProjects();
+    Promise.all([
+      loadFilters(),
+      loadNotifications(),
+      loadStats(),
+      loadClientProjects()
+    ]);
   }, [user?.user_id]); // Solo re-ejecutar si cambia el usuario
 
   // Manejar cambio de filtros
