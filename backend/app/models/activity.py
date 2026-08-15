@@ -10,7 +10,7 @@ class Activity(Base):
     __tablename__ = "activities"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), nullable=False)
+    project_id: Mapped[int | None] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), nullable=True)
     workflow_id: Mapped[int | None] = mapped_column(ForeignKey("workflows.id", ondelete="SET NULL"))
     current_stage_id: Mapped[int | None] = mapped_column(ForeignKey("workflow_stages.id", ondelete="SET NULL"))
     assigned_user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
@@ -54,7 +54,7 @@ class Activity(Base):
     )
 
     # Relaciones
-    project: Mapped["Project"] = relationship("Project", back_populates="activities")
+    project: Mapped["Project | None"] = relationship("Project", back_populates="activities")
     workflow: Mapped["Workflow | None"] = relationship("Workflow")
     current_stage: Mapped["WorkflowStage | None"] = relationship("WorkflowStage", back_populates="activities")
     assigned_user: Mapped["User | None"] = relationship(

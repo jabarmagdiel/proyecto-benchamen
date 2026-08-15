@@ -10,7 +10,7 @@ class Project(Base):
     __tablename__ = "projects"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id", ondelete="RESTRICT"), nullable=False)
+    company_id: Mapped[int | None] = mapped_column(ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
     package_request_id: Mapped[int | None] = mapped_column(ForeignKey("package_requests.id", ondelete="SET NULL"), nullable=True)
     department_id: Mapped[int | None] = mapped_column(ForeignKey("departments.id", ondelete="SET NULL"))
     main_responsible_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
@@ -38,7 +38,7 @@ class Project(Base):
     )
 
     # Relaciones
-    company: Mapped["Company"] = relationship("Company", back_populates="projects")
+    company: Mapped["Company | None"] = relationship("Company", back_populates="projects")
     department: Mapped["Department | None"] = relationship("Department")
     main_responsible: Mapped["User | None"] = relationship("User", foreign_keys=[main_responsible_id])
     activities: Mapped[list["Activity"]] = relationship(

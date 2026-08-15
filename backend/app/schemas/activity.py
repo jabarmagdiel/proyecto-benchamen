@@ -7,7 +7,7 @@ from app.schemas.workflow import WorkflowStageResponse
 
 
 class ActivityCreate(BaseModel):
-    project_id: int
+    project_id: Optional[int] = None
     title: str
     description: Optional[str] = None
     activity_type: ActivityType = ActivityType.OTHER
@@ -47,7 +47,7 @@ class ActivityStatusUpdate(BaseModel):
 
 class ActivityResponse(BaseModel):
     id: int
-    project_id: int
+    project_id: Optional[int] = None
     title: str
     description: Optional[str]
     activity_type: ActivityType

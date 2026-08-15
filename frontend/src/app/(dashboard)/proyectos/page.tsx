@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Plus, Search, Pencil, Trash2, FolderKanban, ChevronRight } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, FolderKanban, ChevronRight, UserCheck } from "lucide-react";
 import { projectsApi, companiesApi, usersApi, departmentsApi } from "@/lib/api";
 import type { Project, Company, User, ProjectStatus, Priority, Department } from "@/types";
 import { formatDate } from "@/lib/utils";
@@ -15,7 +15,8 @@ import { z } from "zod";
 import { useWebSocket } from "@/context/WebSocketContext";
 
 const schema = z.object({
-  company_id: z.coerce.number().min(1, "Empresa requerida"),
+  company_id: z.coerce.number().optional().nullable(),
+  is_external: z.boolean().optional(),
   name: z.string().min(1, "Nombre requerido"),
   description: z.string().optional(),
   start_date: z.string().optional(),
@@ -50,13 +51,14 @@ export default function ProyectosPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [isExternalClient, setIsExternalClient] = useState(false);
 
   const searchParams = useSearchParams();
   const fromRequest = searchParams.get("from_request");
   const defaultCompanyId = searchParams.get("company_id");
   const defaultName = searchParams.get("name");
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) as any });
+  const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) as any });
 
   useEffect(() => {
     if (fromRequest) {
@@ -68,6 +70,7 @@ export default function ProyectosPage() {
         priority: "media",
         package_request_id: parseInt(fromRequest)
       });
+      setIsExternalClient(false);
       setModalOpen(true);
     }
   }, [fromRequest, defaultCompanyId, defaultName, reset]);
@@ -110,16 +113,35 @@ export default function ProyectosPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const openCreate = () => { setEditing(null); reset({ status: "planificado", priority: "media" }); setModalOpen(true); };
+  const openCreate = () => { 
+    setEditing(null); 
+    setIsExternalClient(false);
+    reset({ status: "planificado", priority: "media" }); 
+    setModalOpen(true); 
+  };
+  
   const openEdit = (p: Project) => {
     setEditing(p);
-    reset({ company_id: p.company_id, name: p.name, description: p.description || "", start_date: p.start_date || "", deadline: p.deadline || "", status: p.status, priority: p.priority, main_responsible_id: p.main_responsible_id || null });
+    setIsExternalClient(!p.company_id);
+    reset({ 
+      company_id: p.company_id || null, 
+      name: p.name, 
+      description: p.description || "", 
+      start_date: p.start_date || "", 
+      deadline: p.deadline || "", 
+      status: p.status, 
+      priority: p.priority, 
+      main_responsible_id: p.main_responsible_id || null 
+    });
     setModalOpen(true);
   };
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
     if (data.main_responsible_id === 0) data.main_responsible_id = null;
+    if (isExternalClient || !data.company_id || Number(data.company_id) === 0) {
+      data.company_id = null;
+    }
     try {
       if (editing) { await projectsApi.update(editing.id, data); showToast("Proyecto actualizado"); }
       else { await projectsApi.create(data); showToast("Proyecto creado"); }
@@ -189,7 +211,15 @@ export default function ProyectosPage() {
                   <Link href={`/proyectos/${p.id}`} className="font-semibold text-white hover:text-[#20CDFE] transition-colors line-clamp-1">
                     {p.name}
                   </Link>
-                  <p className="text-slate-400 text-xs mt-0.5">{p.company?.name}</p>
+                  <p className="text-slate-400 text-xs mt-0.5 flex items-center gap-1">
+                    {p.company?.name ? (
+                      p.company.name
+                    ) : (
+                      <span className="text-[#20CDFE] font-bold flex items-center gap-1">
+                        <UserCheck size={12} /> Cliente Externo / Sin Empresa
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <div className="flex items-center gap-1 ml-2">
                   <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors"><Pencil size={13} /></button>
@@ -233,23 +263,52 @@ export default function ProyectosPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 <input type="hidden" {...register("package_request_id")} />
+                
+                {/* Opción Habilitable: Cliente Externo / Sin Empresa */}
+                <div className="p-3 bg-[#15233D]/60 border border-slate-800 rounded-xl flex items-center justify-between gap-3">
+                  <div>
+                    <label className="text-xs font-extrabold text-white block">Cliente Externo / Sin Empresa</label>
+                    <span className="text-[11px] text-slate-400 block">Habilitar creación sin requerir una empresa registrada</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={isExternalClient}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setIsExternalClient(checked);
+                      if (checked) {
+                        setValue("company_id", null);
+                      }
+                    }}
+                    className="w-5 h-5 accent-[#20CDFE] rounded cursor-pointer"
+                  />
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Empresa *</label>
-                  <select {...register("company_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
-                    <option value="">Seleccionar empresa</option>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Empresa {isExternalClient ? "(Opcional / Deshabilitada)" : "*"}
+                  </label>
+                  <select 
+                    {...register("company_id")} 
+                    disabled={isExternalClient}
+                    className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <option value="">(Sin Empresa / Cliente Externo)</option>
                     {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
-                  {errors.company_id && <p className="text-red-500 text-xs mt-1">{errors.company_id.message}</p>}
                 </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Nombre del proyecto *</label>
                   <input {...register("name")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                   {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                 </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Descripción</label>
                   <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
                 </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-300 mb-1">Fecha inicio</label>

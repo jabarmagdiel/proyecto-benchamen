@@ -7,7 +7,7 @@ from app.schemas.user import UserListResponse
 
 
 class ProjectCreate(BaseModel):
-    company_id: int
+    company_id: Optional[int] = None
     name: str
     description: Optional[str] = None
     start_date: Optional[date] = None
@@ -42,7 +42,7 @@ class ProjectUpdate(BaseModel):
 
 class ProjectResponse(BaseModel):
     id: int
-    company_id: int
+    company_id: Optional[int] = None
     name: str
     description: Optional[str]
     start_date: Optional[date]

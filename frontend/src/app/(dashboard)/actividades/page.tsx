@@ -20,7 +20,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useWebSocket } from "@/context/WebSocketContext";
 
 const schema = z.object({
-  project_id: z.coerce.number().min(1, "Proyecto requerido"),
+  project_id: z.coerce.number().optional().nullable(),
+  is_independent: z.boolean().optional(),
   title: z.string().min(1, "Título requerido"),
   description: z.string().optional(),
   activity_type: z.string().default("otro"),
@@ -58,6 +59,7 @@ export default function ActividadesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
+  const [isIndependent, setIsIndependent] = useState(false);
   const [creationMode, setCreationMode] = useState<"workflow" | "custom">("workflow");
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
   const [departments, setDepartments] = useState<any[]>([]);
@@ -112,6 +114,9 @@ export default function ActividadesPage() {
       if (!payload.deadline) payload.deadline = null;
       if (payload.assigned_user_id === 0) payload.assigned_user_id = null;
       if (payload.workflow_id === 0) payload.workflow_id = null;
+      if (isIndependent || !payload.project_id || Number(payload.project_id) === 0) {
+        payload.project_id = null;
+      }
 
       await activitiesApi.create(payload);
       showToast("Actividad creada correctamente");
@@ -563,13 +568,38 @@ export default function ActividadesPage() {
                   </button>
                 </div>
 
+                {/* Opción Habilitable: Trabajo Independiente / Sin Proyecto */}
+                <div className="p-3 bg-[#15233D]/60 border border-slate-800 rounded-xl flex items-center justify-between gap-3">
+                  <div>
+                    <label className="text-xs font-extrabold text-white block">Trabajo Independiente / Cliente Externo</label>
+                    <span className="text-[11px] text-slate-400 block">Habilitar creación sin requerir un proyecto asignado</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={isIndependent}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setIsIndependent(checked);
+                      if (checked) {
+                        setValue("project_id", null);
+                      }
+                    }}
+                    className="w-5 h-5 accent-[#20CDFE] rounded cursor-pointer"
+                  />
+                </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">Proyecto *</label>
-                  <select {...register("project_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
-                    <option value="">Seleccionar proyecto</option>
-                    {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.company?.name})</option>)}
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Proyecto {isIndependent ? "(Opcional / Deshabilitado)" : "*"}
+                  </label>
+                  <select 
+                    {...register("project_id")} 
+                    disabled={isIndependent}
+                    className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <option value="">(Sin Proyecto / Trabajo Independiente)</option>
+                    {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.company?.name || "Cliente Externo"})</option>)}
                   </select>
-                  {errors.project_id && <p className="text-red-500 text-xs mt-1">{errors.project_id.message}</p>}
                 </div>
 
                 <div>

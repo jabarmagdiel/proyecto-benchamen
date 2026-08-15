@@ -25,6 +25,11 @@ def _enrich(db: Session, activity: Activity) -> Activity:
         activity.project_name = activity.project.name
         if activity.project.company:
             activity.company_name = activity.project.company.name
+        else:
+            activity.company_name = "Sin Empresa / Cliente Externo"
+    else:
+        activity.project_name = "Trabajo Independiente"
+        activity.company_name = "Sin Empresa / Cliente Externo"
             
     if activity.current_stage and activity.current_stage.node_type == 'end':
         latest_evidence = db.query(Evidence).join(Activity).filter(
@@ -65,6 +70,11 @@ def _enrich_batch(db: Session, activities: List[Activity]) -> List[Activity]:
             a.project_name = a.project.name
             if a.project.company:
                 a.company_name = a.project.company.name
+            else:
+                a.company_name = "Sin Empresa / Cliente Externo"
+        else:
+            a.project_name = "Trabajo Independiente"
+            a.company_name = "Sin Empresa / Cliente Externo"
                 
         if a.current_stage and a.current_stage.node_type == 'end':
             latest_evidence = db.query(Evidence).join(Activity).filter(
