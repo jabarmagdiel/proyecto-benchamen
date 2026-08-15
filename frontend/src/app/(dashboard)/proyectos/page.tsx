@@ -138,13 +138,15 @@ export default function ProyectosPage() {
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
-    if (data.main_responsible_id === 0) data.main_responsible_id = null;
-    if (isExternalClient || !data.company_id || Number(data.company_id) === 0) {
-      data.company_id = null;
+    const payload: any = { ...data };
+    if (!payload.start_date) payload.start_date = null;
+    if (!payload.main_responsible_id || Number(payload.main_responsible_id) === 0) payload.main_responsible_id = null;
+    if (isExternalClient || !payload.company_id || Number.isNaN(Number(payload.company_id)) || Number(payload.company_id) === 0) {
+      payload.company_id = null;
     }
     try {
-      if (editing) { await projectsApi.update(editing.id, data); showToast("Proyecto actualizado"); }
-      else { await projectsApi.create(data); showToast("Proyecto creado"); }
+      if (editing) { await projectsApi.update(editing.id, payload); showToast("Proyecto actualizado"); }
+      else { await projectsApi.create(payload); showToast("Proyecto creado"); }
       setModalOpen(false); load();
     } catch (e: any) { showToast(e?.response?.data?.detail || "Error al guardar", "error"); }
     finally { setSubmitting(false); }

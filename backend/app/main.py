@@ -133,6 +133,16 @@ def run_migrations():
             "users.google_calendar_connected",
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS google_calendar_connected BOOLEAN NOT NULL DEFAULT FALSE;",
         ),
+        # Permite crear proyectos sin empresa (Clientes externos / Sin empresa)
+        (
+            "projects.company_id_drop_not_null",
+            "ALTER TABLE projects ALTER COLUMN company_id DROP NOT NULL;",
+        ),
+        # Permite crear actividades sin proyecto (Trabajos independientes)
+        (
+            "activities.project_id_drop_not_null",
+            "ALTER TABLE activities ALTER COLUMN project_id DROP NOT NULL;",
+        ),
     ]
 
     for name, sql in migrations:
