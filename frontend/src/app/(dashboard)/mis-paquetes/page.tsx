@@ -11,7 +11,7 @@ import {
 import { packagesApi, packageRequestsApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
-import type { ServicePackage, PackageRequest, CompanyPackage } from "@/types";
+import type { ServicePackage, PackageRequest, CompanyPackage, CompanyPackageItem } from "@/types";
 
 /* ── Helpers ── */
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
@@ -48,9 +48,49 @@ export default function MisPaquetesPage() {
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  /* Modal solicitar entregable / actividad de paquete */
+  const [workRequestModalItem, setWorkRequestModalItem] = useState<CompanyPackageItem | null>(null);
+  const [workReqTitle, setWorkReqTitle] = useState("");
+  const [workReqNotes, setWorkReqNotes] = useState("");
+  const [workReqDate, setWorkReqDate] = useState("");
+  const [submittingWorkReq, setSubmittingWorkReq] = useState(false);
+
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleWorkRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!workRequestModalItem || !mySubscription || !companyId) return;
+    if (!workReqTitle.trim()) {
+      showToast("El título de la actividad es obligatorio", "error");
+      return;
+    }
+    setSubmittingWorkReq(true);
+    try {
+      await packageRequestsApi.create({
+        company_id: companyId,
+        package_id: mySubscription.package_id,
+        request_type: "work_request",
+        deliverable_type: workRequestModalItem.name,
+        quantity_requested: 1,
+        title: workReqTitle.trim(),
+        notes: workReqNotes
+          ? `${workReqNotes}${workReqDate ? `\n\nFecha deseada de entrega: ${workReqDate}` : ""}`
+          : workReqDate ? `Fecha deseada de entrega: ${workReqDate}` : undefined,
+      });
+      showToast("🚀 Solicitud de actividad enviada al equipo. Tu cupo se actualizará al ser aprobada.");
+      setWorkRequestModalItem(null);
+      setWorkReqTitle("");
+      setWorkReqNotes("");
+      setWorkReqDate("");
+      load();
+    } catch (err: any) {
+      showToast(err?.response?.data?.detail || "Error al enviar la solicitud de actividad", "error");
+    } finally {
+      setSubmittingWorkReq(false);
+    }
   };
 
   const handleReceiptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,6 +188,7 @@ export default function MisPaquetesPage() {
   };
 
   const subscriptionPayments = requests.filter((r) => r.request_type === "subscription_payment");
+  const workRequests = requests.filter((r) => r.request_type === "work_request");
 
   /* ─────────────────────────────────────────────── RENDER ─── */
   return (
@@ -242,6 +283,87 @@ export default function MisPaquetesPage() {
                         )}
                       </div>
                     ))}
+                  </div>
+                )}
+              </div>
+
+              {/* ── SECCIÓN INTERACTIVA: ENVIAR SOLICITUD DE ACTIVIDADES DEL PAQUETE ── */}
+              <div className="mt-8 pt-6 border-t border-slate-800/80">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                  <div>
+                    <h4 className="text-lg font-black text-white flex items-center gap-2">
+                      <Sparkles className="text-[#20CDFE]" size={20} />
+                      Enviar Solicitud de Actividades (Cupos de tu Paquete)
+                    </h4>
+                    <p className="text-slate-400 text-xs mt-0.5">
+                      Selecciona un entregable de tu plan activo para solicitar que el equipo lo elabore.
+                    </p>
+                  </div>
+                </div>
+
+                {mySubscription.items && mySubscription.items.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {mySubscription.items.map((item) => {
+                      const isOutOfQuota = item.item_type === "por_cantidad" && item.quantity_remaining <= 0;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`bg-[#0A101D]/80 border rounded-2xl p-5 flex flex-col justify-between transition-all ${
+                            isOutOfQuota
+                              ? "border-slate-800/50 opacity-60"
+                              : "border-slate-800 hover:border-[#20CDFE]/40 shadow-lg"
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <h5 className="font-bold text-white text-sm">{item.name}</h5>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                item.item_type === "por_cantidad"
+                                  ? isOutOfQuota ? "bg-rose-500/20 text-rose-300 border border-rose-500/30" : "bg-[#20CDFE]/20 text-[#20CDFE] border border-[#20CDFE]/30"
+                                  : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                              }`}>
+                                {item.item_type === "por_cantidad" ? `${item.quantity_remaining} restantes` : "Incluido"}
+                              </span>
+                            </div>
+
+                            <p className="text-slate-400 text-xs mb-4">
+                              {item.item_type === "por_cantidad"
+                                ? `${item.quantity_remaining} de ${item.quantity_initial} entregables disponibles este mes.`
+                                : "Entregables ilimitados incluidos en tu suscripción."}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            disabled={isOutOfQuota}
+                            onClick={() => {
+                              setWorkRequestModalItem(item);
+                              setWorkReqTitle("");
+                              setWorkReqNotes("");
+                              setWorkReqDate("");
+                            }}
+                            className={`w-full py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 transition-all ${
+                              isOutOfQuota
+                                ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50"
+                                : "bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] hover:opacity-90 shadow-md shadow-[#20CDFE]/10"
+                            }`}
+                          >
+                            {isOutOfQuota ? (
+                              <>❌ Cupos Agotados</>
+                            ) : (
+                              <>
+                                <Send size={13} />
+                                Solicitar este Entregable
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-slate-400 text-xs py-4 text-center">
+                    Este paquete no posee desglose de entregables por cantidad.
                   </div>
                 )}
               </div>
@@ -462,6 +584,44 @@ export default function MisPaquetesPage() {
             </div>
           </div>
         )}
+
+        {/* ── Mis Solicitudes de Entregables / Actividades del Paquete ── */}
+        {workRequests.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <Sparkles size={18} className="text-[#20CDFE]" />
+              Mis Solicitudes de Entregables del Paquete ({workRequests.length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {workRequests.map((r) => {
+                return (
+                  <div key={r.id} className="bg-[#0A101D]/70 border border-slate-800/80 rounded-2xl p-5 flex flex-col justify-between gap-3 shadow-lg">
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#15233D] text-[#20CDFE] border border-[#20CDFE]/30">
+                          {r.deliverable_type || "Entregable"}
+                        </span>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${STATUS_COLORS[r.status] || "bg-slate-700 text-slate-300"}`}>
+                          {r.status === "pendiente" ? "⏳ Pendiente aprobación" : r.status === "aceptada" ? "✅ Aprobado (Cupo descontado)" : r.status}
+                        </span>
+                      </div>
+                      <h4 className="font-extrabold text-white text-base mt-1">{r.title || "Solicitud de entregable"}</h4>
+                      {r.notes && (
+                        <p className="text-slate-400 text-xs mt-1.5 line-clamp-3 bg-[#07060B]/60 p-2.5 rounded-xl border border-slate-800/50">
+                          {r.notes}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 flex items-center justify-between border-t border-slate-800/60 pt-3 mt-1">
+                      <span>Solicitado el: <strong className="text-slate-200">{formatDate(r.created_at)}</strong></span>
+                      {r.status === "aceptada" && <span className="text-emerald-400 font-extrabold">1 cupo descontado</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Modal: Registrar Pago de Suscripción ── */}
@@ -608,6 +768,103 @@ export default function MisPaquetesPage() {
                 >
                   <Send size={16} />
                   {submitting ? "Enviando..." : "Enviar Solicitud de Pago"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Solicitar Entregable / Actividad de Paquete ── */}
+      {workRequestModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[#0A101D] border border-[#20CDFE]/40 rounded-3xl shadow-2xl shadow-[#20CDFE]/10 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800/60 bg-[#0A101D]">
+              <div>
+                <h3 className="font-black text-white text-lg flex items-center gap-2">
+                  <Sparkles size={20} className="text-[#20CDFE]" />
+                  Solicitar Entregable de tu Paquete
+                </h3>
+                <p className="text-xs text-[#20CDFE] font-bold mt-0.5">{workRequestModalItem.name}</p>
+              </div>
+              <button
+                onClick={() => setWorkRequestModalItem(null)}
+                className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleWorkRequestSubmit} className="p-6 space-y-5">
+              <div className="bg-[#15233D]/60 border border-[#20CDFE]/30 rounded-2xl p-4 text-xs">
+                <div className="flex items-center justify-between font-bold">
+                  <span className="text-slate-300">Cupos disponibles para {workRequestModalItem.name}:</span>
+                  <span className="text-[#20CDFE] text-sm">
+                    {workRequestModalItem.item_type === "por_cantidad"
+                      ? `${workRequestModalItem.quantity_remaining} de ${workRequestModalItem.quantity_initial}`
+                      : "Ilimitado"}
+                  </span>
+                </div>
+                <p className="text-slate-400 text-[11px] mt-1">
+                  Al ser aprobada por el administrador, se descontará 1 cupo de tu suscripción actual.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Título o Nombre de la Actividad *
+                </label>
+                <input
+                  type="text"
+                  value={workReqTitle}
+                  onChange={(e) => setWorkReqTitle(e.target.value)}
+                  required
+                  placeholder="Ej. Video Reel para campaña de primavera, Diseño Flyer Oferta 2x1..."
+                  className="w-full px-4 py-3 bg-[#15233D]/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Instrucciones & Concepto Creativo
+                </label>
+                <textarea
+                  value={workReqNotes}
+                  onChange={(e) => setWorkReqNotes(e.target.value)}
+                  rows={4}
+                  placeholder="Escribe aquí los detalles que el equipo debe saber: colores, textos, guion, formato (1:1, 9:16), etc."
+                  className="w-full px-4 py-3 bg-[#15233D]/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE] resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  Fecha Deseada de Entrega (opcional)
+                </label>
+                <input
+                  type="date"
+                  value={workReqDate}
+                  onChange={(e) => setWorkReqDate(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
+                  className="w-full px-4 py-3 bg-[#15233D]/60 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]/30 focus:border-[#20CDFE]"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setWorkRequestModalItem(null)}
+                  className="flex-1 py-3 rounded-xl border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 text-sm font-bold transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingWorkReq || !workReqTitle.trim()}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] text-sm font-extrabold hover:opacity-90 disabled:opacity-50 shadow-lg shadow-[#20CDFE]/20 transition-all flex items-center justify-center gap-2"
+                >
+                  <Send size={16} />
+                  {submittingWorkReq ? "Enviando..." : "Enviar Solicitud al Equipo"}
                 </button>
               </div>
             </form>

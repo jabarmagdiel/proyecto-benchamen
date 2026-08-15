@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Sparkles, Send, CheckCircle2, Clock, XCircle, AlertTriangle,
   Code, Image as ImageIcon, Megaphone, Tag, X, ChevronRight,
-  FileText, Calendar, Info, RefreshCw, BadgeCheck
+  FileText, Calendar, Info, RefreshCw, BadgeCheck, Upload, Eye, CreditCard
 } from "lucide-react";
 import { packagesApi, packageRequestsApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
@@ -42,11 +42,39 @@ export default function MisServiciosPage() {
   const [reqTitle, setReqTitle] = useState("");
   const [reqNotes, setReqNotes] = useState("");
   const [reqDate, setReqDate] = useState("");
+
+  /* Datos de pago opcionales */
+  const [payMethod, setPayMethod] = useState("QR");
+  const [payRef, setPayRef] = useState("");
+  const [receiptUrl, setReceiptUrl] = useState("");
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+
+  /* Modal visor comprobante */
+  const [previewReceiptUrl, setPreviewReceiptUrl] = useState<string | null>(null);
+  const [previewReceiptTitle, setPreviewReceiptTitle] = useState<string>("");
+
   const [submitting, setSubmitting] = useState(false);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleReceiptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingReceipt(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await packageRequestsApi.uploadReceipt(formData);
+      setReceiptUrl(res.data.url);
+      showToast("✅ Comprobante de pago subido");
+    } catch (err: any) {
+      showToast(err?.response?.data?.detail || "Error al subir comprobante", "error");
+    } finally {
+      setUploadingReceipt(false);
+    }
   };
 
   const load = async () => {
@@ -85,15 +113,21 @@ export default function MisServiciosPage() {
         deliverable_type: selectedService.name,
         quantity_requested: 1,
         title: reqTitle.trim(),
+        payment_method: payMethod,
+        payment_reference: payRef || undefined,
+        payment_receipt_url: receiptUrl || undefined,
         notes: reqNotes
           ? `${reqNotes}${reqDate ? `\n\nFecha deseada de entrega: ${reqDate}` : ""}`
           : reqDate ? `Fecha deseada de entrega: ${reqDate}` : undefined,
       });
-      showToast("✅ Solicitud enviada correctamente. El equipo se pondrá en contacto contigo.");
+      showToast("✅ Solicitud enviada correctamente. El equipo la revisará.");
       setSelectedService(null);
       setReqTitle("");
       setReqNotes("");
       setReqDate("");
+      setPayRef("");
+      setReceiptUrl("");
+      setPayMethod("QR");
       load();
     } catch (e: any) {
       showToast(e?.response?.data?.detail || "Error al enviar la solicitud", "error");
@@ -151,7 +185,26 @@ export default function MisServiciosPage() {
                   <div key={r.id} className="bg-[#07060B]/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-bold text-white text-sm truncate">{r.title || r.deliverable_type || "Solicitud"}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{r.package?.name} · {formatDate(r.created_at)}</p>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-0.5">
+                        <span>{r.package?.name} · {formatDate(r.created_at)}</span>
+                        {r.payment_method && (
+                          <span className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 font-medium">
+                            {r.payment_method}
+                          </span>
+                        )}
+                        {r.payment_receipt_url && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviewReceiptUrl(r.payment_receipt_url!);
+                              setPreviewReceiptTitle(r.title || r.deliverable_type || "Servicio");
+                            }}
+                            className="text-[#20CDFE] hover:underline text-[10px] font-bold flex items-center gap-0.5"
+                          >
+                            <Eye size={10} /> Comprobante
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border shrink-0 ${style.bg} ${style.text} border-current/20`}>
                       <Icon size={11} /> {STATUS_LABELS[r.status]}
@@ -306,10 +359,10 @@ export default function MisServiciosPage() {
                     <p className="text-xs text-emerald-300 font-bold">
                       {selectedService.price_type === "custom_text"
                         ? selectedService.price_text || "Precio a coordinar"
-                        : `${Number(selectedService.base_price).toFixed(2)} Bs.`}
+                        : `Precio Base: ${Number(selectedService.base_price).toFixed(2)} Bs.`}
                     </p>
                     <p className="text-[11px] text-slate-400 mt-0.5">
-                      El equipo revisará tu solicitud y se pondrá en contacto para confirmar detalles y coordinar el pago.
+                      Puedes registrar tu pago mediante QR o Transferencia, o enviar la solicitud para coordinar con el equipo.
                     </p>
                   </div>
                 </div>
@@ -333,13 +386,13 @@ export default function MisServiciosPage() {
               {/* Descripción */}
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  Descripción del Proyecto
+                  Descripción / Especificaciones del Proyecto
                 </label>
                 <textarea
                   value={reqNotes}
                   onChange={(e) => setReqNotes(e.target.value)}
-                  rows={4}
-                  placeholder="Describe con detalle qué necesitas: objetivos, referencias visuales, público objetivo, ubicación, etc."
+                  rows={3}
+                  placeholder="Describe con detalle qué necesitas: objetivos, referencias visuales, formato, ubicación, etc."
                   className="w-full px-4 py-3 bg-[#15233D]/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 resize-none"
                 />
               </div>
@@ -358,7 +411,117 @@ export default function MisServiciosPage() {
                 />
               </div>
 
-              <div className="flex gap-3 pt-1">
+              {/* ── SECCIÓN DE PAGO (QR / TRANSFERENCIA / COMPROBANTE) ── */}
+              <div className="pt-3 border-t border-slate-800/80 space-y-4">
+                <div className="flex items-center gap-2">
+                  <CreditCard size={16} className="text-emerald-400" />
+                  <h4 className="text-xs font-black text-white uppercase tracking-wider">Método de Pago & Comprobante</h4>
+                </div>
+
+                {/* Selección Método */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: "QR", label: "📱 QR" },
+                    { id: "Transferencia", label: "🏦 Transferencia" },
+                    { id: "Efectivo", label: "💵 Efectivo" },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setPayMethod(m.id)}
+                      className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                        payMethod === m.id
+                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-md"
+                          : "bg-[#15233D]/40 text-slate-400 border-slate-800 hover:text-white"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Mostrar QR o Banco */}
+                {payMethod === "QR" && (
+                  <div className="bg-[#07060B]/80 border border-emerald-500/30 rounded-2xl p-4 text-center">
+                    <p className="text-xs text-slate-400 mb-2">Escanea el código QR para realizar el pago:</p>
+                    <div className="w-36 h-36 bg-white p-2 rounded-xl mx-auto flex items-center justify-center border border-emerald-500/30 shadow-lg">
+                      <img
+                        src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=BENCHAMEN_PAGO_SERVICIO"
+                        alt="QR Pago Benchamen"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <p className="text-[11px] text-[#20CDFE] font-bold mt-2">Banco Bisa / Mercantil Santa Cruz — Benchamen SRL</p>
+                  </div>
+                )}
+
+                {payMethod === "Transferencia" && (
+                  <div className="bg-[#07060B]/80 border border-slate-800 rounded-2xl p-4 text-xs space-y-1.5 text-slate-300">
+                    <p className="font-bold text-emerald-400">Datos Bancarios para Transferencia:</p>
+                    <p>• <strong>Banco:</strong> Banco Bisa S.A.</p>
+                    <p>• <strong>Cta. Corriente:</strong> 123456789-01</p>
+                    <p>• <strong>Titular:</strong> BENCHAMEN MARKETING S.R.L.</p>
+                    <p>• <strong>NIT:</strong> 4829102019</p>
+                  </div>
+                )}
+
+                {/* Nro Referencia */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                    Nro. de Referencia / Transacción (opcional)
+                  </label>
+                  <input
+                    type="text"
+                    value={payRef}
+                    onChange={(e) => setPayRef(e.target.value)}
+                    placeholder="Ej. REF-84920412"
+                    className="w-full px-4 py-2.5 bg-[#15233D]/60 border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Subir comprobante */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                    <span>Adjuntar Comprobante (Imagen o PDF)</span>
+                    {receiptUrl && <span className="text-emerald-400 font-bold">✓ Subido</span>}
+                  </label>
+
+                  <div className="relative border-2 border-dashed border-slate-800 hover:border-emerald-500/50 rounded-2xl p-4 text-center bg-[#07060B]/40 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={handleReceiptFileChange}
+                      disabled={uploadingReceipt}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                    />
+                    {uploadingReceipt ? (
+                      <div className="flex items-center justify-center gap-2 text-xs text-emerald-400 font-bold py-2">
+                        <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                        Subiendo comprobante...
+                      </div>
+                    ) : receiptUrl ? (
+                      <div className="flex items-center justify-between gap-2 px-2 py-1 bg-emerald-500/10 rounded-xl">
+                        <span className="text-xs text-emerald-300 font-bold truncate">Comprobante adjuntado</span>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setReceiptUrl(""); }}
+                          className="text-rose-400 text-xs hover:underline font-bold"
+                        >
+                          Quitar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1.5 text-slate-400 text-xs">
+                        <Upload size={20} className="text-emerald-400" />
+                        <span className="font-bold text-slate-300">Haz clic o arrastra aquí tu comprobante de pago</span>
+                        <span className="text-[10px] text-slate-500">Formatos permitidos: JPG, PNG, WEBP, PDF (Máx. 10MB)</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setSelectedService(null)}
@@ -372,10 +535,34 @@ export default function MisServiciosPage() {
                   className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm font-extrabold hover:opacity-90 disabled:opacity-50 shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
                 >
                   <Send size={16} />
-                  {submitting ? "Enviando..." : "Enviar Solicitud"}
+                  {submitting ? "Enviando..." : "Enviar Solicitud con Pago"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal Visor Comprobante ── */}
+      {previewReceiptUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-[#0A101D] border border-emerald-500/30 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="flex items-center justify-between p-4 border-b border-slate-800">
+              <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                <FileText size={16} className="text-emerald-400" />
+                Comprobante de Pago: <span className="text-emerald-300">{previewReceiptTitle}</span>
+              </h4>
+              <button onClick={() => setPreviewReceiptUrl(null)} className="p-1 rounded-lg hover:bg-slate-800 text-slate-400">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-4 flex-1 overflow-auto flex justify-center bg-black/50">
+              {previewReceiptUrl.endsWith(".pdf") ? (
+                <iframe src={previewReceiptUrl} className="w-full h-[60vh] rounded-xl border border-slate-800" />
+              ) : (
+                <img src={previewReceiptUrl} alt="Comprobante" className="max-h-[70vh] object-contain rounded-xl shadow-lg" />
+              )}
+            </div>
           </div>
         </div>
       )}
