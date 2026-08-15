@@ -12,31 +12,34 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
 const adminLinks = [
-  { href: "/dashboard",        icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/finanzas",         icon: DollarSign,      label: "Finanzas & Pagos" },
-  { href: "/empresas",         icon: Building2,       label: "Empresas" },
-  { href: "/proyectos",        icon: FolderKanban,    label: "Proyectos" },
-  { href: "/actividades",      icon: ClipboardList,   label: "Actividades" },
-  { href: "/departamentos",    icon: Building2,       label: "Roles Operativos" },
-  { href: "/paquetes",         icon: Package,         label: "Paquetes" },
-  { href: "/suscripciones",    icon: ShieldCheck,     label: "Suscripciones" },
-  { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
-  { href: "/agenda",           icon: Calendar,        label: "Calendario / Agenda" },
-  { href: "/usuarios",         icon: Users,           label: "Usuarios" },
-  { href: "/reportes",         icon: BarChart3,       label: "Reportes" },
+  { href: "/dashboard",              icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/finanzas",               icon: DollarSign,      label: "Finanzas & Pagos" },
+  { href: "/empresas",               icon: Building2,       label: "Empresas" },
+  { href: "/proyectos",              icon: FolderKanban,    label: "Proyectos" },
+  { href: "/actividades",            icon: ClipboardList,   label: "Actividades" },
+  { href: "/calendario-actividades", icon: Calendar,        label: "Calendario Actividades" },
+  { href: "/departamentos",          icon: Building2,       label: "Roles Operativos" },
+  { href: "/paquetes",               icon: Package,         label: "Paquetes" },
+  { href: "/suscripciones",          icon: ShieldCheck,     label: "Suscripciones" },
+  { href: "/aprobaciones",           icon: CheckSquare,     label: "Aprobaciones" },
+  { href: "/agenda",                 icon: Calendar,        label: "Citas / Agenda" },
+  { href: "/usuarios",               icon: Users,           label: "Usuarios" },
+  { href: "/reportes",               icon: BarChart3,       label: "Reportes" },
 ];
 
 const operativeLinks = [
-  { href: "/dashboard",        icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/mis-actividades",  icon: CheckSquare,     label: "Mis Actividades" },
+  { href: "/dashboard",              icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/mis-actividades",        icon: CheckSquare,     label: "Mis Actividades" },
+  { href: "/calendario-actividades", icon: Calendar,        label: "Calendario Actividades" },
 ];
 
 const clientLinks = [
-  { href: "/dashboard",        icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/mis-paquetes",     icon: Package,         label: "Mis Paquetes" },
-  { href: "/mis-servicios",    icon: Sparkles,        label: "Solicitar Servicios" },
-  { href: "/aprobaciones",     icon: CheckSquare,     label: "Aprobaciones" },
-  { href: "/agenda",           icon: Calendar,        label: "Calendario / Agenda" },
+  { href: "/dashboard",              icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/mis-paquetes",           icon: Package,         label: "Mis Paquetes" },
+  { href: "/mis-servicios",          icon: Sparkles,        label: "Solicitar Servicios" },
+  { href: "/calendario-actividades", icon: Calendar,        label: "Calendario Actividades" },
+  { href: "/aprobaciones",           icon: CheckSquare,     label: "Aprobaciones" },
+  { href: "/agenda",                 icon: Calendar,        label: "Citas / Agenda" },
 ];
 
 export default function Sidebar() {

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   DollarSign, TrendingUp, CreditCard, ShieldCheck, Clock, XCircle,
   Building2, Calendar, FileText, CheckCircle2, Filter, Search, ArrowUpRight,
-  Sparkles, Wallet, QrCode
+  Sparkles, Wallet, QrCode, Eye, ExternalLink, Image as ImageIcon, Download
 } from "lucide-react";
 import { packageRequestsApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
@@ -30,6 +30,9 @@ export default function FinanzasPage() {
   const [verifyModalReq, setVerifyModalReq] = useState<PackageRequest | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+
+  /* Modal de Previsualización de Comprobante */
+  const [previewReceiptUrl, setPreviewReceiptUrl] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -67,8 +70,8 @@ export default function FinanzasPage() {
     }
   };
 
-  /* Cálculos Financieros */
-  const paymentRequests = requests.filter(r => r.request_type === "subscription_payment");
+  /* Filtramos todas las solicitudes con flujo de pago */
+  const paymentRequests = requests.filter(r => r.payment_status || r.request_type === "subscription_payment");
 
   const verifiedPayments = paymentRequests.filter(r => r.payment_status === "pago_verificado");
   const pendingPayments = paymentRequests.filter(r => r.payment_status === "pendiente_verificacion");
@@ -117,7 +120,7 @@ export default function FinanzasPage() {
               Módulo de Finanzas & Registro de Pagos
             </h2>
             <p className="text-slate-400 text-sm mt-0.5">
-              Control centralizado de ingresos, verificación de pagos QR Banco Fortaleza y suscripciones.
+              Control centralizado de ingresos, verificación de pagos QR Banco Fortaleza y comprobantes adjuntos.
             </p>
           </div>
 
@@ -251,79 +254,95 @@ export default function FinanzasPage() {
                     <th className="text-left px-5 py-4 text-slate-400 font-bold text-xs uppercase">Empresa / Cliente</th>
                     <th className="text-left px-5 py-4 text-slate-400 font-bold text-xs uppercase">Paquete / Servicio</th>
                     <th className="text-left px-5 py-4 text-slate-400 font-bold text-xs uppercase">Monto Mensual</th>
-                    <th className="text-left px-5 py-4 text-slate-400 font-bold text-xs uppercase">Método & Comprobante</th>
+                    <th className="text-left px-5 py-4 text-slate-400 font-bold text-xs uppercase">Método & Ref</th>
+                    <th className="text-left px-5 py-4 text-slate-400 font-bold text-xs uppercase">Comprobante</th>
                     <th className="text-left px-5 py-4 text-slate-400 font-bold text-xs uppercase">Fecha</th>
                     <th className="text-left px-5 py-4 text-slate-400 font-bold text-xs uppercase">Estado</th>
                     <th className="text-left px-5 py-4 text-slate-400 font-bold text-xs uppercase">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/50">
-                  {filteredLedger.map((r) => (
-                    <tr key={r.id} className="hover:bg-[#15233D]/40 transition-colors">
-                      {/* Empresa / Cliente */}
-                      <td className="px-5 py-4">
-                        <div className="font-bold text-white text-sm">{r.company?.name || "Empresa"}</div>
-                        <div className="text-xs text-[#20CDFE] font-medium mt-0.5">{r.client_user?.name || "Cliente"}</div>
-                      </td>
+                  {filteredLedger.map((r) => {
+                    const receiptUrl = r.payment_receipt_url;
 
-                      {/* Paquete */}
-                      <td className="px-5 py-4">
-                        <div className="font-bold text-slate-200">{r.package?.name || "Paquete Personalizado"}</div>
-                        <div className="text-[11px] text-slate-400 font-mono">ID Paquete: #{r.package_id}</div>
-                      </td>
+                    return (
+                      <tr key={r.id} className="hover:bg-[#15233D]/40 transition-colors">
+                        {/* Empresa / Cliente */}
+                        <td className="px-5 py-4">
+                          <div className="font-bold text-white text-sm">{r.company?.name || "Empresa"}</div>
+                          <div className="text-xs text-[#20CDFE] font-medium mt-0.5">{r.client_user?.name || "Cliente"}</div>
+                        </td>
 
-                      {/* Monto */}
-                      <td className="px-5 py-4 font-black text-emerald-400 text-sm">
-                        {r.package?.price_type === "custom_text" ? (
-                          <span className="text-xs text-amber-300">{r.package.price_text}</span>
-                        ) : (
-                          `${Number(r.package?.base_price || 0).toFixed(2)} Bs.`
-                        )}
-                      </td>
+                        {/* Paquete */}
+                        <td className="px-5 py-4">
+                          <div className="font-bold text-slate-200">{r.package?.name || "Paquete Personalizado"}</div>
+                          <div className="text-[11px] text-slate-400 font-mono">ID: #{r.package_id || r.id}</div>
+                        </td>
 
-                      {/* Método y Comprobante */}
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-white">
-                          <CreditCard size={14} className="text-[#20CDFE]" />
-                          <span>{r.payment_method || "QR Banco Fortaleza"}</span>
-                        </div>
-                        <div className="text-[11px] text-slate-400 font-mono mt-0.5">
-                          Ref: <strong className="text-slate-200">{r.payment_reference || "Sin ref"}</strong>
-                        </div>
-                        {r.notes && (
-                          <div className="text-[10px] text-slate-400 italic line-clamp-1 mt-0.5">{r.notes}</div>
-                        )}
-                      </td>
+                        {/* Monto */}
+                        <td className="px-5 py-4 font-black text-emerald-400 text-sm">
+                          {r.package?.price_type === "custom_text" ? (
+                            <span className="text-xs text-amber-300">{r.package.price_text}</span>
+                          ) : (
+                            `${Number(r.package?.base_price || 0).toFixed(2)} Bs.`
+                          )}
+                        </td>
 
-                      {/* Fecha */}
-                      <td className="px-5 py-4 text-xs text-slate-400">
-                        {formatDate(r.created_at)}
-                      </td>
+                        {/* Método y Ref */}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                            <CreditCard size={14} className="text-[#20CDFE]" />
+                            <span>{r.payment_method || "QR Banco Fortaleza"}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                            Ref: <strong className="text-slate-200">{r.payment_reference || "Sin ref"}</strong>
+                          </div>
+                        </td>
 
-                      {/* Estado */}
-                      <td className="px-5 py-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${PAYMENT_STATUS_COLORS[r.payment_status] || "bg-slate-800 text-slate-300"}`}>
-                          {r.payment_status === "pendiente_verificacion" && "⏳ Pendiente"}
-                          {r.payment_status === "pago_verificado" && "✅ Verificado"}
-                          {r.payment_status === "rechazado" && "❌ Rechazado"}
-                        </span>
-                      </td>
+                        {/* Visor de Comprobante */}
+                        <td className="px-5 py-4">
+                          {receiptUrl ? (
+                            <button
+                              onClick={() => setPreviewReceiptUrl(receiptUrl)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#20CDFE]/10 border border-[#20CDFE]/30 text-[#20CDFE] hover:bg-[#20CDFE]/20 transition-all font-bold text-xs"
+                            >
+                              <ImageIcon size={14} /> Ver Adjunto
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-500 italic">Sin comprobante</span>
+                          )}
+                        </td>
 
-                      {/* Acciones */}
-                      <td className="px-5 py-4">
-                        {isAdmin && r.payment_status === "pendiente_verificacion" ? (
-                          <button
-                            onClick={() => setVerifyModalReq(r)}
-                            className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-extrabold hover:opacity-90 transition-all shadow-md shadow-emerald-500/20"
-                          >
-                            <ShieldCheck size={14} /> Verificar Pago
-                          </button>
-                        ) : (
-                          <span className="text-xs text-slate-500 font-medium">Procesado</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        {/* Fecha */}
+                        <td className="px-5 py-4 text-xs text-slate-400">
+                          {formatDate(r.created_at)}
+                        </td>
+
+                        {/* Estado */}
+                        <td className="px-5 py-4">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${PAYMENT_STATUS_COLORS[r.payment_status] || "bg-slate-800 text-slate-300"}`}>
+                            {r.payment_status === "pendiente_verificacion" && "⏳ Pendiente"}
+                            {r.payment_status === "pago_verificado" && "✅ Verificado"}
+                            {r.payment_status === "rechazado" && "❌ Rechazado"}
+                          </span>
+                        </td>
+
+                        {/* Acciones */}
+                        <td className="px-5 py-4">
+                          {isAdmin && r.payment_status === "pendiente_verificacion" ? (
+                            <button
+                              onClick={() => setVerifyModalReq(r)}
+                              className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-extrabold hover:opacity-90 transition-all shadow-md shadow-emerald-500/20"
+                            >
+                              <ShieldCheck size={14} /> Verificar
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-500 font-medium">Procesado</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -334,7 +353,7 @@ export default function FinanzasPage() {
       {/* MODAL VERIFICAR PAGO (Admin) */}
       {verifyModalReq && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D] border border-slate-800 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-fade-in text-center">
+          <div className="bg-[#0A101D] border border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-fade-in text-center">
             <ShieldCheck size={48} className="mx-auto text-emerald-400 mb-2" />
             <h3 className="text-lg font-bold text-white">Verificación de Pago Recibido</h3>
 
@@ -345,7 +364,17 @@ export default function FinanzasPage() {
               <div>Monto: <strong className="text-emerald-400 font-bold">{Number(verifyModalReq.package?.base_price || 0).toFixed(2)} Bs.</strong></div>
               <div>Método: <strong className="text-white">{verifyModalReq.payment_method || "QR Banco Fortaleza"}</strong></div>
               <div>Comprobante/Ref: <strong className="font-mono text-white">{verifyModalReq.payment_reference || "N/A"}</strong></div>
-              {verifyModalReq.notes && <div>Notas: <span className="italic text-slate-400">{verifyModalReq.notes}</span></div>}
+
+              {verifyModalReq.payment_receipt_url && (
+                <div className="pt-2">
+                  <button
+                    onClick={() => setPreviewReceiptUrl(verifyModalReq.payment_receipt_url || null)}
+                    className="w-full py-2 bg-[#20CDFE]/20 text-[#20CDFE] border border-[#20CDFE]/30 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 hover:bg-[#20CDFE]/30 transition-all"
+                  >
+                    <Eye size={14} /> Inspeccionar Comprobante Adjunto
+                  </button>
+                </div>
+              )}
             </div>
 
             <p className="text-xs text-slate-400">
@@ -368,6 +397,54 @@ export default function FinanzasPage() {
               >
                 Aprobar y Activar
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL VISOR COMPLETO DE COMPROBANTES */}
+      {previewReceiptUrl && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A101D] border border-[#20CDFE]/40 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+              <h4 className="font-extrabold text-white text-sm flex items-center gap-2">
+                <ImageIcon className="text-[#20CDFE]" size={18} />
+                Comprobante de Pago Adjunto
+              </h4>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewReceiptUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white transition-colors"
+                  title="Abrir en pestaña nueva"
+                >
+                  <ExternalLink size={16} />
+                </a>
+                <button
+                  onClick={() => setPreviewReceiptUrl(null)}
+                  className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-auto flex-1 flex items-center justify-center bg-[#07060B]">
+              {previewReceiptUrl.toLowerCase().endsWith(".pdf") ? (
+                <iframe
+                  src={previewReceiptUrl}
+                  className="w-full h-[70vh] rounded-xl border border-slate-800"
+                  title="Visor PDF Comprobante"
+                />
+              ) : (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={previewReceiptUrl}
+                  alt="Comprobante de pago"
+                  className="max-h-[70vh] w-auto object-contain rounded-xl shadow-2xl border border-slate-800"
+                />
+              )}
             </div>
           </div>
         </div>
