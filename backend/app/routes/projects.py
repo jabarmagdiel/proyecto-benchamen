@@ -27,7 +27,11 @@ def list_projects(
 
 @router.post("", response_model=ProjectResponse, status_code=201)
 def create_project(data: ProjectCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
-    return project_svc.create(db, data, current_user.id)
+    try:
+        return project_svc.create(db, data, current_user.id)
+    except Exception as e:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail=f"Error al crear proyecto: {str(e)}")
 
 
 @router.get("/{project_id}", response_model=ProjectResponse)
