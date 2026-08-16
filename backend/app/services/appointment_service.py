@@ -38,6 +38,8 @@ def _to_response(apt: Appointment, db: Session = None) -> AppointmentResponse:
         title=apt.title,
         notes=apt.notes,
         meeting_link=apt.meeting_link,
+        location=apt.location,
+        meeting_type=apt.meeting_type or "presencial",
         is_group=apt.is_group or False,
         attendee_ids=apt.attendee_ids or [],
         attendees_names=attendees_names,
@@ -255,6 +257,7 @@ def create_meeting(db: Session, admin: User, data: MeetingCreate) -> Appointment
     else:
         target_user_ids = data.attendee_ids or []
 
+    m_type = data.meeting_type or "presencial"
     apt = Appointment(
         admin_id=admin.id,
         date=data.date,
@@ -264,6 +267,8 @@ def create_meeting(db: Session, admin: User, data: MeetingCreate) -> Appointment
         title=data.title,
         notes=data.notes,
         meeting_link=data.meeting_link,
+        location=data.location,
+        meeting_type=m_type,
         is_group=data.is_group,
         attendee_ids=target_user_ids,
     )
@@ -274,11 +279,13 @@ def create_meeting(db: Session, admin: User, data: MeetingCreate) -> Appointment
     # Notificar a los participantes
     fecha_str = _format_date_es(apt.date)
     horario_str = f"{apt.start_time} – {apt.end_time}"
+    type_str = "💻 Reunión Virtual" if m_type == "virtual" else "📍 Reunión Presencial"
     notif_msg = (
-        f"📅 Reunión: '{data.title}'\n"
+        f"{type_str}: '{data.title}'\n"
         f"📆 Fecha: {fecha_str}\n"
         f"🕐 Horario: {horario_str}\n"
-        f"{('🔗 Link: ' + data.meeting_link) if data.meeting_link else ''}"
+        f"{('📍 Lugar: ' + data.location) if (m_type == 'presencial' and data.location) else ''}\n"
+        f"{('🔗 Link Meet/Zoom: ' + data.meeting_link) if data.meeting_link else ''}"
     ).strip()
 
     notify_users = []

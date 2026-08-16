@@ -11,7 +11,7 @@ import {
   Calendar as CalendarIcon, Clock, User, Plus, Trash2,
   CalendarCheck, HelpCircle, X, CheckCircle2, XCircle, ChevronLeft, ChevronRight,
   Building2, FileText, Bell, Users, ShieldAlert, ShieldCheck, Briefcase, Lock,
-  AlertTriangle, RefreshCw, Link2, LinkIcon, Unlink, Video
+  AlertTriangle, RefreshCw, Link2, LinkIcon, Unlink, Video, MapPin
 } from "lucide-react";
 
 import { useWebSocket } from "@/context/WebSocketContext";
@@ -125,6 +125,8 @@ export default function AgendaPage() {
   const [meetingIsGroup, setMeetingIsGroup]                   = useState(true);
   const [meetingSelectedUserIds, setMeetingSelectedUserIds]   = useState<number[]>([]);
   const [meetingLink, setMeetingLink]                         = useState("");
+  const [meetingLocation, setMeetingLocation]                 = useState("Oficina Principal");
+  const [meetingType, setMeetingType]                         = useState<"presencial" | "virtual">("presencial");
   const [meetingNotes, setMeetingNotes]                       = useState("");
   const [submittingMeeting, setSubmittingMeeting]             = useState(false);
   const [usersList, setUsersList]                             = useState<any[]>([]);
@@ -283,6 +285,8 @@ export default function AgendaPage() {
         is_group: meetingIsGroup,
         attendee_ids: meetingSelectedUserIds,
         meeting_link: meetingLink,
+        location: meetingLocation,
+        meeting_type: meetingType,
         notes: meetingNotes,
       });
       showToast("✅ Reunión programada y notificada a los participantes");
@@ -636,8 +640,8 @@ export default function AgendaPage() {
                             </span>
                             {apt.status === "meeting" ? (
                               <span className="text-[10px] font-black text-purple-200 bg-purple-600/40 border border-purple-400/30 px-2 py-0.5 rounded-full uppercase flex items-center gap-1">
-                                <Video size={10} />
-                                {apt.is_group ? "Reunión Grupal" : "Reunión Directa"}
+                                <MapPin size={10} />
+                                {apt.is_group ? "Presencial Grupal" : "Presencial Individual"}
                               </span>
                             ) : apt.status === "booked" ? (
                               <span className="text-[10px] font-bold text-[#07060B] bg-[#1ED1B4] px-2 py-0.5 rounded-full uppercase">Reservada</span>
@@ -651,9 +655,15 @@ export default function AgendaPage() {
                           {apt.status === "meeting" && (
                             <div className="space-y-1.5">
                               <p className="text-xs font-bold text-white flex items-center gap-1.5">
-                                <Video size={13} className="text-purple-400 shrink-0" />
-                                {apt.title || "Reunión de Equipo"}
+                                <MapPin size={13} className="text-purple-400 shrink-0" />
+                                {apt.title || "Reunión Presencial"}
                               </p>
+                              {apt.location && (
+                                <p className="text-[11px] font-semibold text-purple-200 flex items-center gap-1">
+                                  <span>📍 Ubicación:</span>
+                                  <span className="text-white font-bold">{apt.location}</span>
+                                </p>
+                              )}
                               {apt.notes && <p className="text-[11px] text-slate-300 line-clamp-2">{apt.notes}</p>}
                               <div className="flex items-center gap-1.5 text-[11px] text-purple-200/90 font-medium pt-1 border-t border-purple-800/30">
                                 <Users size={11} className="text-purple-400 shrink-0" />
@@ -669,7 +679,7 @@ export default function AgendaPage() {
                                     rel="noreferrer"
                                     className="px-2 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center gap-1 shadow-sm"
                                   >
-                                    <Video size={10} /> Unirse
+                                    <Video size={10} /> Link Meet/Zoom
                                   </a>
                                 )}
                                 <a
@@ -801,12 +811,18 @@ export default function AgendaPage() {
                             {apt.status === "meeting" && (
                               <>
                                 <span className="text-[10px] font-black text-purple-200 bg-purple-600/40 border border-purple-400/30 px-2 py-0.5 rounded-full uppercase flex items-center gap-1">
-                                  <Video size={10} />
-                                  {apt.is_group ? "Reunión Grupal" : "Reunión Directa"}
+                                  {apt.meeting_type === "virtual" ? <Video size={10} /> : <MapPin size={10} />}
+                                  {apt.meeting_type === "virtual" ? "Virtual" : "Presencial"} ({apt.is_group ? "Grupal" : "Directa"})
                                 </span>
                                 <span className="text-xs font-bold text-white truncate">
                                   {apt.title || "Reunión de Equipo"}
                                 </span>
+                                {apt.location && (
+                                  <span className="text-xs text-purple-200 font-semibold truncate flex items-center gap-1">
+                                    <MapPin size={10} className="text-purple-400" />
+                                    {apt.location}
+                                  </span>
+                                )}
                                 <span className="text-xs text-purple-300/80 truncate">
                                   ({apt.is_group ? "👥 Grupal" : apt.attendees_names?.join(", ")})
                                 </span>
@@ -1588,15 +1604,58 @@ export default function AgendaPage() {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Enlace de la Reunión (Google Meet / Zoom)</label>
-                <input
-                  type="url"
-                  placeholder="https://meet.google.com/xyz-abc-def"
-                  value={meetingLink}
-                  onChange={e => setMeetingLink(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#070C18] border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
-                />
+                <label className="block text-xs font-bold text-slate-300 mb-2">Modalidad de la Reunión</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMeetingType("presencial")}
+                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all
+                      ${meetingType === "presencial"
+                        ? "bg-purple-600/20 border-purple-500 text-purple-300 shadow-md shadow-purple-500/20"
+                        : "bg-[#070C18] border-slate-800 text-slate-400 hover:border-slate-700"}`}
+                  >
+                    <MapPin size={18} />
+                    <span>📍 Presencial (En Persona)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMeetingType("virtual")}
+                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all
+                      ${meetingType === "virtual"
+                        ? "bg-purple-600/20 border-purple-500 text-purple-300 shadow-md shadow-purple-500/20"
+                        : "bg-[#070C18] border-slate-800 text-slate-400 hover:border-slate-700"}`}
+                  >
+                    <Video size={18} />
+                    <span>💻 Virtual (Meet / Zoom)</span>
+                  </button>
+                </div>
               </div>
+
+              {meetingType === "presencial" ? (
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">📍 Lugar / Ubicación de la Reunión *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: Oficina Principal, Sala de Juntas 2, Taller..."
+                    value={meetingLocation}
+                    onChange={e => setMeetingLocation(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#070C18] border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">💻 Enlace de Videollamada (Google Meet / Zoom) *</label>
+                  <input
+                    type="url"
+                    required
+                    placeholder="https://meet.google.com/xyz-abc-def"
+                    value={meetingLink}
+                    onChange={e => setMeetingLink(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-[#070C18] border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-300 mb-1">Notas / Temas a tratar</label>

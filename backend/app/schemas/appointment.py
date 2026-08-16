@@ -24,6 +24,8 @@ class MeetingCreate(BaseModel):
     is_group: bool = True
     attendee_ids: Optional[List[int]] = None
     meeting_link: Optional[str] = None
+    location: Optional[str] = None
+    meeting_type: Optional[str] = "presencial"
     notes: Optional[str] = None
 
 
@@ -38,6 +40,8 @@ class AppointmentResponse(BaseModel):
     title: Optional[str] = None
     notes: Optional[str] = None
     meeting_link: Optional[str] = None
+    location: Optional[str] = None
+    meeting_type: Optional[str] = "presencial"
     is_group: Optional[bool] = False
     attendee_ids: Optional[List[int]] = None
     attendees_names: Optional[List[str]] = None

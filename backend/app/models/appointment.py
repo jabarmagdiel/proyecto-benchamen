@@ -20,6 +20,8 @@ class Appointment(Base):
     title: Mapped[str | None] = mapped_column(String(250))
     notes: Mapped[str | None] = mapped_column(Text)
     meeting_link: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    meeting_type: Mapped[str | None] = mapped_column(String(20), default="presencial", nullable=True)
     is_group: Mapped[bool | None] = mapped_column(Boolean, default=False, nullable=True)
     attendee_ids: Mapped[list[int] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))

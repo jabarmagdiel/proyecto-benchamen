@@ -277,6 +277,8 @@ export interface Appointment {
   title?: string;
   notes?: string;
   meeting_link?: string;
+  location?: string;
+  meeting_type?: "presencial" | "virtual";
   is_group?: boolean;
   attendee_ids?: number[];
   attendees_names?: string[];
