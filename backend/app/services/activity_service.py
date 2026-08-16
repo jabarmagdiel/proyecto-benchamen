@@ -360,31 +360,17 @@ def _unlock_dependencies(db: Session, activity: Activity, action: str, current_u
         from app.services import automation_service as auto_svc
         auto_svc.process_stage_automations(db, activity, prev_stage_id, "on_exit", current_user.id)
         
-        if t_stage.node_type == 'end':
-            # It's fully completed
+        if action == "approve":
             activity.status = ActivityStatus.APPROVED
-            _add_history(db, activity.id, current_user.id, HistoryAction.STATUS_CHANGED, "Flujo de trabajo finalizado", "Aprobada", "Completada")
-        else:
-            # Move to next stage and reset status
-            prev_status = activity.status.value
-            activity.status = ActivityStatus.ASSIGNED if activity.assigned_user_id else ActivityStatus.PENDING
-            _add_history(db, activity.id, current_user.id, HistoryAction.STATUS_CHANGED, f"Avanzó a la etapa {t_stage.name}", prev_status, activity.status.value)
-            
-            # Run on_enter automations for new stage
+            _add_history(db, activity.id, current_user.id, HistoryAction.STATUS_CHANGED, f"Avanzó a la etapa {t_stage.name}", activity.status.value, ActivityStatus.APPROVED.value)
             auto_svc.process_stage_automations(db, activity, t_stage.id, "on_enter", current_user.id)
-            
-            if activity.assigned_user_id:
-                try:
-                    from app.services import notification_service as notification_svc
-                    notification_svc.create_notification(
-                        db,
-                        user_id=activity.assigned_user_id,
-                        title="Nueva etapa asignada",
-                        message=f"La actividad '{activity.title}' ha avanzado a '{t_stage.name}'.",
-                        link=f"/actividades/{activity.id}"
-                    )
-                except Exception:
-                    pass
+            if t_stage.node_type == 'end' and activity.project:
+                activity.project.status = "finalizado"
+        elif action == "observe":
+            activity.status = ActivityStatus.OBSERVED
+            _add_history(db, activity.id, current_user.id, HistoryAction.STATUS_CHANGED, f"Observada en la etapa {t_stage.name}", activity.status.value, ActivityStatus.OBSERVED.value)
+            auto_svc.process_stage_automations(db, activity, t_stage.id, "on_enter", current_user.id)
+
         if auto_commit:
             db.commit()
 
