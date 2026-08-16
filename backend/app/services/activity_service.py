@@ -438,15 +438,15 @@ async def send_to_review(db: Session, activity_id: int, current_user: User, bg: 
 
 
 async def approve_activity(db: Session, activity_id: int, current_user: User, bg: BackgroundTasks) -> Activity:
-    """Admin o Cliente: En Revisión → Aprobada"""
+    """Admin o Cliente: Aprobar actividad"""
     activity = get_by_id(db, activity_id)
-    if current_user.role.value == "cliente" and activity.project.company_id != current_user.company_id:
+    if current_user.role.value == "cliente" and activity.project and activity.project.company_id != current_user.company_id:
         raise HTTPException(status_code=403, detail="No tienes permiso para aprobar esta actividad")
     if current_user.role.value not in ["administrador", "cliente"]:
         raise HTTPException(status_code=403, detail="Solo administradores o clientes pueden aprobar actividades")
         
-    if activity.status != ActivityStatus.IN_REVIEW:
-        raise HTTPException(status_code=400, detail=f"Solo se puede aprobar una actividad 'En Revisión', estado actual: '{activity.status.value}'")
+    if current_user.role.value == "cliente" and activity.status != ActivityStatus.IN_REVIEW:
+        raise HTTPException(status_code=400, detail=f"Los clientes solo pueden aprobar actividades 'En Revisión'")
     prev = activity.status.value
     activity.status = ActivityStatus.APPROVED
     activity.approved_by_id = current_user.id
@@ -455,7 +455,8 @@ async def approve_activity(db: Session, activity_id: int, current_user: User, bg
     
     # Check if this activity is the 'end' node
     if activity.current_stage and activity.current_stage.node_type == 'end':
-        activity.project.status = "finalizado"
+        if activity.project:
+            activity.project.status = "finalizado"
         
     # Desbloquear dependencias (State Machine)
     _unlock_dependencies(db, activity, "approve", current_user, auto_commit=False)
@@ -487,15 +488,15 @@ async def approve_activity(db: Session, activity_id: int, current_user: User, bg
 async def observe_activity(
     db: Session, activity_id: int, current_user: User, data: ActivityStatusUpdate, bg: BackgroundTasks
 ) -> Activity:
-    """Admin o Cliente: En Revisión → Observada"""
+    """Admin o Cliente: Observar actividad"""
     activity = get_by_id(db, activity_id)
-    if current_user.role.value == "cliente" and activity.project.company_id != current_user.company_id:
+    if current_user.role.value == "cliente" and activity.project and activity.project.company_id != current_user.company_id:
         raise HTTPException(status_code=403, detail="No tienes permiso para observar esta actividad")
     if current_user.role.value not in ["administrador", "cliente"]:
         raise HTTPException(status_code=403, detail="Solo administradores o clientes pueden observar actividades")
         
-    if activity.status != ActivityStatus.IN_REVIEW:
-        raise HTTPException(status_code=400, detail=f"Solo se puede observar una actividad 'En Revisión'")
+    if current_user.role.value == "cliente" and activity.status != ActivityStatus.IN_REVIEW:
+        raise HTTPException(status_code=400, detail=f"Los clientes solo pueden observar actividades 'En Revisión'")
     if not data.observation:
         raise HTTPException(status_code=400, detail="Debe incluir una observación al rechazar la actividad")
     prev = activity.status.value

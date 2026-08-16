@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer } from "lucide-react";
+import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2 } from "lucide-react";
 import { activitiesApi, evidencesApi, commentsApi, projectsApi } from "@/lib/api";
 import type { Activity, Evidence, Comment, ActivityHistory as HistEntry } from "@/types";
 import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS } from "@/types";
@@ -114,6 +114,15 @@ export default function ActivityDetailPage() {
     catch (e: any) { showToast(e?.response?.data?.detail || "Error", "error"); }
   };
 
+  const handleDelete = async () => {
+    if (!confirm("¿Estás seguro de ELIMINAR DEFINITIVAMENTE esta actividad de la base de datos? Esta acción es irreversible.")) return;
+    try {
+      await activitiesApi.delete(actId);
+      showToast("Actividad eliminada 🗑️");
+      router.push("/actividades");
+    } catch (e: any) { showToast(e?.response?.data?.detail || "Error al eliminar", "error"); }
+  };
+
   const handleStartTimer = async () => {
     try { await activitiesApi.startTimer(actId); showToast("Cronómetro iniciado ▶️"); load(); }
     catch (e: any) { showToast(e?.response?.data?.detail || "Error", "error"); }
@@ -221,6 +230,11 @@ export default function ActivityDetailPage() {
           {canApprove && (
             <button onClick={handleApprove} className="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-extrabold hover:bg-emerald-700 transition-all w-full justify-center shadow-lg">
               <CheckCircle size={15} /> Aprobar Trabajo
+            </button>
+          )}
+          {(activity.status === "cancelada" || isAdmin) && (
+            <button onClick={handleDelete} className="flex items-center gap-2 bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-500/40 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all w-full justify-center shadow-lg">
+              <Trash2 size={15} /> Eliminar de la Base de Datos
             </button>
           )}
         </div>

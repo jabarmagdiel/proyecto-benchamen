@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Plus, Search, Filter, Eye, CheckCircle, AlertCircle,
   Clock, XCircle, ClipboardList, LayoutList, LayoutGrid,
-  User as UserIcon, Calendar as CalendarIcon
+  User as UserIcon, Calendar as CalendarIcon, Trash2
 } from "lucide-react";
 import { activitiesApi, projectsApi, companiesApi, usersApi, workflowsApi, departmentsApi } from "@/lib/api";
 import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
@@ -144,6 +144,15 @@ export default function ActividadesPage() {
     catch (e: any) { showToast(e?.response?.data?.detail || "Error", "error"); }
   };
 
+  const handleDelete = async (id: number) => {
+    if (!confirm("¿Estás seguro de ELIMINAR DEFINITIVAMENTE esta actividad de la base de datos? Esta acción es irreversible.")) return;
+    try {
+      await activitiesApi.delete(id);
+      showToast("Actividad eliminada de la base de datos 🗑️");
+      load();
+    } catch (e: any) { showToast(e?.response?.data?.detail || "Error al eliminar", "error"); }
+  };
+
   const handleAssignUser = async (activityId: number, userId: string) => {
     try {
       const assigned_user_id = userId ? parseInt(userId) : null;
@@ -155,8 +164,16 @@ export default function ActividadesPage() {
 
   const handleUpdateStatus = async (activityId: number, newStatus: ActivityStatus) => {
     try {
-      await activitiesApi.update(activityId, { status: newStatus });
-      showToast("Estado actualizado");
+      if (newStatus === "aprobada") {
+        await activitiesApi.approve(activityId);
+        showToast("✅ Actividad aprobada correctamente");
+      } else if (newStatus === "cancelada") {
+        await activitiesApi.cancel(activityId);
+        showToast("Actividad cancelada");
+      } else {
+        await activitiesApi.update(activityId, { status: newStatus });
+        showToast("Estado actualizado");
+      }
       load();
     } catch (e: any) { showToast(e?.response?.data?.detail || "Error al actualizar estado", "error"); }
   };
@@ -291,6 +308,11 @@ export default function ActividadesPage() {
              {!["aprobada", "cancelada"].includes(a.status) && (
                 <button onClick={() => handleCancel(a.id)} className="w-8 h-8 flex items-center justify-center shrink-0 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Cancelar">
                   <XCircle size={14} />
+                </button>
+             )}
+             {(a.status === "cancelada" || currentUser?.role === "administrador") && (
+                <button onClick={() => handleDelete(a.id)} className="w-8 h-8 flex items-center justify-center shrink-0 bg-rose-950/40 text-rose-400 hover:bg-rose-900/60 rounded-lg transition-colors border border-rose-500/30" title="Eliminar de la BD">
+                  <Trash2 size={14} />
                 </button>
              )}
           </div>
@@ -512,6 +534,11 @@ export default function ActividadesPage() {
                           {!["aprobada", "cancelada"].includes(a.status) && (
                             <button onClick={() => handleCancel(a.id)} className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors" title="Cancelar">
                               <XCircle size={14} />
+                            </button>
+                          )}
+                          {(a.status === "cancelada" || currentUser?.role === "administrador") && (
+                            <button onClick={() => handleDelete(a.id)} className="p-1.5 rounded-lg hover:bg-rose-900/30 text-rose-400 hover:text-rose-300 transition-colors" title="Eliminar de la Base de Datos">
+                              <Trash2 size={14} />
                             </button>
                           )}
                         </div>
