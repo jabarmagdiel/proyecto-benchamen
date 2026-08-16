@@ -22,7 +22,7 @@ const adminLinks = [
   { href: "/paquetes",               icon: Package,         label: "Paquetes" },
   { href: "/suscripciones",          icon: ShieldCheck,     label: "Suscripciones" },
   { href: "/aprobaciones",           icon: CheckSquare,     label: "Aprobaciones" },
-  { href: "/agenda",                 icon: Calendar,        label: "Citas / Agenda" },
+  { href: "/agenda",                 icon: Calendar,        label: "Agenda & Disponibilidad" },
   { href: "/usuarios",               icon: Users,           label: "Usuarios" },
   { href: "/reportes",               icon: BarChart3,       label: "Reportes" },
 ];
@@ -31,6 +31,7 @@ const operativeLinks = [
   { href: "/dashboard",              icon: LayoutDashboard, label: "Dashboard" },
   { href: "/mis-actividades",        icon: CheckSquare,     label: "Mis Actividades" },
   { href: "/calendario-actividades", icon: Calendar,        label: "Calendario Actividades" },
+  { href: "/agenda",                 icon: Calendar,        label: "Mi Disponibilidad / Agenda" },
 ];
 
 const clientLinks = [

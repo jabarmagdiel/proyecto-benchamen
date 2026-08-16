@@ -90,6 +90,12 @@ export default function AgendaPage() {
   /* Pestaña Principal: 'citas' vs 'disponibilidad' */
   const [mainTab, setMainTab] = useState<"citas" | "disponibilidad">("citas");
 
+  useEffect(() => {
+    if (user?.role === "operativo") {
+      setMainTab("disponibilidad");
+    }
+  }, [user?.role]);
+
   /* ─── PESTAÑA 1: CITAS ADMIN/CLIENTE ─── */
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [availableSlots, setAvailableSlots] = useState<Appointment[]>([]);
