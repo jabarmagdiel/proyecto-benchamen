@@ -87,12 +87,12 @@ export default function AgendaPage() {
     }
   };
 
-  /* Pestaña Principal: 'citas' vs 'disponibilidad' */
-  const [mainTab, setMainTab] = useState<"citas" | "disponibilidad">("citas");
+  /* Pestaña Principal: 'reuniones' | 'citas' | 'disponibilidad' */
+  const [mainTab, setMainTab] = useState<"reuniones" | "citas" | "disponibilidad">("reuniones");
 
   useEffect(() => {
     if (user?.role === "operativo") {
-      setMainTab("disponibilidad");
+      setMainTab("reuniones");
     }
   }, [user?.role]);
 
@@ -391,6 +391,12 @@ export default function AgendaPage() {
   const bookedSlots    = appointments.filter(a => a.status === "booked").length;
   const availableCount = appointments.filter(a => a.status === "available").length;
 
+  const meetingsList      = appointments.filter(a => a.status === "meeting");
+  const filteredMeetings  = selectedDay ? meetingsList.filter(m => m.date === selectedDay) : meetingsList;
+  const teamMeetingsCount = meetingsList.length;
+  const presencialesCount = meetingsList.filter(m => m.meeting_type === "presencial" || (m.location && m.meeting_type !== "virtual")).length;
+  const virtualesCount    = meetingsList.filter(m => m.meeting_type === "virtual" || (m.meeting_link && m.meeting_type !== "presencial")).length;
+
   /* ─────────────────────────────────────────── RENDER ─── */
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -421,36 +427,84 @@ export default function AgendaPage() {
             </div>
 
               {/* Alternador de Pestañas Principales */}
-              <button
-                onClick={() => setMainTab("citas")}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
-                  mainTab === "citas"
-                    ? "bg-gradient-to-r from-[#20CDFE]/20 to-[#1ED1B4]/10 text-[#20CDFE] border border-[#20CDFE]/30 shadow-md"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                <CalendarIcon size={15} />
-                Citas con Clientes
-              </button>
-
-              {/* Solo Admin y Operativo ven la disponibilidad del equipo */}
-              {user?.role !== "cliente" && (
+              <div className="flex flex-wrap items-center gap-2">
                 <button
-                  onClick={() => setMainTab("disponibilidad")}
-                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
-                    mainTab === "disponibilidad"
-                      ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-300 border border-emerald-500/30 shadow-md"
-                      : "text-slate-400 hover:text-white"
+                  onClick={() => setMainTab("reuniones")}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+                    mainTab === "reuniones"
+                      ? "bg-gradient-to-r from-purple-600/30 to-indigo-600/20 text-purple-300 border border-purple-500/40 shadow-lg shadow-purple-500/15"
+                      : "text-slate-400 hover:text-white bg-[#0A101D]/60 border border-slate-800/40"
                   }`}
                 >
-                  <Users size={15} />
-                  Disponibilidad del Equipo Freelance
+                  <Video size={16} className="text-purple-400" />
+                  Reuniones de Equipo
                 </button>
-              )}
+
+                {user?.role !== "operativo" && (
+                  <button
+                    onClick={() => setMainTab("citas")}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+                      mainTab === "citas"
+                        ? "bg-gradient-to-r from-[#20CDFE]/20 to-[#1ED1B4]/10 text-[#20CDFE] border border-[#20CDFE]/30 shadow-md"
+                        : "text-slate-400 hover:text-white bg-[#0A101D]/60 border border-slate-800/40"
+                    }`}
+                  >
+                    <CalendarIcon size={16} />
+                    Citas con Clientes
+                  </button>
+                )}
+
+                {user?.role !== "cliente" && (
+                  <button
+                    onClick={() => setMainTab("disponibilidad")}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
+                      mainTab === "disponibilidad"
+                        ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-300 border border-emerald-500/30 shadow-md"
+                        : "text-slate-400 hover:text-white bg-[#0A101D]/60 border border-slate-800/40"
+                    }`}
+                  >
+                    <Users size={16} />
+                    Disponibilidad Freelance
+                  </button>
+                )}
+              </div>
           </div>
 
+          {/* Sub-bar para Pestaña de Reuniones */}
+          {mainTab === "reuniones" && (
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-800/50">
+              <div className="flex flex-wrap gap-3">
+                <div className="bg-[#070C18]/60 backdrop-blur-md border border-purple-500/20 rounded-2xl px-4 py-2 text-center">
+                  <p className="text-xl font-black text-purple-300">{teamMeetingsCount}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Reuniones</p>
+                </div>
+                <div className="bg-[#070C18]/60 backdrop-blur-md border border-pink-500/20 rounded-2xl px-4 py-2 text-center">
+                  <p className="text-xl font-black text-pink-400">{presencialesCount}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">📍 Presenciales</p>
+                </div>
+                <div className="bg-[#070C18]/60 backdrop-blur-md border border-indigo-500/20 rounded-2xl px-4 py-2 text-center">
+                  <p className="text-xl font-black text-indigo-300">{virtualesCount}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">💻 Virtuales (Meet/Zoom)</p>
+                </div>
+              </div>
+
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    setShowMeetingModal(true);
+                    if (!meetingDate) setMeetingDate(selectedDay || todayStr);
+                  }}
+                  className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-500/25 flex items-center gap-2 transition-all transform hover:scale-[1.02]"
+                >
+                  <Video size={17} />
+                  Programar Reunión con Equipo
+                </button>
+              )}
+            </div>
+          )}
+
           {isAdmin && mainTab === "citas" && (
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-800/50">
               <div className="flex flex-wrap gap-4">
                 <div className="bg-[#07060B]/50 backdrop-blur-md border border-slate-800/50 rounded-2xl px-4 py-2.5 text-center">
                   <p className="text-xl font-black">{totalSlots}</p>
@@ -465,17 +519,6 @@ export default function AgendaPage() {
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Disponibles</p>
                 </div>
               </div>
-
-              <button
-                onClick={() => {
-                  setShowMeetingModal(true);
-                  if (!meetingDate) setMeetingDate(selectedDay || todayStr);
-                }}
-                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-500/25 flex items-center gap-2 transition-all transform hover:scale-[1.02]"
-              >
-                <Video size={17} />
-                Programar Reunión con Equipo
-              </button>
             </div>
           )}
         </div>
@@ -484,7 +527,242 @@ export default function AgendaPage() {
 
 
       {/* ───────────────────────────────────────────────────────────────────────────── */}
-      {/* ════════════ PESTAÑA 1: CITAS ADMIN / CLIENTE ════════════ */}
+      {/* ════════════ PESTAÑA 1: REUNIONES DE EQUIPO (ADMIN Y OPERATIVOS) ════════════ */}
+      {/* ───────────────────────────────────────────────────────────────────────────── */}
+      {mainTab === "reuniones" && (
+        loading ? (
+          <div className="flex justify-center py-24">
+            <div className="w-10 h-10 border-4 border-purple-900 border-t-purple-500 rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            {/* Columna Izquierda: Calendario Interactivo con Marcadores */}
+            <div className="xl:col-span-1 space-y-4">
+              <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-3xl border border-purple-500/20 shadow-xl p-5 relative overflow-hidden">
+                <div className="flex items-center justify-between mb-4">
+                  <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-purple-900/40 text-purple-300 transition-colors">
+                    <ChevronLeft size={16} />
+                  </button>
+                  <span className="font-black text-white text-sm flex items-center gap-2">
+                    <Video size={16} className="text-purple-400" />
+                    {MONTHS[calMonth]} {calYear}
+                  </span>
+                  <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-purple-900/40 text-purple-300 transition-colors">
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-7 mb-2">
+                  {DAY_NAMES.map(d => (
+                    <div key={`m-head-${d}`} className="text-center text-[10px] font-bold text-slate-400 uppercase py-1">{d}</div>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+                    <div key={`m-empty-${i}`} />
+                  ))}
+                  {Array.from({ length: daysInMonth }).map((_, i) => {
+                    const d = i + 1;
+                    const ds = toDateStr(calYear, calMonth, d);
+                    const dayMeetings = meetingsList.filter(m => m.date === ds);
+                    const hasMeeting = dayMeetings.length > 0;
+                    const hasPresencial = dayMeetings.some(m => m.meeting_type === "presencial" || (m.location && m.meeting_type !== "virtual"));
+                    const hasVirtual = dayMeetings.some(m => m.meeting_type === "virtual" || (m.meeting_link && m.meeting_type !== "presencial"));
+                    const isToday = ds === todayStr;
+                    const isSelected = ds === selectedDay;
+
+                    return (
+                      <button
+                        key={`m-day-${d}`}
+                        onClick={() => setSelectedDay(isSelected ? "" : ds)}
+                        className={`relative h-10 w-full rounded-2xl flex flex-col items-center justify-center text-xs font-bold transition-all duration-200 border
+                          ${isSelected
+                            ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-400 shadow-lg shadow-purple-500/30 scale-105"
+                            : isToday
+                            ? "bg-purple-950/60 text-purple-300 border-purple-500/50 ring-2 ring-purple-500/30"
+                            : hasMeeting
+                            ? "bg-[#0E1528] text-white border-purple-500/30 hover:border-purple-400 hover:bg-purple-900/30"
+                            : "bg-[#070C18]/60 text-slate-400 border-slate-800/40 hover:bg-slate-800/40"}`}
+                      >
+                        <span>{d}</span>
+                        {hasMeeting && (
+                          <div className="flex items-center gap-0.5 mt-0.5">
+                            {hasPresencial && <span className="w-1.5 h-1.5 rounded-full bg-pink-500" title="Presencial" />}
+                            {hasVirtual && <span className="w-1.5 h-1.5 rounded-full bg-purple-400" title="Virtual" />}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
+                  <div className="flex items-center gap-3 font-semibold text-slate-400">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-pink-500" /> Presencial</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400" /> Virtual</span>
+                  </div>
+                  {selectedDay && (
+                    <button
+                      onClick={() => setSelectedDay("")}
+                      className="text-purple-400 hover:text-purple-300 text-[10px] font-bold underline"
+                    >
+                      Ver Todas
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Columna Derecha: Feed Interactivo de Reuniones */}
+            <div className="xl:col-span-2 space-y-4">
+              <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-3xl border border-purple-500/20 shadow-xl p-6">
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-800/60">
+                  <div className="flex items-center gap-2">
+                    <Video className="text-purple-400" size={20} />
+                    <h3 className="font-black text-white text-base">
+                      {selectedDay ? `Reuniones del ${formatDate(selectedDay)}` : "Todas las Reuniones Convocadas"}
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-purple-300 bg-purple-900/40 border border-purple-500/30 px-3 py-1 rounded-full">
+                    {filteredMeetings.length} {filteredMeetings.length === 1 ? "Reunión" : "Reuniones"}
+                  </span>
+                </div>
+
+                {filteredMeetings.length === 0 ? (
+                  <div className="text-center py-20 space-y-3">
+                    <div className="w-16 h-16 rounded-full bg-purple-950/40 border border-purple-500/20 flex items-center justify-center mx-auto text-purple-400">
+                      <Video size={32} />
+                    </div>
+                    <p className="font-bold text-white text-base">No hay reuniones {selectedDay ? "para esta fecha" : "programadas por el momento"}.</p>
+                    <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                      Las reuniones convocadas por la administración (grupales o individuales) aparecerán listadas aquí con su ubicación y enlaces.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {filteredMeetings.map(m => (
+                      <div
+                        key={`m-card-${m.id}`}
+                        className="bg-[#070C18]/80 border border-purple-500/30 hover:border-purple-500/60 rounded-3xl p-5 md:p-6 transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/10 space-y-4 relative overflow-hidden"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shrink-0
+                              ${m.meeting_type === "virtual"
+                                ? "bg-purple-600/20 border border-purple-500/30 text-purple-400"
+                                : "bg-pink-600/20 border border-pink-500/30 text-pink-400"}`}>
+                              {m.meeting_type === "virtual" ? <Video size={20} /> : <MapPin size={20} />}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-black text-white text-base">{m.title || "Reunión de Equipo"}</h4>
+                                <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border
+                                  ${m.meeting_type === "virtual"
+                                    ? "bg-purple-900/50 border-purple-400/40 text-purple-300"
+                                    : "bg-pink-950/50 border-pink-500/40 text-pink-300"}`}>
+                                  {m.meeting_type === "virtual" ? "💻 Virtual" : "📍 Presencial"}
+                                </span>
+                              </div>
+                              <p className="text-xs text-purple-300/80 font-medium">
+                                {m.is_group ? "👥 Reunión Grupal (Todo el Equipo)" : `👤 Convocados: ${m.attendees_names?.join(", ") || "Operadores"}`}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-xs font-bold text-slate-300 bg-slate-800/80 border border-slate-700 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                              <CalendarIcon size={13} className="text-purple-400" />
+                              {formatDate(m.date)}
+                            </span>
+                            <span className="text-xs font-bold text-purple-300 bg-purple-950/60 border border-purple-800/50 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                              <Clock size={13} />
+                              {m.start_time} – {m.end_time}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Detalles de Ubicación u Enlace */}
+                        {m.location && (
+                          <div className="p-3.5 bg-pink-950/20 border border-pink-500/30 rounded-2xl flex items-start gap-3">
+                            <MapPin size={18} className="text-pink-400 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-[11px] font-bold text-pink-300 uppercase tracking-wider">📍 Lugar / Ubicación Presencial:</p>
+                              <p className="text-sm font-bold text-white">{m.location}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {m.notes && (
+                          <div className="p-3 bg-[#0A101D] border border-slate-800 rounded-2xl space-y-1">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Orden del día / Indicaciones:</p>
+                            <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line">{m.notes}</p>
+                          </div>
+                        )}
+
+                        {/* Acciones y Exportaciones */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800/60">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {m.meeting_link && (
+                              <a
+                                href={m.meeting_link.startsWith("http") ? m.meeting_link : `https://${m.meeting_link}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center gap-1.5 shadow-md shadow-purple-500/20 transition-all transform hover:scale-[1.02]"
+                              >
+                                <Video size={14} />
+                                Unirse a Google Meet / Zoom
+                              </a>
+                            )}
+                            <a
+                              href={getGoogleCalendarUrl({
+                                title: m.title || "Reunión de Equipo",
+                                description: `${m.notes || ''}\n${m.location ? 'Lugar: ' + m.location : ''}\n${m.meeting_link ? 'Link: ' + m.meeting_link : ''}`,
+                                date: m.date,
+                                startTime: m.start_time,
+                                endTime: m.end_time
+                              })}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/40 flex items-center gap-1.5 transition-all"
+                            >
+                              📅 Google Cal
+                            </a>
+                            <button
+                              onClick={() => downloadIcsFile({
+                                title: m.title || "Reunión de Equipo",
+                                description: `${m.notes || ''}\n${m.location ? 'Lugar: ' + m.location : ''}\n${m.meeting_link ? 'Link: ' + m.meeting_link : ''}`,
+                                date: m.date,
+                                startTime: m.start_time,
+                                endTime: m.end_time
+                              })}
+                              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1.5 transition-all"
+                            >
+                              📥 iCal (.ics)
+                            </button>
+                          </div>
+
+                          {isAdmin && (
+                            <button
+                              onClick={() => handleDeleteSlot(m.id)}
+                              className="px-3 py-2 text-xs font-bold text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-xl border border-red-500/30 flex items-center gap-1 transition-all"
+                            >
+                              <Trash2 size={13} /> Eliminar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      )}
+
+      {/* ───────────────────────────────────────────────────────────────────────────── */}
+      {/* ════════════ PESTAÑA 2: CITAS ADMIN / CLIENTE ════════════ */}
       {/* ───────────────────────────────────────────────────────────────────────────── */}
       {mainTab === "citas" && (
         loading ? (
