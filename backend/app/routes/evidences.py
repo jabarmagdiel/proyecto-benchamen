@@ -16,7 +16,7 @@ def list_evidences(activity_id: int, db: Session = Depends(get_db), current_user
     from app.services import activity_service as activity_svc
     from fastapi import HTTPException
     activity = activity_svc.get_by_id(db, activity_id)
-    if current_user.role.value == "cliente" and activity.project.company_id != current_user.company_id:
+    if current_user.role.value == "cliente" and activity.project and activity.project.company_id != current_user.company_id:
         raise HTTPException(status_code=403, detail="No tienes permiso para ver las evidencias de esta actividad")
     return evidence_svc.get_by_activity(db, activity_id)
 

@@ -37,7 +37,7 @@ export default function ActivityDetailPage() {
       const act = aRes.data;
       
       const [eRes, cRes, hRes] = await Promise.all([
-        act?.project_id ? projectsApi.getEvidences(act.project_id) : evidencesApi.list(actId),
+        evidencesApi.list(actId),
         commentsApi.list(actId),
         activitiesApi.getHistory(actId),
       ]);
