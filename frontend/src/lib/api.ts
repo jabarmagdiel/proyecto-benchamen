@@ -129,6 +129,7 @@ export const dashboardApi = {
 // ─── Appointments ─────────────────────────────────────────────────────────────
 export const appointmentsApi = {
   createAvailability: (data: object) => api.post("/api/appointments/availability", data),
+  createMeeting: (data: object) => api.post("/api/appointments/meeting", data),
   getAvailability: (params?: object) => api.get("/api/appointments/availability", { params }),
   book: (id: number, data: object) => api.patch(`/api/appointments/${id}/book`, data),
   my: () => api.get("/api/appointments/my"),

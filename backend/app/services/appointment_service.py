@@ -6,11 +6,11 @@ from sqlalchemy import and_
 
 from app.models.appointment import Appointment
 from app.models.user import User
-from app.schemas.appointment import AppointmentCreate, AppointmentBook, AppointmentResponse
+from app.schemas.appointment import AppointmentCreate, AppointmentBook, AppointmentResponse, MeetingCreate
 from app.services import notification_service as notif_svc
 
 
-def _to_response(apt: Appointment) -> AppointmentResponse:
+def _to_response(apt: Appointment, db: Session = None) -> AppointmentResponse:
     client_name = None
     client_email = None
     company_name = None
@@ -19,6 +19,13 @@ def _to_response(apt: Appointment) -> AppointmentResponse:
         client_email = apt.client.email
         if apt.client.company:
             company_name = apt.client.company.name
+
+    attendees_names = []
+    if apt.is_group:
+        attendees_names = ["👥 Todos los Operativos (Grupal)"]
+    elif apt.attendee_ids and db:
+        users = db.query(User).filter(User.id.in_(apt.attendee_ids)).all()
+        attendees_names = [u.name for u in users]
 
     return AppointmentResponse(
         id=apt.id,
@@ -30,6 +37,10 @@ def _to_response(apt: Appointment) -> AppointmentResponse:
         status=apt.status,
         title=apt.title,
         notes=apt.notes,
+        meeting_link=apt.meeting_link,
+        is_group=apt.is_group or False,
+        attendee_ids=apt.attendee_ids or [],
+        attendees_names=attendees_names,
         client_name=client_name,
         client_email=client_email,
         company_name=company_name,
@@ -227,26 +238,102 @@ def book_slot(db: Session, appointment_id: int, client_id: int, data: Appointmen
     return _to_response(apt)
 
 
+def create_meeting(db: Session, admin: User, data: MeetingCreate) -> AppointmentResponse:
+    from app.services import google_calendar_service as gcal_svc
+    from app.utils.enums import UserRole
+    
+    if data.start_time >= data.end_time:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La hora de inicio debe ser anterior a la hora de fin",
+        )
+
+    target_user_ids = []
+    if data.is_group:
+        operatives = db.query(User).filter(User.role.in_([UserRole.OPERATIVE, UserRole.OPERATOR]), User.is_active == True).all()
+        target_user_ids = [u.id for u in operatives]
+    else:
+        target_user_ids = data.attendee_ids or []
+
+    apt = Appointment(
+        admin_id=admin.id,
+        date=data.date,
+        start_time=data.start_time,
+        end_time=data.end_time,
+        status="meeting",
+        title=data.title,
+        notes=data.notes,
+        meeting_link=data.meeting_link,
+        is_group=data.is_group,
+        attendee_ids=target_user_ids,
+    )
+    db.add(apt)
+    db.commit()
+    db.refresh(apt)
+
+    # Notificar a los participantes
+    fecha_str = _format_date_es(apt.date)
+    horario_str = f"{apt.start_time} – {apt.end_time}"
+    notif_msg = (
+        f"📅 Reunión: '{data.title}'\n"
+        f"📆 Fecha: {fecha_str}\n"
+        f"🕐 Horario: {horario_str}\n"
+        f"{('🔗 Link: ' + data.meeting_link) if data.meeting_link else ''}"
+    ).strip()
+
+    notify_users = []
+    if data.is_group:
+        notify_users = db.query(User).filter(User.is_active == True, User.id != admin.id).all()
+    elif target_user_ids:
+        notify_users = db.query(User).filter(User.id.in_(target_user_ids)).all()
+
+    for u in notify_users:
+        try:
+            notif_svc.create_notification(
+                db=db,
+                user_id=u.id,
+                title=f"📅 Nueva Reunión: {data.title}",
+                message=notif_msg,
+                link="/agenda",
+            )
+        except Exception:
+            pass
+
+    try:
+        gcal_svc.create_calendar_event(db, admin, apt)
+    except Exception:
+        pass
+
+    _emit_appointment_update()
+    return _to_response(apt, db)
+
+
 def get_my_appointments(db: Session, user: User) -> List[AppointmentResponse]:
     role_val = user.role.value if hasattr(user.role, 'value') else str(user.role)
+    cutoff = date.today() - timedelta(days=30)
     if role_val == "administrador":
-        # Administrador ve su horario: últimos 30 días + futuro
-        cutoff = date.today() - timedelta(days=30)
+        # Administrador ve todo su horario + reuniones
         apts = db.query(Appointment).filter(
-            Appointment.admin_id == user.id,
             Appointment.date >= cutoff,
         ).order_by(Appointment.date.desc(), Appointment.start_time.desc()).all()
     elif role_val == "cliente":
-        # Cliente ve solo sus reservas (futuras + recientes)
-        cutoff = date.today() - timedelta(days=30)
+        # Cliente ve sus reservas y reuniones dirigidas a él
         apts = db.query(Appointment).filter(
             Appointment.client_id == user.id,
             Appointment.date >= cutoff,
         ).order_by(Appointment.date.desc(), Appointment.start_time.desc()).all()
     else:
+        # Operativos / Freelancers: ven reuniones grupales o asignadas a ellos
+        all_apts = db.query(Appointment).filter(
+            Appointment.date >= cutoff,
+            Appointment.status == "meeting"
+        ).order_by(Appointment.date.desc(), Appointment.start_time.desc()).all()
         apts = []
+        for a in all_apts:
+            if a.is_group or (a.attendee_ids and user.id in a.attendee_ids):
+                apts.append(a)
 
-    return [_to_response(a) for a in apts]
+    return [_to_response(a, db) for a in apts]
 
 
 def cancel_appointment(db: Session, appointment_id: int, user: User) -> AppointmentResponse:

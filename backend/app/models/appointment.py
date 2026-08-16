@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import date, datetime, timezone
-from sqlalchemy import String, Text, Date, ForeignKey
+from sqlalchemy import String, Text, Date, ForeignKey, Boolean, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -16,9 +16,12 @@ class Appointment(Base):
     date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     start_time: Mapped[str] = mapped_column(String(5), nullable=False)  # HH:MM
     end_time: Mapped[str] = mapped_column(String(5), nullable=False)    # HH:MM
-    status: Mapped[str] = mapped_column(String(20), default="available", nullable=False)  # available, booked, cancelled
+    status: Mapped[str] = mapped_column(String(20), default="available", nullable=False)  # available, booked, cancelled, meeting
     title: Mapped[str | None] = mapped_column(String(250))
     notes: Mapped[str | None] = mapped_column(Text)
+    meeting_link: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    is_group: Mapped[bool | None] = mapped_column(Boolean, default=False, nullable=True)
+    attendee_ids: Mapped[list[int] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime] = mapped_column(
         default=lambda: datetime.now(timezone.utc),

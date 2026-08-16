@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { appointmentsApi, operativeAvailabilityApi } from "@/lib/api";
+import { appointmentsApi, operativeAvailabilityApi, usersApi } from "@/lib/api";
 import api from "@/lib/api";
 import type { Appointment, OperativeAvailability, OperativeAvailabilitySummary } from "@/types";
 import { formatDate } from "@/lib/utils";
@@ -11,7 +11,7 @@ import {
   Calendar as CalendarIcon, Clock, User, Plus, Trash2,
   CalendarCheck, HelpCircle, X, CheckCircle2, XCircle, ChevronLeft, ChevronRight,
   Building2, FileText, Bell, Users, ShieldAlert, ShieldCheck, Briefcase, Lock,
-  AlertTriangle, RefreshCw, Link2, LinkIcon, Unlink
+  AlertTriangle, RefreshCw, Link2, LinkIcon, Unlink, Video
 } from "lucide-react";
 
 import { useWebSocket } from "@/context/WebSocketContext";
@@ -115,6 +115,27 @@ export default function AgendaPage() {
   const [bookEndTime, setBookEndTime]     = useState("");
   const [bookTitle,    setBookTitle]       = useState("");
   const [bookNotes,    setBookNotes]       = useState("");
+
+  /* ─── State para Solicitar / Programar Reunión en Agenda ─── */
+  const [showMeetingModal, setShowMeetingModal]               = useState(false);
+  const [meetingTitle, setMeetingTitle]                       = useState("");
+  const [meetingDate, setMeetingDate]                         = useState("");
+  const [meetingStart, setMeetingStart]                       = useState("10:00");
+  const [meetingEnd, setMeetingEnd]                           = useState("11:00");
+  const [meetingIsGroup, setMeetingIsGroup]                   = useState(true);
+  const [meetingSelectedUserIds, setMeetingSelectedUserIds]   = useState<number[]>([]);
+  const [meetingLink, setMeetingLink]                         = useState("");
+  const [meetingNotes, setMeetingNotes]                       = useState("");
+  const [submittingMeeting, setSubmittingMeeting]             = useState(false);
+  const [usersList, setUsersList]                             = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      usersApi.list()
+        .then(res => setUsersList(res.data || []))
+        .catch(err => console.error("Error al obtener lista de usuarios para reuniones:", err));
+    }
+  }, [isAdmin]);
 
   /* ─── PESTAÑA 2: DISPONIBILIDAD FREELANCE DEL EQUIPO ─── */
   const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
@@ -237,8 +258,46 @@ export default function AgendaPage() {
       setSelectedSlot(null); setBookTitle(""); setBookNotes("");
       loadData();
     } catch (err: any) {
-      showToast(err?.response?.data?.detail || "Error al reservar", "error");
+      showToast(err?.response?.data?.detail || "Error al reservar cita", "error");
     } finally { setSubmitting(false); }
+  };
+
+  /* ── Acciones Reuniones ── */
+  const handleScheduleMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!meetingTitle.trim()) { showToast("Ingresa un título para la reunión", "error"); return; }
+    if (!meetingDate) { showToast("Selecciona una fecha para la reunión", "error"); return; }
+    if (meetingStart >= meetingEnd) { showToast("La hora de inicio debe ser anterior a la hora de fin", "error"); return; }
+    if (!meetingIsGroup && meetingSelectedUserIds.length === 0) {
+      showToast("Selecciona al menos un participante o marca 'Reunión Grupal'", "error");
+      return;
+    }
+
+    setSubmittingMeeting(true);
+    try {
+      await appointmentsApi.createMeeting({
+        title: meetingTitle,
+        date: meetingDate,
+        start_time: meetingStart,
+        end_time: meetingEnd,
+        is_group: meetingIsGroup,
+        attendee_ids: meetingSelectedUserIds,
+        meeting_link: meetingLink,
+        notes: meetingNotes,
+      });
+      showToast("✅ Reunión programada y notificada a los participantes");
+      setShowMeetingModal(false);
+      setMeetingTitle("");
+      setMeetingLink("");
+      setMeetingNotes("");
+      setMeetingSelectedUserIds([]);
+      setMeetingIsGroup(true);
+      loadData();
+    } catch (err: any) {
+      showToast(err?.response?.data?.detail || "Error al programar reunión", "error");
+    } finally {
+      setSubmittingMeeting(false);
+    }
   };
 
   const handleCancel = async (id: number) => {
@@ -387,19 +446,32 @@ export default function AgendaPage() {
           </div>
 
           {isAdmin && mainTab === "citas" && (
-            <div className="flex flex-wrap gap-4 pt-2">
-              <div className="bg-[#07060B]/50 backdrop-blur-md border border-slate-800/50 rounded-2xl px-4 py-2.5 text-center">
-                <p className="text-xl font-black">{totalSlots}</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Slots</p>
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+              <div className="flex flex-wrap gap-4">
+                <div className="bg-[#07060B]/50 backdrop-blur-md border border-slate-800/50 rounded-2xl px-4 py-2.5 text-center">
+                  <p className="text-xl font-black">{totalSlots}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Slots</p>
+                </div>
+                <div className="bg-[#07060B]/50 backdrop-blur-md border border-slate-800/50 rounded-2xl px-4 py-2.5 text-center">
+                  <p className="text-xl font-black text-[#1ED1B4]">{bookedSlots}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Reservadas</p>
+                </div>
+                <div className="bg-[#07060B]/50 backdrop-blur-md border border-slate-800/50 rounded-2xl px-4 py-2.5 text-center">
+                  <p className="text-xl font-black text-[#20CDFE]">{availableCount}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Disponibles</p>
+                </div>
               </div>
-              <div className="bg-[#07060B]/50 backdrop-blur-md border border-slate-800/50 rounded-2xl px-4 py-2.5 text-center">
-                <p className="text-xl font-black text-[#1ED1B4]">{bookedSlots}</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Reservadas</p>
-              </div>
-              <div className="bg-[#07060B]/50 backdrop-blur-md border border-slate-800/50 rounded-2xl px-4 py-2.5 text-center">
-                <p className="text-xl font-black text-[#20CDFE]">{availableCount}</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Disponibles</p>
-              </div>
+
+              <button
+                onClick={() => {
+                  setShowMeetingModal(true);
+                  if (!meetingDate) setMeetingDate(selectedDay || todayStr);
+                }}
+                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-500/25 flex items-center gap-2 transition-all transform hover:scale-[1.02]"
+              >
+                <Video size={17} />
+                Programar Reunión con Equipo
+              </button>
             </div>
           )}
         </div>
@@ -552,16 +624,22 @@ export default function AgendaPage() {
                         <div
                           key={apt.id}
                           className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all
-                            ${apt.status === "booked" ? "border-emerald-100 bg-emerald-50/30" :
+                            ${apt.status === "meeting" ? "border-purple-500/40 bg-purple-950/30 shadow-md shadow-purple-950/20" :
+                              apt.status === "booked" ? "border-emerald-100 bg-emerald-50/30" :
                               apt.status === "cancelled" ? "border-slate-800/50 bg-[#0F192E] opacity-50" :
                               "border-slate-800/50 bg-[#0A101D]/80 hover:border-slate-800"}`}
                         >
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-bold text-[#20CDFE] bg-[#20CDFE]/10 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span className={`text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0 ${apt.status === "meeting" ? "text-purple-300 bg-purple-900/50" : "text-[#20CDFE] bg-[#20CDFE]/10"}`}>
                               <Clock size={11} />
                               {apt.start_time} – {apt.end_time}
                             </span>
-                            {apt.status === "booked" ? (
+                            {apt.status === "meeting" ? (
+                              <span className="text-[10px] font-black text-purple-200 bg-purple-600/40 border border-purple-400/30 px-2 py-0.5 rounded-full uppercase flex items-center gap-1">
+                                <Video size={10} />
+                                {apt.is_group ? "Reunión Grupal" : "Reunión Directa"}
+                              </span>
+                            ) : apt.status === "booked" ? (
                               <span className="text-[10px] font-bold text-[#07060B] bg-[#1ED1B4] px-2 py-0.5 rounded-full uppercase">Reservada</span>
                             ) : apt.status === "cancelled" ? (
                               <span className="text-[10px] font-bold text-slate-400 bg-[#1C2C4D] px-2 py-0.5 rounded-full uppercase">Cancelada</span>
@@ -569,6 +647,60 @@ export default function AgendaPage() {
                               <span className="text-[10px] font-bold text-[#20CDFE] bg-[#20CDFE]/10 px-2 py-0.5 rounded-full uppercase">Disponible</span>
                             )}
                           </div>
+
+                          {apt.status === "meeting" && (
+                            <div className="space-y-1.5">
+                              <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                                <Video size={13} className="text-purple-400 shrink-0" />
+                                {apt.title || "Reunión de Equipo"}
+                              </p>
+                              {apt.notes && <p className="text-[11px] text-slate-300 line-clamp-2">{apt.notes}</p>}
+                              <div className="flex items-center gap-1.5 text-[11px] text-purple-200/90 font-medium pt-1 border-t border-purple-800/30">
+                                <Users size={11} className="text-purple-400 shrink-0" />
+                                <span className="truncate">
+                                  {apt.is_group ? "👥 Todos los Operativos" : (apt.attendees_names?.join(", ") || "Convocados")}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                                {apt.meeting_link && (
+                                  <a
+                                    href={apt.meeting_link.startsWith("http") ? apt.meeting_link : `https://${apt.meeting_link}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="px-2 py-1 rounded-lg text-[10px] font-bold bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white flex items-center gap-1 shadow-sm"
+                                  >
+                                    <Video size={10} /> Unirse
+                                  </a>
+                                )}
+                                <a
+                                  href={getGoogleCalendarUrl({
+                                    title: apt.title || "Reunión de Equipo",
+                                    description: `${apt.notes || ''}\n${apt.meeting_link ? 'Link: ' + apt.meeting_link : ''}`,
+                                    date: apt.date,
+                                    startTime: apt.start_time,
+                                    endTime: apt.end_time
+                                  })}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2 py-1 rounded-lg text-[10px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/40 flex items-center gap-1 transition-all"
+                                >
+                                  📅 Google Cal
+                                </a>
+                                <button
+                                  onClick={() => downloadIcsFile({
+                                    title: apt.title || "Reunión de Equipo",
+                                    description: `${apt.notes || ''}\n${apt.meeting_link ? 'Link: ' + apt.meeting_link : ''}`,
+                                    date: apt.date,
+                                    startTime: apt.start_time,
+                                    endTime: apt.end_time
+                                  })}
+                                  className="px-2 py-1 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-all"
+                                >
+                                  📥 iCal (.ics)
+                                </button>
+                              </div>
+                            </div>
+                          )}
 
                           {apt.status === "booked" && (
                             <div className="space-y-1.5">
@@ -615,6 +747,11 @@ export default function AgendaPage() {
                                 <Trash2 size={12} /> Eliminar
                               </button>
                             )}
+                            {apt.status === "meeting" && isAdmin && (
+                              <button onClick={() => handleDeleteSlot(apt.id)} className="text-[11px] text-red-400 hover:text-red-300 font-semibold flex items-center gap-1">
+                                <Trash2 size={12} /> Eliminar Reunión
+                              </button>
+                            )}
                             {apt.status === "booked" && (
                               <button onClick={() => handleCancel(apt.id)} className="text-[11px] text-red-500 hover:text-red-700 font-semibold flex items-center gap-1">
                                 <XCircle size={12} /> Cancelar cita
@@ -647,7 +784,8 @@ export default function AgendaPage() {
                         <div
                           key={apt.id}
                           className={`p-3.5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 transition-all
-                            ${apt.status === "booked" ? "border-emerald-100 bg-emerald-50/20" :
+                            ${apt.status === "meeting" ? "border-purple-500/40 bg-purple-950/20 hover:border-purple-500/60" :
+                              apt.status === "booked" ? "border-emerald-100 bg-emerald-50/20" :
                               apt.status === "cancelled" ? "border-slate-800/50 bg-[#15233D]/40 opacity-55" :
                               "border-slate-800/50 bg-[#0A101D]/80 hover:bg-[#0F192E]"}`}
                         >
@@ -656,10 +794,24 @@ export default function AgendaPage() {
                               <CalendarIcon size={11} />
                               {formatDate(apt.date)}
                             </span>
-                            <span className="text-xs font-bold text-[#20CDFE] bg-[#20CDFE]/10 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0">
+                            <span className={`text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0 ${apt.status === "meeting" ? "text-purple-300 bg-purple-900/50" : "text-[#20CDFE] bg-[#20CDFE]/10"}`}>
                               <Clock size={11} />
                               {apt.start_time} – {apt.end_time}
                             </span>
+                            {apt.status === "meeting" && (
+                              <>
+                                <span className="text-[10px] font-black text-purple-200 bg-purple-600/40 border border-purple-400/30 px-2 py-0.5 rounded-full uppercase flex items-center gap-1">
+                                  <Video size={10} />
+                                  {apt.is_group ? "Reunión Grupal" : "Reunión Directa"}
+                                </span>
+                                <span className="text-xs font-bold text-white truncate">
+                                  {apt.title || "Reunión de Equipo"}
+                                </span>
+                                <span className="text-xs text-purple-300/80 truncate">
+                                  ({apt.is_group ? "👥 Grupal" : apt.attendees_names?.join(", ")})
+                                </span>
+                              </>
+                            )}
                             {apt.status === "booked" && apt.client_name && (
                               <span className="text-xs text-slate-300 flex items-center gap-1 truncate">
                                 <User size={11} className="text-slate-400 shrink-0" />
@@ -668,6 +820,49 @@ export default function AgendaPage() {
                             )}
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
+                            {apt.status === "meeting" && (
+                              <div className="flex items-center gap-1.5">
+                                {apt.meeting_link && (
+                                  <a
+                                    href={apt.meeting_link.startsWith("http") ? apt.meeting_link : `https://${apt.meeting_link}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 flex items-center gap-1 shadow-sm"
+                                  >
+                                    <Video size={12} />
+                                    Unirse
+                                  </a>
+                                )}
+                                <a
+                                  href={getGoogleCalendarUrl({
+                                    title: apt.title || "Reunión de Equipo",
+                                    description: `${apt.notes || ''}\n${apt.meeting_link ? 'Link: ' + apt.meeting_link : ''}`,
+                                    date: apt.date,
+                                    startTime: apt.start_time,
+                                    endTime: apt.end_time
+                                  })}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-[#4285F4]/20 text-[#4285F4] hover:bg-[#4285F4]/30 border border-[#4285F4]/40 flex items-center gap-1 transition-all"
+                                  title="Exportar a Google Calendar"
+                                >
+                                  📅 Google Cal
+                                </a>
+                                <button
+                                  onClick={() => downloadIcsFile({
+                                    title: apt.title || "Reunión de Equipo",
+                                    description: `${apt.notes || ''}\n${apt.meeting_link ? 'Link: ' + apt.meeting_link : ''}`,
+                                    date: apt.date,
+                                    startTime: apt.start_time,
+                                    endTime: apt.end_time
+                                  })}
+                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-all"
+                                  title="Descargar archivo iCal (.ics)"
+                                >
+                                  📥 iCal
+                                </button>
+                              </div>
+                            )}
                             {apt.status === "booked" && (
                               <div className="flex items-center gap-1.5">
                                 <a
@@ -702,7 +897,7 @@ export default function AgendaPage() {
                             )}
                             {apt.status === "booked" ? (
                               <button onClick={() => handleCancel(apt.id)} className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Cancelar"><XCircle size={15} /></button>
-                            ) : apt.status === "available" ? (
+                            ) : (apt.status === "available" || (apt.status === "meeting" && isAdmin)) ? (
                               <button onClick={() => handleDeleteSlot(apt.id)} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"><Trash2 size={15} /></button>
                             ) : null}
                           </div>
@@ -1251,6 +1446,184 @@ export default function AgendaPage() {
                 >
                   <CheckCircle2 size={15} />
                   {submitting ? "Confirmando..." : "Confirmar Cita"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─ Modal de Programación de Reunión con Equipo ─ */}
+      {showMeetingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-fade-in">
+          <div className="bg-[#0B132B] border border-purple-500/30 rounded-3xl p-6 md:p-8 max-w-lg w-full text-white shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                  <Video size={22} />
+                </div>
+                <div>
+                  <h3 className="font-black text-lg text-white">Solicitar / Programar Reunión</h3>
+                  <p className="text-xs text-slate-400">Convoca a operadores (grupal o individual)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowMeetingModal(false)}
+                className="w-8 h-8 rounded-full bg-slate-800/60 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleScheduleMeeting} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Asunto / Título de la Reunión *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: Reunión de Coordinación de Contenidos"
+                  value={meetingTitle}
+                  onChange={e => setMeetingTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#070C18] border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Fecha *</label>
+                  <input
+                    type="date"
+                    required
+                    value={meetingDate}
+                    onChange={e => setMeetingDate(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#070C18] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Hora Inicio *</label>
+                  <select
+                    value={meetingStart}
+                    onChange={e => setMeetingStart(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#070C18] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
+                  >
+                    {HOURS.map(h => <option key={`ms-${h}`} value={h}>{h}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Hora Fin *</label>
+                  <select
+                    value={meetingEnd}
+                    onChange={e => setMeetingEnd(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#070C18] border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500"
+                  >
+                    {HOURS.map(h => <option key={`me-${h}`} value={h}>{h}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-2">Convocatoria de Participantes</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setMeetingIsGroup(true); setMeetingSelectedUserIds([]); }}
+                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all
+                      ${meetingIsGroup
+                        ? "bg-purple-600/20 border-purple-500 text-purple-300 shadow-md shadow-purple-500/20"
+                        : "bg-[#070C18] border-slate-800 text-slate-400 hover:border-slate-700"}`}
+                  >
+                    <Users size={18} />
+                    <span>👥 Todo el Equipo (Grupal)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMeetingIsGroup(false)}
+                    className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all
+                      ${!meetingIsGroup
+                        ? "bg-purple-600/20 border-purple-500 text-purple-300 shadow-md shadow-purple-500/20"
+                        : "bg-[#070C18] border-slate-800 text-slate-400 hover:border-slate-700"}`}
+                  >
+                    <User size={18} />
+                    <span>👤 Operadores Específicos</span>
+                  </button>
+                </div>
+              </div>
+
+              {!meetingIsGroup && (
+                <div className="p-3 bg-[#070C18] border border-slate-800 rounded-2xl space-y-2 max-h-48 overflow-y-auto">
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Selecciona uno o más operadores:</p>
+                  {usersList
+                    .filter(u => u.role === "operativo" || u.role === "operador" || u.role === "freelance")
+                    .map(u => {
+                      const isSelected = meetingSelectedUserIds.includes(u.id);
+                      return (
+                        <div
+                          key={u.id}
+                          onClick={() => {
+                            if (isSelected) {
+                              setMeetingSelectedUserIds(prev => prev.filter(id => id !== u.id));
+                            } else {
+                              setMeetingSelectedUserIds(prev => [...prev, u.id]);
+                            }
+                          }}
+                          className={`p-2 rounded-xl border flex items-center justify-between cursor-pointer text-xs font-semibold transition-all
+                            ${isSelected
+                              ? "bg-purple-900/40 border-purple-500 text-white"
+                              : "bg-[#0A101D] border-slate-800 text-slate-300 hover:bg-slate-800/40"}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold text-[10px]">
+                              {u.name.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-bold text-white">{u.name}</p>
+                              <p className="text-[10px] text-slate-400">{u.email}</p>
+                            </div>
+                          </div>
+                          {isSelected && <CheckCircle2 size={16} className="text-purple-400" />}
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Enlace de la Reunión (Google Meet / Zoom)</label>
+                <input
+                  type="url"
+                  placeholder="https://meet.google.com/xyz-abc-def"
+                  value={meetingLink}
+                  onChange={e => setMeetingLink(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#070C18] border border-slate-800 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Notas / Temas a tratar</label>
+                <textarea
+                  rows={2}
+                  placeholder="Detalles sobre el orden del día o indicaciones..."
+                  value={meetingNotes}
+                  onChange={e => setMeetingNotes(e.target.value)}
+                  className="w-full px-4 py-2 bg-[#070C18] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowMeetingModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-800 text-slate-400 text-xs font-bold hover:bg-slate-800 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingMeeting}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-500/25 flex items-center gap-2 disabled:opacity-50 transition-all"
+                >
+                  <Video size={15} />
+                  {submittingMeeting ? "Programando..." : "Programar y Notificar Reunión"}
                 </button>
               </div>
             </form>

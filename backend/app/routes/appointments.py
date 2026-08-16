@@ -6,10 +6,24 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.models.user import User
-from app.schemas.appointment import AppointmentCreate, AppointmentBook, AppointmentResponse
+from app.schemas.appointment import AppointmentCreate, AppointmentBook, AppointmentResponse, MeetingCreate
 import app.services.appointment_service as appointment_svc
 
 router = APIRouter(prefix="/api/appointments", tags=["Agenda"])
+
+
+@router.post("/meeting", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
+def create_meeting(
+    data: MeetingCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.role.value != "administrador":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Solo el administrador puede solicitar/programar reuniones"
+        )
+    return appointment_svc.create_meeting(db, admin=current_user, data=data)
 
 
 @router.post("/availability", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)

@@ -273,9 +273,13 @@ export interface Appointment {
   date: string;
   start_time: string;
   end_time: string;
-  status: "available" | "booked" | "cancelled";
+  status: "available" | "booked" | "cancelled" | "meeting";
   title?: string;
   notes?: string;
+  meeting_link?: string;
+  is_group?: boolean;
+  attendee_ids?: number[];
+  attendees_names?: string[];
   client_name?: string;
   client_email?: string;
   company_name?: string;
