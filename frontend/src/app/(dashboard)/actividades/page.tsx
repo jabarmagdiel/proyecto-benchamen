@@ -170,6 +170,24 @@ export default function ActividadesPage() {
       } else if (newStatus === "cancelada") {
         await activitiesApi.cancel(activityId);
         showToast("Actividad cancelada");
+      } else if (newStatus === "en_proceso") {
+        // Use proper start endpoint if possible, fallback to update for admins
+        try {
+          await activitiesApi.start(activityId);
+          showToast("▶️ Actividad iniciada");
+        } catch {
+          await activitiesApi.update(activityId, { status: newStatus });
+          showToast("Estado actualizado");
+        }
+      } else if (newStatus === "en_revision") {
+        // Use proper sendReview endpoint if possible, fallback to update for admins
+        try {
+          await activitiesApi.sendReview(activityId);
+          showToast("📤 Enviado a revisión");
+        } catch {
+          await activitiesApi.update(activityId, { status: newStatus });
+          showToast("Estado actualizado");
+        }
       } else {
         await activitiesApi.update(activityId, { status: newStatus });
         showToast("Estado actualizado");

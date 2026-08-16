@@ -391,8 +391,9 @@ def _unlock_dependencies(db: Session, activity: Activity, action: str, current_u
 async def start_activity(db: Session, activity_id: int, current_user: User, bg: BackgroundTasks) -> Activity:
     """Operativo: Asignada → En Proceso"""
     activity = get_by_id(db, activity_id)
-    if activity.assigned_user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Solo el responsable puede iniciar la actividad")
+    # Allow the assigned user or an admin to start
+    if activity.assigned_user_id != current_user.id and current_user.role.value != "administrador":
+        raise HTTPException(status_code=403, detail="Solo el responsable o un administrador puede iniciar la actividad")
     if activity.status != ActivityStatus.ASSIGNED:
         raise HTTPException(status_code=400, detail=f"No se puede iniciar desde el estado '{activity.status.value}'")
     prev = activity.status.value
@@ -404,11 +405,12 @@ async def start_activity(db: Session, activity_id: int, current_user: User, bg: 
 
 
 async def send_to_review(db: Session, activity_id: int, current_user: User, bg: BackgroundTasks) -> Activity:
-    """Operativo: En Proceso → En Revisión"""
+    """Operativo: En Proceso/Observada → En Revisión"""
     activity = get_by_id(db, activity_id)
-    if activity.assigned_user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Solo el responsable puede enviar a revisión")
-    if activity.status != ActivityStatus.IN_PROGRESS:
+    # Allow the assigned user or an admin to send to review
+    if activity.assigned_user_id != current_user.id and current_user.role.value != "administrador":
+        raise HTTPException(status_code=403, detail="Solo el responsable o un administrador puede enviar a revisión")
+    if activity.status not in [ActivityStatus.IN_PROGRESS, ActivityStatus.OBSERVED]:
         raise HTTPException(status_code=400, detail=f"No se puede enviar a revisión desde el estado '{activity.status.value}'")
     prev = activity.status.value
     activity.status = ActivityStatus.IN_REVIEW

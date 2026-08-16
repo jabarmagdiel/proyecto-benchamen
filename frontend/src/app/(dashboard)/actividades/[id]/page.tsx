@@ -163,8 +163,8 @@ export default function ActivityDetailPage() {
   if (!activity) return <div className="text-center py-20 text-slate-400">Actividad no encontrada</div>;
 
   const isOwner = activity.assigned_user_id === user?.user_id;
-  const canStart = isOwner && activity.status === "asignada";
-  const canSendReview = isOwner && activity.status === "en_proceso";
+  const canStart = (isOwner || isAdmin) && activity.status === "asignada";
+  const canSendReview = (isOwner || isAdmin) && ["en_proceso", "observada"].includes(activity.status);
   const canApprove = (isAdmin || (user?.role === 'cliente' && (activity.node_type === 'end' || activity.current_stage?.node_type === 'end'))) && activity.status === "en_revision";
 
   return (
