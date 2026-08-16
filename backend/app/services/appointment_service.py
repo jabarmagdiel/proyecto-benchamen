@@ -252,7 +252,7 @@ def create_meeting(db: Session, admin: User, data: MeetingCreate) -> Appointment
 
     target_user_ids = []
     if data.is_group:
-        operatives = db.query(User).filter(User.role.in_([UserRole.OPERATIVE, UserRole.OPERATOR]), User.is_active == True).all()
+        operatives = db.query(User).filter(User.role == UserRole.OPERATIVE, User.is_active == True).all()
         target_user_ids = [u.id for u in operatives]
     else:
         target_user_ids = data.attendee_ids or []
@@ -311,7 +311,12 @@ def create_meeting(db: Session, admin: User, data: MeetingCreate) -> Appointment
     except Exception:
         pass
 
-    _emit_appointment_update()
+    try:
+        from app.core.websocket import notify_realtime
+        notify_realtime("appointments", "update")
+    except Exception:
+        pass
+
     return _to_response(apt, db)
 
 
