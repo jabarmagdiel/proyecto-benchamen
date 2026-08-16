@@ -133,6 +133,7 @@ export interface Activity {
   evidence_count?: number;
   comment_count?: number;
   project_name?: string;
+  company_id?: number | null;
   company_name?: string;
   latest_evidence_url?: string;
   latest_evidence_name?: string;

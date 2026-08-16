@@ -93,12 +93,12 @@ export default function CalendarioActividadesPage() {
       }
       setActivities(actRes.data || []);
 
+      const [compRes, usersRes] = await Promise.all([
+        companiesApi.list().catch(() => ({ data: [] })),
+        isAdmin ? usersApi.list().catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+      ]);
+      setCompanies(compRes.data || []);
       if (isAdmin) {
-        const [compRes, usersRes] = await Promise.all([
-          companiesApi.list().catch(() => ({ data: [] })),
-          usersApi.list().catch(() => ({ data: [] })),
-        ]);
-        setCompanies(compRes.data || []);
         setOperatives((usersRes.data || []).filter((u: UserType) => u.role !== "cliente"));
       }
     } catch (error) {
@@ -123,6 +123,14 @@ export default function CalendarioActividadesPage() {
         const matchComp = act.company_name?.toLowerCase().includes(q) || act.project_name?.toLowerCase().includes(q);
         if (!matchTitle && !matchDesc && !matchComp) return false;
       }
+      // Filtro de empresa
+      if (filterCompanyId === "none") {
+        if (act.company_name && act.company_name !== "Sin Empresa / Cliente Externo" && act.company_id) return false;
+      } else if (filterCompanyId) {
+        if (String(act.company_id) !== filterCompanyId && !act.company_name?.toLowerCase().includes(filterCompanyId.toLowerCase())) {
+          return false;
+        }
+      }
       // Filtro de operador
       if (filterOperativeId && String(act.assigned_user_id) !== filterOperativeId) {
         return false;
@@ -138,7 +146,7 @@ export default function CalendarioActividadesPage() {
       }
       return true;
     });
-  }, [activities, searchTerm, filterOperativeId, filterStatus, filterType]);
+  }, [activities, searchTerm, filterCompanyId, filterOperativeId, filterStatus, filterType]);
 
   /* Mapeo de actividades por fecha (deadline / created_at) */
   const activitiesByDate = useMemo(() => {
@@ -356,9 +364,23 @@ export default function CalendarioActividadesPage() {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por título, empresa..."
-              className="w-full pl-9 pr-3 py-2 bg-[#07060B]/80 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#20CDFE]"
+              className="w-full pl-9 pr-3 py-2 bg-[#07060B]/80 border border-slate-800 rounded-xl text-xs text-[#20CDFE] placeholder-slate-500 focus:outline-none focus:border-[#20CDFE]"
             />
           </div>
+          {/* Filtro Empresa */}
+          <select
+            value={filterCompanyId}
+            onChange={(e) => setFilterCompanyId(e.target.value)}
+            className="px-3 py-2 bg-[#07060B]/80 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-[#20CDFE]"
+          >
+            <option value="">Todas las Empresas</option>
+            <option value="none">👤 Sin Empresa / Cliente Externo</option>
+            {companies.map((c) => (
+              <option key={c.id} value={String(c.id)}>
+                🏢 {c.name}
+              </option>
+            ))}
+          </select>
 
           {/* Filtro Operador (Solo Admin) */}
           {isAdmin && operatives.length > 0 && (

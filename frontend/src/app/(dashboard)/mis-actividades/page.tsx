@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckSquare, Play, Send, Clock, Eye, Filter, LayoutList, Calendar as CalendarIcon, ChevronLeft, ChevronRight, Lock } from "lucide-react";
-import { activitiesApi } from "@/lib/api";
-import type { Activity, ActivityStatus } from "@/types";
+import { companiesApi, activitiesApi } from "@/lib/api";
+import type { Activity, ActivityStatus, Company } from "@/types";
 import { ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { formatDate, isOverdue, STATUS_COLORS } from "@/lib/utils";
@@ -27,7 +27,9 @@ function getFirstDayOfMonth(year: number, month: number) {
 export default function MisActividadesPage() {
   const { user } = useAuth();
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterCompanyId, setFilterCompanyId] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   
   const now = new Date();
@@ -42,8 +44,12 @@ export default function MisActividadesPage() {
     try {
       const params: any = {};
       if (filterStatus) params.status = filterStatus;
-      const r = await activitiesApi.myActivities(params);
+      const [r, compRes] = await Promise.all([
+        activitiesApi.myActivities(params),
+        companiesApi.list().catch(() => ({ data: [] })),
+      ]);
       setActivities(r.data);
+      setCompanies(compRes.data || []);
     } finally { setLoading(false); }
   };
 
@@ -64,7 +70,18 @@ export default function MisActividadesPage() {
     catch (e: any) { showToast(e?.response?.data?.detail || "Error", "error"); }
   };
 
-  const groupedByStatus = activities.reduce((acc, a) => {
+  const filteredActivities = activities.filter(a => {
+    if (filterCompanyId === "none") {
+      if (a.company_name && a.company_name !== "Sin Empresa / Cliente Externo" && a.company_id) return false;
+    } else if (filterCompanyId) {
+      if (String(a.company_id) !== filterCompanyId && !a.company_name?.toLowerCase().includes(filterCompanyId.toLowerCase())) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const groupedByStatus = filteredActivities.reduce((acc, a) => {
     if (!acc[a.status]) acc[a.status] = [];
     acc[a.status].push(a);
     return acc;
@@ -83,16 +100,21 @@ export default function MisActividadesPage() {
       {/* Header */}
       <div>
         <h2 className="text-xl font-bold text-white">Mis actividades</h2>
-        <p className="text-slate-400 text-sm mt-0.5">Hola {user?.name} · {activities.length} actividad{activities.length !== 1 ? "es" : ""} asignada{activities.length !== 1 ? "s" : ""}</p>
+        <p className="text-slate-400 text-sm mt-0.5">Hola {user?.name} · {filteredActivities.length} actividad{filteredActivities.length !== 1 ? "es" : ""} asignada{filteredActivities.length !== 1 ? "s" : ""}</p>
       </div>
 
       {/* Filtro y Vista */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Filter size={16} className="text-slate-400" />
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 text-white">
             <option value="">Todos los estados</option>
             {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
+          <select value={filterCompanyId} onChange={e => setFilterCompanyId(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 text-white">
+            <option value="">Todas las empresas</option>
+            <option value="none">👤 Sin Empresa / Cliente Externo</option>
+            {companies.map(c => <option key={c.id} value={String(c.id)}>🏢 {c.name}</option>)}
           </select>
         </div>
         
