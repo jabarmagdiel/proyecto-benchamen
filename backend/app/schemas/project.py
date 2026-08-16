@@ -18,6 +18,13 @@ class ProjectCreate(BaseModel):
     department_id: Optional[int] = None
     package_request_id: Optional[int] = None
 
+    @field_validator("company_id", "main_responsible_id", "department_id", "package_request_id", mode="before")
+    @classmethod
+    def zero_to_none(cls, v):
+        if v == 0 or v == "0" or v == "":
+            return None
+        return v
+
     @field_validator("deadline")
     @classmethod
     def deadline_after_start(cls, v, info):
@@ -38,6 +45,13 @@ class ProjectUpdate(BaseModel):
     main_responsible_id: Optional[int] = None
     department_id: Optional[int] = None
     package_request_id: Optional[int] = None
+
+    @field_validator("company_id", "main_responsible_id", "department_id", "package_request_id", mode="before")
+    @classmethod
+    def zero_to_none(cls, v):
+        if v == 0 or v == "0" or v == "":
+            return None
+        return v
 
 
 class ProjectResponse(BaseModel):

@@ -141,6 +141,8 @@ export default function ProyectosPage() {
     const payload: any = { ...data };
     if (!payload.start_date) payload.start_date = null;
     if (!payload.main_responsible_id || Number(payload.main_responsible_id) === 0) payload.main_responsible_id = null;
+    if (!payload.department_id || Number(payload.department_id) === 0) payload.department_id = null;
+    if (!payload.package_request_id || Number(payload.package_request_id) === 0) payload.package_request_id = null;
     if (isExternalClient || !payload.company_id || Number.isNaN(Number(payload.company_id)) || Number(payload.company_id) === 0) {
       payload.company_id = null;
     }
