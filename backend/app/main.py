@@ -143,6 +143,27 @@ def run_migrations():
             "activities.project_id_drop_not_null",
             "ALTER TABLE activities ALTER COLUMN project_id DROP NOT NULL;",
         ),
+        # Columnas de reuniones en appointments
+        (
+            "appointments.meeting_link",
+            "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS meeting_link VARCHAR(500);",
+        ),
+        (
+            "appointments.location",
+            "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS location VARCHAR(500);",
+        ),
+        (
+            "appointments.meeting_type",
+            "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS meeting_type VARCHAR(20) DEFAULT 'presencial';",
+        ),
+        (
+            "appointments.is_group",
+            "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS is_group BOOLEAN DEFAULT FALSE;",
+        ),
+        (
+            "appointments.attendee_ids",
+            "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS attendee_ids JSON DEFAULT '[]';",
+        ),
     ]
 
     for name, sql in migrations:
