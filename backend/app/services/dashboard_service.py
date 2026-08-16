@@ -34,6 +34,15 @@ def get_full_dashboard(
     if role_val == "cliente" or company_id:
         c_id = company_id if company_id else current_user.company_id
         total_companies = db.query(func.count(Company.id)).filter(Company.id == c_id).scalar() or 0
+    elif role_val == "operativo":
+        # Contar solo empresas vinculadas a las actividades asignadas al usuario operativo
+        total_companies = (
+            db.query(func.count(Company.id.distinct()))
+            .join(Project, Project.company_id == Company.id)
+            .join(Activity, Activity.project_id == Project.id)
+            .filter(Activity.assigned_user_id == current_user.id)
+            .scalar() or 0
+        )
     elif project_id:
         proj = db.query(Project).filter(Project.id == project_id).first()
         total_companies = 1 if proj else 0
