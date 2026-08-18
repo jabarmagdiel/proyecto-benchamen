@@ -67,6 +67,11 @@ def run_migrations():
             "activities.workflow_id",
             "ALTER TABLE activities ADD COLUMN IF NOT EXISTS workflow_id INT REFERENCES workflows(id) ON DELETE SET NULL;",
         ),
+        # reference_link en activities
+        (
+            "activities.reference_link",
+            "ALTER TABLE activities ADD COLUMN IF NOT EXISTS reference_link TEXT;",
+        ),
         # department_id en projects
         (
             "projects.department_id",

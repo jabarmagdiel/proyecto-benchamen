@@ -24,6 +24,7 @@ const schema = z.object({
   is_independent: z.boolean().optional(),
   title: z.string().min(1, "Título requerido"),
   description: z.string().optional(),
+  reference_link: z.string().optional(),
   activity_type: z.string().default("otro"),
   priority: z.string().default("media"),
   assigned_user_id: z.coerce.number().optional().nullable(),
@@ -741,6 +742,18 @@ export default function ActividadesPage() {
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1.5">Concepto / Descripción del Trabajo</label>
                   <textarea {...register("description")} rows={3} className="w-full px-3.5 py-2.5 border border-slate-800/80 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#0A101D]/80 resize-none text-white" placeholder="Detalla el concepto, requerimientos e instrucciones del trabajo..." />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                    🔗 Link Referencial / Materiales (Drive, Figma, Canva, etc.)
+                  </label>
+                  <input
+                    {...register("reference_link")}
+                    type="url"
+                    className="w-full px-3.5 py-2.5 border border-slate-800/80 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#0A101D]/80 text-white"
+                    placeholder="https://drive.google.com/drive/folders/..."
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

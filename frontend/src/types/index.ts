@@ -109,6 +109,7 @@ export interface Activity {
   project_id: number;
   title: string;
   description?: string;
+  reference_link?: string;
   activity_type: ActivityType;
   node_type?: string;
   priority: Priority;

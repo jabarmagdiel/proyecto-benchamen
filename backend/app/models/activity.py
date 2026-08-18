@@ -19,6 +19,7 @@ class Activity(Base):
 
     title: Mapped[str] = mapped_column(String(250), nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(Text)
+    reference_link: Mapped[str | None] = mapped_column(Text, nullable=True)
     activity_type: Mapped[ActivityType] = mapped_column(
         SAEnum(ActivityType, name="activity_type", values_callable=lambda x: [e.value for e in x]),
         default=ActivityType.OTHER,

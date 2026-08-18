@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2 } from "lucide-react";
-import { activitiesApi, evidencesApi, commentsApi, projectsApi } from "@/lib/api";
-import type { Activity, Evidence, Comment, ActivityHistory as HistEntry } from "@/types";
-import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS } from "@/types";
+import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2, Pencil, XCircle } from "lucide-react";
+import { activitiesApi, evidencesApi, commentsApi, projectsApi, usersApi } from "@/lib/api";
+import type { Activity, Evidence, Comment, ActivityHistory as HistEntry, User } from "@/types";
+import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS, PRIORITY_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { formatDate, formatDateTime, formatFileSize } from "@/lib/utils";
 import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
@@ -21,6 +21,7 @@ export default function ActivityDetailPage() {
   const [evidences, setEvidences] = useState<Evidence[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [history, setHistory] = useState<HistEntry[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [tab, setTab] = useState<"info" | "evidencias" | "comentarios" | "historial">("info");
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState("");
@@ -30,21 +31,34 @@ export default function ActivityDetailPage() {
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [currentTimerSeconds, setCurrentTimerSeconds] = useState(0);
 
+  /* State de Modal de Edición (Admin) */
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editReferenceLink, setEditReferenceLink] = useState("");
+  const [editPriority, setEditPriority] = useState("media");
+  const [editAssignedUserId, setEditAssignedUserId] = useState("");
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editDeadline, setEditDeadline] = useState("");
+  const [submittingEdit, setSubmittingEdit] = useState(false);
+
   const load = async () => {
     setLoading(true);
     try {
       const aRes = await activitiesApi.get(actId);
       const act = aRes.data;
       
-      const [eRes, cRes, hRes] = await Promise.all([
+      const [eRes, cRes, hRes, uRes] = await Promise.all([
         evidencesApi.list(actId),
         commentsApi.list(actId),
         activitiesApi.getHistory(actId),
+        isAdmin ? usersApi.list().catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
       ]);
       setActivity(act);
       setEvidences(eRes.data);
       setComments(cRes.data);
       setHistory(hRes.data);
+      if (uRes?.data) setUsers(uRes.data);
       
       // Auto-iniciar cronómetro si es el responsable, está en_proceso y no está corriendo
       if (act && act.assigned_user_id === user?.user_id && act.status === "en_proceso" && !act.timer_started_at) {
@@ -56,6 +70,66 @@ export default function ActivityDetailPage() {
   };
 
   useEffect(() => { if (actId && user) load(); }, [actId, user]);
+
+  const openEditModal = () => {
+    if (!activity) return;
+    setEditTitle(activity.title || "");
+    setEditDescription(activity.description || "");
+    setEditReferenceLink(activity.reference_link || "");
+    setEditPriority(activity.priority || "media");
+    setEditAssignedUserId(activity.assigned_user_id ? String(activity.assigned_user_id) : "");
+    setEditStartDate(activity.start_date || "");
+    setEditDeadline(activity.deadline || "");
+    setEditModalOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editTitle.trim()) {
+      showToast("El título es obligatorio", "error");
+      return;
+    }
+    setSubmittingEdit(true);
+    try {
+      await activitiesApi.update(actId, {
+        title: editTitle,
+        description: editDescription,
+        reference_link: editReferenceLink || null,
+        priority: editPriority as any,
+        assigned_user_id: editAssignedUserId ? Number(editAssignedUserId) : null,
+        start_date: editStartDate || null,
+        deadline: editDeadline || null,
+      });
+      showToast("✅ Información del trabajo actualizada correctamente");
+      setEditModalOpen(false);
+      load();
+    } catch (e: any) {
+      showToast(e?.response?.data?.detail || "Error al actualizar", "error");
+    } finally {
+      setSubmittingEdit(false);
+    }
+  };
+
+  const renderFormattedDescription = (text?: string) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#20CDFE] underline hover:text-[#1ED1B4] break-all inline-flex items-center gap-1 font-bold my-0.5"
+          >
+            {part} ↗
+          </a>
+        );
+      }
+      return part;
+    });
+  };
 
   const showToast = (msg: any, type: "success" | "error" = "success") => {
     let errorMsg = msg;
@@ -217,6 +291,11 @@ export default function ActivityDetailPage() {
         
         {/* Botones de acción directos */}
         <div className="flex flex-col gap-2 items-end">
+          {isAdmin && (
+            <button onClick={openEditModal} className="flex items-center gap-2 bg-[#1C2C4D] hover:bg-[#2A3E66] text-[#20CDFE] border border-[#20CDFE]/30 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all w-full justify-center shadow-lg">
+              <Pencil size={15} /> Editar Información
+            </button>
+          )}
           {canStart && (
             <button onClick={handleStart} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-5 py-2.5 rounded-xl text-sm font-extrabold hover:opacity-90 transition-all shadow-lg shadow-[#20CDFE]/20 w-full justify-center">
               <Play size={15} /> Iniciar Trabajo
@@ -252,22 +331,65 @@ export default function ActivityDetailPage() {
       {/* Tab Info */}
       {tab === "info" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm p-5 space-y-4">
-            <h3 className="font-bold text-white text-base">Información del Trabajo</h3>
-            
+          <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm p-5 space-y-4 max-w-full overflow-hidden">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-white text-base">Información del Trabajo</h3>
+              {isAdmin && (
+                <button onClick={openEditModal} className="text-xs font-extrabold text-[#20CDFE] hover:underline flex items-center gap-1">
+                  <Pencil size={13} /> Editar
+                </button>
+              )}
+            </div>
+
             {/* Concepto / Descripción Destacado */}
             {activity.description ? (
-              <div className="bg-[#15233D]/80 border border-slate-800 p-4 rounded-xl space-y-1.5 shadow-md">
+              <div className="bg-[#15233D]/80 border border-slate-800 p-4.5 rounded-2xl space-y-2 shadow-md max-w-full overflow-hidden">
                 <span className="text-[#20CDFE] text-xs font-black uppercase tracking-wider block flex items-center gap-1.5">
                   📝 Concepto / Descripción del Trabajo:
                 </span>
-                <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap font-medium">
-                  {activity.description}
-                </p>
+                <div className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap font-medium break-words overflow-hidden max-w-full">
+                  {renderFormattedDescription(activity.description)}
+                </div>
               </div>
             ) : (
               <div className="text-slate-500 text-xs italic bg-[#15233D]/30 p-3 rounded-xl border border-slate-800/50">
                 Sin descripción adicional registrada para esta actividad.
+              </div>
+            )}
+
+            {/* Tarjeta Dedicada de Link Referencial / Materiales */}
+            {activity.reference_link && (
+              <div className="bg-gradient-to-r from-blue-950/60 to-indigo-950/40 border border-blue-500/30 p-4.5 rounded-2xl space-y-2.5 shadow-md max-w-full overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[#20CDFE] text-xs font-black uppercase tracking-wider block flex items-center gap-1.5">
+                    🔗 Link Referencial / Materiales de Trabajo:
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0A101D]/90 border border-blue-500/20 p-3 rounded-xl max-w-full overflow-hidden">
+                  <span className="text-xs font-bold text-slate-200 break-all line-clamp-2 max-w-full">
+                    {activity.reference_link}
+                  </span>
+                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(activity.reference_link || "");
+                        showToast("Link copiado al portapapeles 📋");
+                      }}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-all"
+                    >
+                      📋 Copiar
+                    </button>
+                    <a
+                      href={activity.reference_link.startsWith("http") ? activity.reference_link : `https://${activity.reference_link}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] hover:opacity-90 flex items-center gap-1.5 shadow-md shadow-[#20CDFE]/20 transition-all transform hover:scale-[1.02]"
+                    >
+                      <LinkIcon size={14} /> Abrir Link ↗
+                    </a>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -434,6 +556,130 @@ export default function ActivityDetailPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Modal de Edición de Información del Trabajo (Admin) */}
+      {editModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A101D] border border-slate-800 rounded-3xl shadow-2xl w-full max-w-xl animate-fade-in flex flex-col max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-slate-800/80 shrink-0">
+              <div className="flex items-center gap-2">
+                <Pencil size={20} className="text-[#20CDFE]" />
+                <h3 className="text-lg font-black text-white">Editar Información del Trabajo</h3>
+              </div>
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                <XCircle size={22} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 overflow-y-auto custom-scrollbar flex-1">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">Título del Trabajo *</label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#070C18] text-white font-medium"
+                  placeholder="Título de la actividad..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">Concepto / Descripción del Trabajo</label>
+                <textarea
+                  value={editDescription}
+                  onChange={e => setEditDescription(e.target.value)}
+                  rows={4}
+                  className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#070C18] text-white resize-none font-medium"
+                  placeholder="Instrucciones, concepto y especificaciones del trabajo..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  🔗 Link Referencial / Materiales (Drive, Figma, Canva, etc.)
+                </label>
+                <input
+                  type="url"
+                  value={editReferenceLink}
+                  onChange={e => setEditReferenceLink(e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#070C18] text-white font-medium"
+                  placeholder="https://drive.google.com/drive/folders/..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5">Prioridad</label>
+                  <select
+                    value={editPriority}
+                    onChange={e => setEditPriority(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#070C18] text-white font-medium cursor-pointer"
+                  >
+                    {Object.entries(PRIORITY_LABELS).map(([k, v]) => (
+                      <option key={k} value={k}>{v}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5">Responsable Asignado</label>
+                  <select
+                    value={editAssignedUserId}
+                    onChange={e => setEditAssignedUserId(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#070C18] text-white font-medium cursor-pointer"
+                  >
+                    <option value="">Sin asignar</option>
+                    {users.map(u => (
+                      <option key={u.id} value={u.id}>{u.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5">Fecha Inicio</label>
+                  <input
+                    type="date"
+                    value={editStartDate}
+                    onChange={e => setEditStartDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#070C18] text-white font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5">Fecha Límite</label>
+                  <input
+                    type="date"
+                    value={editDeadline}
+                    onChange={e => setEditDeadline(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#070C18] text-white font-medium"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-800/80 shrink-0 bg-[#070C18]/60">
+              <button
+                type="button"
+                onClick={() => setEditModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveEdit}
+                disabled={submittingEdit}
+                className="px-6 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] hover:opacity-90 transition-all shadow-md shadow-[#20CDFE]/20 disabled:opacity-50"
+              >
+                {submittingEdit ? "Guardando..." : "Guardar Cambios"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

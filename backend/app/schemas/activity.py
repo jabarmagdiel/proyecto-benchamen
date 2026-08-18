@@ -10,6 +10,7 @@ class ActivityCreate(BaseModel):
     project_id: Optional[int] = None
     title: str
     description: Optional[str] = None
+    reference_link: Optional[str] = None
     activity_type: ActivityType = ActivityType.OTHER
     node_type: str = "task"
     priority: Priority = Priority.MEDIUM
@@ -30,6 +31,7 @@ class ActivityCreate(BaseModel):
 class ActivityUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    reference_link: Optional[str] = None
     activity_type: Optional[ActivityType] = None
     node_type: Optional[str] = None
     priority: Optional[Priority] = None
@@ -50,6 +52,7 @@ class ActivityResponse(BaseModel):
     project_id: Optional[int] = None
     title: str
     description: Optional[str]
+    reference_link: Optional[str] = None
     activity_type: ActivityType
     node_type: str = "task"
     priority: Priority
