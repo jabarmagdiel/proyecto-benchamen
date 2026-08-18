@@ -31,6 +31,19 @@ export default function MisActividadesPage() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterCompanyId, setFilterCompanyId] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [showHistory, setShowHistory] = useState(false);
+
+  const isToday = (dateInput?: string | Date | null) => {
+    if (!dateInput) return false;
+    const d = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+    if (isNaN(d.getTime())) return false;
+    const today = new Date();
+    return (
+      d.getFullYear() === today.getFullYear() &&
+      d.getMonth() === today.getMonth() &&
+      d.getDate() === today.getDate()
+    );
+  };
   
   const now = new Date();
   const [calYear, setCalYear] = useState(now.getFullYear());
@@ -78,6 +91,15 @@ export default function MisActividadesPage() {
         return false;
       }
     }
+    // Auto-ocultar completadas y canceladas de días anteriores si showHistory es false
+    if (!showHistory) {
+      if (a.status === "aprobada") {
+        return isToday(a.approved_at || a.updated_at);
+      }
+      if (a.status === "cancelada") {
+        return isToday(a.updated_at);
+      }
+    }
     return true;
   });
 
@@ -116,6 +138,19 @@ export default function MisActividadesPage() {
             <option value="none">👤 Sin Empresa / Cliente Externo</option>
             {companies.map(c => <option key={c.id} value={String(c.id)}>🏢 {c.name}</option>)}
           </select>
+
+          <button
+            onClick={() => setShowHistory(!showHistory)}
+            className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 ${
+              showHistory
+                ? "bg-purple-900/40 text-purple-300 border-purple-500/50 shadow-md shadow-purple-500/10"
+                : "bg-[#0A101D]/80 text-slate-400 border-slate-800/50 hover:text-white"
+            }`}
+            title={showHistory ? "Mostrando todas tus actividades completadas y canceladas" : "Ocultando completadas y canceladas de días anteriores"}
+          >
+            <Clock size={15} className={showHistory ? "text-purple-400" : "text-slate-400"} />
+            <span>{showHistory ? "Histórico Completo" : "Solo Actividades de Hoy"}</span>
+          </button>
         </div>
         
         <div className="flex items-center bg-[#1C2C4D] p-1 rounded-xl">
