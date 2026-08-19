@@ -13,14 +13,19 @@ from app.core.config import settings
 
 
 ALLOWED_MIME_TYPES = {
-    "image/jpeg", "image/png", "image/gif", "image/webp",
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml", "image/bmp", "image/x-png", "image/pjpeg", "image/heic", "image/avif", "image/tiff",
     "application/pdf",
-    "video/mp4", "video/quicktime",
+    "video/mp4", "video/quicktime", "video/x-msvideo", "video/webm",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/zip",
+    "application/zip", "application/x-zip-compressed", "application/x-rar-compressed", "application/octet-stream"
+}
+
+ALLOWED_EXTENSIONS = {
+    ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".bmp", ".ico", ".heic", ".avif",
+    ".pdf", ".mp4", ".mov", ".avi", ".webm", ".doc", ".docx", ".xls", ".xlsx", ".zip", ".rar", ".7z", ".txt"
 }
 
 
@@ -42,8 +47,10 @@ def get_by_project(db: Session, project_id: int) -> List[Evidence]:
 
 async def upload_file(db: Session, activity_id: int, user_id: int, file: UploadFile, note: str = None) -> Evidence:
     _get_activity(db, activity_id)
-    if file.content_type not in ALLOWED_MIME_TYPES:
-        raise HTTPException(status_code=400, detail=f"Tipo de archivo no permitido: {file.content_type}")
+    ext = os.path.splitext(file.filename or "")[1].lower()
+
+    if file.content_type not in ALLOWED_MIME_TYPES and ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Tipo de archivo no permitido: {file.filename} ({file.content_type})")
 
     max_bytes = settings.MAX_FILE_SIZE_MB * 1024 * 1024
     content = await file.read()
@@ -53,14 +60,25 @@ async def upload_file(db: Session, activity_id: int, user_id: int, file: UploadF
     # Guardar archivo
     upload_dir = os.path.join(settings.UPLOAD_DIR, str(activity_id))
     os.makedirs(upload_dir, exist_ok=True)
-    ext = os.path.splitext(file.filename)[1]
     unique_name = f"{uuid.uuid4().hex}{ext}"
     file_path = os.path.join(upload_dir, unique_name)
     with open(file_path, "wb") as f:
         f.write(content)
 
     # Determinar tipo
-    ev_type = EvidenceType.IMAGE if file.content_type.startswith("image/") else EvidenceType.FILE
+    is_image = (
+        (file.content_type and file.content_type.startswith("image/"))
+        or ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".bmp", ".heic", ".avif", ".ico"]
+    )
+    ev_type = EvidenceType.IMAGE if is_image else EvidenceType.FILE
+
+    mime_type = file.content_type or "application/octet-stream"
+    if mime_type == "application/octet-stream" and ext:
+        if ext in [".png"]: mime_type = "image/png"
+        elif ext in [".jpg", ".jpeg"]: mime_type = "image/jpeg"
+        elif ext in [".webp"]: mime_type = "image/webp"
+        elif ext in [".gif"]: mime_type = "image/gif"
+        elif ext in [".pdf"]: mime_type = "application/pdf"
 
     evidence = Evidence(
         activity_id=activity_id,
@@ -69,7 +87,7 @@ async def upload_file(db: Session, activity_id: int, user_id: int, file: UploadF
         file_url=f"/uploads/{activity_id}/{unique_name}",
         file_name=file.filename,
         file_size=len(content),
-        mime_type=file.content_type,
+        mime_type=mime_type,
         note=note,
     )
     db.add(evidence)

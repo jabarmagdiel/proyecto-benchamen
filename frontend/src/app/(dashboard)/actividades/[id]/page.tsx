@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2, Pencil, XCircle } from "lucide-react";
+import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2, Pencil, XCircle, Eye, Image as ImageIcon } from "lucide-react";
 import { activitiesApi, evidencesApi, commentsApi, projectsApi, usersApi } from "@/lib/api";
 import type { Activity, Evidence, Comment, ActivityHistory as HistEntry, User } from "@/types";
 import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS, PRIORITY_LABELS } from "@/types";
@@ -28,6 +28,8 @@ export default function ActivityDetailPage() {
   const [driveUrl, setDriveUrl] = useState("");
   const [driveNote, setDriveNote] = useState("");
   const [fileNote, setFileNote] = useState("");
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [currentTimerSeconds, setCurrentTimerSeconds] = useState(0);
 
@@ -208,13 +210,58 @@ export default function ActivityDetailPage() {
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const fd = new FormData();
-    fd.append("file", file);
-    if (fileNote) fd.append("note", fileNote);
-    try { await evidencesApi.uploadFile(actId, fd); showToast("Archivo subido"); load(); setTab("evidencias"); }
-    catch (err: any) { showToast(err?.response?.data?.detail || "Error al subir", "error"); }
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingFile(true);
+    let successCount = 0;
+    let lastError = "";
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fd = new FormData();
+      fd.append("file", file);
+      if (fileNote) fd.append("note", fileNote);
+      try {
+        await evidencesApi.uploadFile(actId, fd);
+        successCount++;
+      } catch (err: any) {
+        lastError = err?.response?.data?.detail || `Error al subir ${file.name}`;
+      }
+    }
+
+    setUploadingFile(false);
+    setFileNote("");
+    if (e.target) e.target.value = "";
+
+    if (successCount > 0) {
+      showToast(`✨ ${successCount} ${successCount === 1 ? "evidencia subida" : "evidencias subidas"} correctamente`);
+      load();
+      setTab("evidencias");
+    } else if (lastError) {
+      showToast(lastError, "error");
+    }
+  };
+
+  const handleDeleteEvidence = async (evidenceId: number) => {
+    if (!confirm("¿Estás seguro de eliminar esta evidencia?")) return;
+    try {
+      await evidencesApi.delete(evidenceId);
+      showToast("Evidencia eliminada 🗑️");
+      load();
+    } catch (e: any) {
+      showToast(e?.response?.data?.detail || "Error al eliminar la evidencia", "error");
+    }
+  };
+
+  const isImageEvidence = (ev: Evidence) => {
+    if (ev.evidence_type === "imagen") return true;
+    if (ev.mime_type && ev.mime_type.startsWith("image/")) return true;
+    if (ev.file_url) {
+      const ext = ev.file_url.split(".").pop()?.toLowerCase();
+      if (["png", "jpg", "jpeg", "webp", "gif", "svg", "bmp", "heic", "avif"].includes(ext || "")) return true;
+    }
+    return false;
   };
 
   const handleAddLink = async () => {
@@ -444,15 +491,21 @@ export default function ActivityDetailPage() {
             </div>
           </div>
           {/* Subir evidencia (operativo) */}
-          {(isOwner || isAdmin) && !["aprobada", "cancelada"].includes(activity.status) && (
+          {(isOwner || isAdmin) && (
             <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm p-5 space-y-4">
               <h3 className="font-semibold text-white">Subir evidencia</h3>
               <div>
-                <p className="text-xs text-slate-400 mb-2">Archivo (imagen, PDF, video, etc.)</p>
+                <p className="text-xs text-slate-400 mb-2">Archivos / Imágenes PNG, JPG, PDF (Permite seleccionar varios)</p>
                 <input type="text" value={fileNote} onChange={e => setFileNote(e.target.value)} placeholder="Nota opcional..." className="w-full px-3 py-2 border border-slate-800/50 rounded-xl text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-violet-200" />
-                <label className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer hover:opacity-90 transition-all w-full justify-center">
-                  <Upload size={14} /> Subir archivo
-                  <input type="file" className="hidden" onChange={handleFileUpload} />
+                <label className={`flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer hover:opacity-90 transition-all w-full justify-center ${uploadingFile ? "opacity-50 pointer-events-none" : ""}`}>
+                  {uploadingFile ? (
+                    <span>Subiendo evidencias...</span>
+                  ) : (
+                    <>
+                      <Upload size={14} /> Subir archivos (Seleccionar varios)
+                      <input type="file" multiple accept="image/*,application/pdf,video/*,.doc,.docx,.xls,.xlsx,.zip,.rar" className="hidden" onChange={handleFileUpload} />
+                    </>
+                  )}
                 </label>
               </div>
               <div className="border-t border-slate-800/50 pt-4">
@@ -470,34 +523,175 @@ export default function ActivityDetailPage() {
 
       {/* Tab Evidencias */}
       {tab === "evidencias" && (
-        <div className="space-y-3">
-          {evidences.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50">
-              <Upload size={36} className="mx-auto mb-3 opacity-30" />
-              <p className="font-medium">Sin evidencias en el proyecto</p>
-              <p className="text-sm mt-1">Aún no se han subido evidencias en ninguna tarea de este proyecto</p>
-            </div>
-          ) : evidences.map((ev) => (
-            <div key={ev.id} className="bg-[#0A101D]/80 rounded-xl border border-slate-800/50 p-4 flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-[#20CDFE]/20 flex items-center justify-center shrink-0">
-                {ev.evidence_type === "imagen" ? "🖼️" : ev.evidence_type === "link_drive" ? "📁" : ev.evidence_type === "archivo" ? "📄" : "🔗"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-white text-sm">{ev.file_name || ev.drive_url || "Evidencia"}</span>
-                  {ev.file_size && <span className="text-xs text-slate-400">{formatFileSize(ev.file_size)}</span>}
+        <div className="space-y-6">
+          {/* Formulario de carga directo en la pestaña de Evidencias */}
+          {(isOwner || isAdmin) && (
+            <div className="bg-[#0A101D]/70 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-md p-5 space-y-4">
+              <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                <Upload size={16} className="text-[#20CDFE]" /> Subir Nuevas Evidencias (PNG, JPG, PDFs, Videos o Drive)
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2 bg-[#070C18]/60 p-3.5 rounded-xl border border-slate-800/60">
+                  <p className="text-xs font-bold text-slate-300">📁 Archivos / Imágenes (Permite seleccionar varios a la vez)</p>
+                  <input
+                    type="text"
+                    value={fileNote}
+                    onChange={e => setFileNote(e.target.value)}
+                    placeholder="Nota u observación del archivo (opcional)..."
+                    className="w-full px-3 py-2 border border-slate-800/80 rounded-xl text-xs bg-[#0A101D] text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
+                  />
+                  <label className={`flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-xs font-black cursor-pointer hover:opacity-90 transition-all w-full justify-center shadow-md shadow-[#20CDFE]/20 ${uploadingFile ? "opacity-50 pointer-events-none" : ""}`}>
+                    {uploadingFile ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-[#07060B] border-t-transparent rounded-full animate-spin" />
+                        <span>Subiendo archivos...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload size={14} /> Seleccionar y Subir Imágen(es) / Archivos
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*,application/pdf,video/*,.doc,.docx,.xls,.xlsx,.zip,.rar"
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
+                      </>
+                    )}
+                  </label>
                 </div>
-                {ev.note && <p className="text-slate-400 text-xs mt-0.5">{ev.note}</p>}
-                <p className="text-slate-400 text-xs mt-1">Por {ev.user?.name} · {formatDateTime(ev.created_at)}</p>
-                {ev.file_url && (
-                  <a href={`${process.env.NEXT_PUBLIC_API_URL}${ev.file_url}`} target="_blank" rel="noopener noreferrer" className="text-[#20CDFE] text-xs hover:underline mt-1 inline-block">Ver archivo →</a>
-                )}
-                {ev.drive_url && (
-                  <a href={ev.drive_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs hover:underline mt-1 inline-block">Abrir en Drive →</a>
-                )}
+
+                <div className="space-y-2 bg-[#070C18]/60 p-3.5 rounded-xl border border-slate-800/60">
+                  <p className="text-xs font-bold text-slate-300">🔗 Link de Google Drive / Externo</p>
+                  <input
+                    type="url"
+                    value={driveUrl}
+                    onChange={e => setDriveUrl(e.target.value)}
+                    placeholder="https://drive.google.com/..."
+                    className="w-full px-3 py-2 border border-slate-800/80 rounded-xl text-xs bg-[#0A101D] text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
+                  />
+                  <input
+                    type="text"
+                    value={driveNote}
+                    onChange={e => setDriveNote(e.target.value)}
+                    placeholder="Nota del enlace (opcional)..."
+                    className="w-full px-3 py-2 border border-slate-800/80 rounded-xl text-xs bg-[#0A101D] text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
+                  />
+                  <button
+                    onClick={handleAddLink}
+                    disabled={!driveUrl.trim()}
+                    className="flex items-center gap-2 w-full justify-center bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 disabled:opacity-40 transition-colors"
+                  >
+                    <LinkIcon size={14} /> Registrar Link de Drive
+                  </button>
+                </div>
               </div>
             </div>
-          ))}
+          )}
+
+          <div className="space-y-4">
+            <h3 className="font-bold text-white text-base flex items-center justify-between">
+              <span>Evidencias Entregadas ({evidences.length})</span>
+            </h3>
+
+            {evidences.length === 0 ? (
+              <div className="text-center py-12 text-slate-400 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50">
+                <Upload size={36} className="mx-auto mb-3 opacity-30" />
+                <p className="font-medium">Sin evidencias en el proyecto</p>
+                <p className="text-sm mt-1">Usa la caja de arriba para subir imágenes PNG/JPG, PDFs o links de Google Drive.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {evidences.map((ev) => {
+                  const isImg = isImageEvidence(ev);
+                  const fullFileUrl = ev.file_url ? (ev.file_url.startsWith("http") ? ev.file_url : `${process.env.NEXT_PUBLIC_API_URL}${ev.file_url}`) : null;
+
+                  return (
+                    <div key={ev.id} className="bg-[#0A101D]/80 rounded-2xl border border-slate-800/80 p-4 flex flex-col justify-between gap-3 shadow-md hover:border-slate-700 transition-all">
+                      <div>
+                        {isImg && fullFileUrl ? (
+                          <div className="relative group mb-3 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 h-48 flex items-center justify-center">
+                            <img
+                              src={fullFileUrl}
+                              alt={ev.file_name || "Evidencia"}
+                              className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                            />
+                            <div
+                              onClick={() => setPreviewImage({ url: fullFileUrl, name: ev.file_name || "Evidencia" })}
+                              className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer gap-2 text-white font-bold text-xs"
+                            >
+                              <Eye size={18} /> Ver imagen ampliada
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full h-12 rounded-xl bg-slate-800/40 border border-slate-800 flex items-center gap-3 px-3 mb-3">
+                            <div className="w-8 h-8 rounded-lg bg-[#20CDFE]/20 flex items-center justify-center shrink-0 text-lg">
+                              {ev.evidence_type === "link_drive" || ev.drive_url ? "📁" : "📄"}
+                            </div>
+                            <span className="text-xs font-bold text-slate-300 truncate flex-1">
+                              {ev.file_name || ev.drive_url || "Archivo adjunto"}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="space-y-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="font-bold text-white text-sm break-all line-clamp-1">
+                              {ev.file_name || ev.drive_url || "Evidencia"}
+                            </span>
+                            {ev.file_size && (
+                              <span className="text-[11px] font-bold text-slate-400 shrink-0 bg-slate-800/60 px-2 py-0.5 rounded-md">
+                                {formatFileSize(ev.file_size)}
+                              </span>
+                            )}
+                          </div>
+                          {ev.note && <p className="text-slate-300 text-xs font-medium bg-[#15233D]/50 p-2 rounded-lg border border-slate-800/60">{ev.note}</p>}
+                          <p className="text-slate-400 text-[11px]">Por <strong className="text-slate-300">{ev.user?.name}</strong> · {formatDateTime(ev.created_at)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between border-t border-slate-800/60 pt-3 mt-2">
+                        <div className="flex items-center gap-2">
+                          {fullFileUrl && (
+                            <a
+                              href={fullFileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#20CDFE] text-xs font-bold hover:underline flex items-center gap-1 bg-[#20CDFE]/10 border border-[#20CDFE]/20 px-3 py-1.5 rounded-xl"
+                            >
+                              Ver / Descargar ↗
+                            </a>
+                          )}
+                          {ev.drive_url && (
+                            <a
+                              href={ev.drive_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 text-xs font-bold hover:underline flex items-center gap-1 bg-blue-900/30 border border-blue-500/30 px-3 py-1.5 rounded-xl"
+                            >
+                              Abrir en Drive ↗
+                            </a>
+                          )}
+                        </div>
+
+                        {(isAdmin || ev.user_id === user?.user_id) && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteEvidence(ev.id)}
+                            className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition-colors"
+                            title="Eliminar evidencia"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -678,6 +872,36 @@ export default function ActivityDetailPage() {
               >
                 {submittingEdit ? "Guardando..." : "Guardar Cambios"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Ampliador de Imagen Evidencia */}
+      {previewImage && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A101D] border border-slate-800 rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-4 border-b border-slate-800">
+              <span className="text-sm font-bold text-white truncate max-w-md">{previewImage.name}</span>
+              <button
+                onClick={() => setPreviewImage(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800 transition-colors"
+              >
+                <XCircle size={22} />
+              </button>
+            </div>
+            <div className="p-4 flex-1 overflow-auto flex items-center justify-center bg-black/40">
+              <img src={previewImage.url} alt={previewImage.name} className="max-h-[75vh] max-w-full object-contain rounded-xl shadow-lg" />
+            </div>
+            <div className="p-4 border-t border-slate-800 flex justify-end gap-3 bg-[#070C18]">
+              <a
+                href={previewImage.url}
+                target="_blank"
+                download
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#20CDFE] text-[#07060B] hover:opacity-90 flex items-center gap-1.5"
+              >
+                Descargar Imagen ↗
+              </a>
             </div>
           </div>
         </div>
