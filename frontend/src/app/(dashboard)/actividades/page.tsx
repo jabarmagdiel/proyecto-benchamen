@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Plus, Search, Filter, Eye, CheckCircle, AlertCircle,
   Clock, XCircle, ClipboardList, LayoutList, LayoutGrid,
-  User as UserIcon, Calendar as CalendarIcon, Trash2
+  User as UserIcon, Calendar as CalendarIcon, Trash2, Play, Send
 } from "lucide-react";
 import { activitiesApi, projectsApi, companiesApi, usersApi, workflowsApi, departmentsApi } from "@/lib/api";
 import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
@@ -85,7 +85,7 @@ export default function ActividadesPage() {
     try {
       const params: any = {};
       if (search) params.search = search;
-      if (filterStatus) params.status = filterStatus;
+      if (filterStatus && filterStatus !== "atrasada") params.status = filterStatus;
       if (filterCompany) params.company_id = filterCompany;
       if (filterProject) params.project_id = filterProject;
       if (filterUser) params.assigned_user_id = filterUser;
@@ -97,7 +97,11 @@ export default function ActividadesPage() {
         workflowsApi.list(),
         departmentsApi.getAll(),
       ]);
-      setActivities(actRes.data);
+      let loadedActs = actRes.data;
+      if (filterStatus === "atrasada") {
+        loadedActs = loadedActs.filter((a: Activity) => isOverdue(a.deadline, a.status));
+      }
+      setActivities(loadedActs);
       setProjects(projRes.data);
       setCompanies(compRes.data);
       setUsers(usrRes.data);
@@ -412,6 +416,7 @@ export default function ActividadesPage() {
           </div>
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
             <option value="">Todos los estados</option>
+            <option value="atrasada">⚠️ Tareas Atrasadas</option>
             {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
           <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
@@ -625,6 +630,16 @@ export default function ActividadesPage() {
                           <Link href={`/actividades/${a.id}`} className="p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors" title="Ver detalle">
                             <Eye size={14} />
                           </Link>
+                          {["pendiente", "asignada"].includes(a.status) && (a.assigned_user_id === currentUser?.id || currentUser?.role === "administrador") && (
+                            <button onClick={() => handleUpdateStatus(a.id, "en_proceso")} className="p-1.5 rounded-lg hover:bg-blue-900/40 text-blue-400 hover:text-blue-300 transition-colors" title="Iniciar Trabajo">
+                              <Play size={14} />
+                            </button>
+                          )}
+                          {["en_proceso", "observada"].includes(a.status) && (a.assigned_user_id === currentUser?.id || currentUser?.role === "administrador") && (
+                            <button onClick={() => handleUpdateStatus(a.id, "en_revision")} className="p-1.5 rounded-lg hover:bg-blue-900/40 text-[#20CDFE] hover:text-white transition-colors" title="Enviar a Revisión">
+                              <Send size={14} />
+                            </button>
+                          )}
                           {a.status === "en_revision" && currentUser?.role === "administrador" && (
                             <>
                               <button onClick={() => handleApprove(a.id)} className="p-1.5 rounded-lg hover:bg-green-100 text-slate-400 hover:text-green-600 transition-colors" title="Aprobar">

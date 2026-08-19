@@ -28,7 +28,13 @@ export function formatDateTime(date?: string | null): string {
 
 export function isOverdue(deadline?: string | null, status?: ActivityStatus): boolean {
   if (!deadline || status === "aprobada" || status === "cancelada") return false;
-  return isAfter(new Date(), parseISO(deadline));
+  const dStr = typeof deadline === "string" ? deadline.substring(0, 10) : "";
+  if (!dStr) return false;
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  return todayStr > dStr;
 }
 
 export function formatFileSize(bytes?: number | null): string {

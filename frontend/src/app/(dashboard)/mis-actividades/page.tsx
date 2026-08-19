@@ -84,6 +84,9 @@ export default function MisActividadesPage() {
   };
 
   const filteredActivities = activities.filter(a => {
+    if (filterStatus === "atrasada") {
+      if (!isOverdue(a.deadline, a.status)) return false;
+    }
     if (filterCompanyId === "none") {
       if (a.company_name && a.company_name !== "Sin Empresa / Cliente Externo" && a.company_id) return false;
     } else if (filterCompanyId) {
@@ -92,7 +95,7 @@ export default function MisActividadesPage() {
       }
     }
     // Auto-ocultar completadas y canceladas de días anteriores si showHistory es false
-    if (!showHistory) {
+    if (!showHistory && filterStatus !== "atrasada") {
       if (a.status === "aprobada") {
         return isToday(a.approved_at || a.updated_at);
       }
@@ -129,8 +132,9 @@ export default function MisActividadesPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
           <Filter size={16} className="text-slate-400" />
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 text-white">
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 text-white font-medium">
             <option value="">Todos los estados</option>
+            <option value="atrasada">⚠️ Tareas Atrasadas</option>
             {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
           <select value={filterCompanyId} onChange={e => setFilterCompanyId(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 text-white">
@@ -267,20 +271,15 @@ export default function MisActividadesPage() {
                               </div>
                             ) : (
                               <>
-                                {a.status === "asignada" && (
+                                {["pendiente", "asignada"].includes(a.status) && (
                                   <button onClick={() => handleStart(a.id)} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-white bg-violet-600 hover:bg-violet-700 px-3 py-2 rounded-lg transition-colors font-medium">
                                     <Play size={13} /> Iniciar
                                   </button>
                                 )}
-                                {a.status === "en_proceso" && (
+                                {["en_proceso", "observada"].includes(a.status) && (
                                   <button onClick={() => handleSendReview(a.id)} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors font-medium">
-                                    <Send size={13} /> Enviar
+                                    <Send size={13} /> Enviar a Revisión
                                   </button>
-                                )}
-                                {a.status === "observada" && (
-                                  <Link href={`/actividades/${a.id}`} className="flex-1 flex items-center justify-center gap-1.5 text-xs text-white bg-amber-500 hover:bg-amber-600 px-3 py-2 rounded-lg transition-colors font-medium">
-                                    Ver observación →
-                                  </Link>
                                 )}
                               </>
                             )}
