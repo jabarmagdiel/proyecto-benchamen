@@ -255,11 +255,16 @@ export default function ActivityDetailPage() {
   };
 
   const isImageEvidence = (ev: Evidence) => {
-    if (ev.evidence_type === "imagen") return true;
+    if ((ev as any).evidence_type === "imagen" || (ev as any).evidence_type === "image") return true;
     if (ev.mime_type && ev.mime_type.startsWith("image/")) return true;
+    const imgExts = ["png", "jpg", "jpeg", "webp", "gif", "svg", "bmp", "heic", "avif", "ico"];
     if (ev.file_url) {
-      const ext = ev.file_url.split(".").pop()?.toLowerCase();
-      if (["png", "jpg", "jpeg", "webp", "gif", "svg", "bmp", "heic", "avif"].includes(ext || "")) return true;
+      const ext = ev.file_url.split("?")[0].split(".").pop()?.toLowerCase();
+      if (imgExts.includes(ext || "")) return true;
+    }
+    if (ev.file_name) {
+      const ext = ev.file_name.split("?")[0].split(".").pop()?.toLowerCase();
+      if (imgExts.includes(ext || "")) return true;
     }
     return false;
   };
