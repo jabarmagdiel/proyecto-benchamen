@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2, Pencil, XCircle, Eye, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2, Pencil, XCircle, Eye, Image as ImageIcon, Download } from "lucide-react";
 import { activitiesApi, evidencesApi, commentsApi, projectsApi, usersApi } from "@/lib/api";
 import type { Activity, Evidence, Comment, ActivityHistory as HistEntry, User } from "@/types";
 import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS, PRIORITY_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
-import { formatDate, formatDateTime, formatFileSize } from "@/lib/utils";
+import { formatDate, formatDateTime, formatFileSize, getFileUrl, downloadFileFromUrl } from "@/lib/utils";
 import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
 import { useAuth } from "@/context/AuthContext";
 
@@ -605,7 +605,7 @@ export default function ActivityDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {evidences.map((ev) => {
                   const isImg = isImageEvidence(ev);
-                  const fullFileUrl = ev.file_url ? (ev.file_url.startsWith("http") ? ev.file_url : `${process.env.NEXT_PUBLIC_API_URL}${ev.file_url}`) : null;
+                  const fullFileUrl = ev.file_url ? getFileUrl(ev.file_url) : null;
 
                   return (
                     <div key={ev.id} className="bg-[#0A101D]/80 rounded-2xl border border-slate-800/80 p-4 flex flex-col justify-between gap-3 shadow-md hover:border-slate-700 transition-all">
@@ -616,12 +616,15 @@ export default function ActivityDetailPage() {
                               src={fullFileUrl}
                               alt={ev.file_name || "Evidencia"}
                               className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = "none";
+                              }}
                             />
                             <div
                               onClick={() => setPreviewImage({ url: fullFileUrl, name: ev.file_name || "Evidencia" })}
                               className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer gap-2 text-white font-bold text-xs"
                             >
-                              <Eye size={18} /> Ver imagen ampliada
+                              <Eye size={18} /> Ver / Ampliar imagen
                             </div>
                           </div>
                         ) : (
@@ -654,14 +657,13 @@ export default function ActivityDetailPage() {
                       <div className="flex items-center justify-between border-t border-slate-800/60 pt-3 mt-2">
                         <div className="flex items-center gap-2">
                           {fullFileUrl && (
-                            <a
-                              href={fullFileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-[#20CDFE] text-xs font-bold hover:underline flex items-center gap-1 bg-[#20CDFE]/10 border border-[#20CDFE]/20 px-3 py-1.5 rounded-xl"
+                            <button
+                              type="button"
+                              onClick={() => downloadFileFromUrl(fullFileUrl, ev.file_name || "evidencia")}
+                              className="text-[#20CDFE] text-xs font-bold hover:underline flex items-center gap-1.5 bg-[#20CDFE]/10 border border-[#20CDFE]/20 px-3 py-1.5 rounded-xl transition-all hover:bg-[#20CDFE]/20"
                             >
-                              Ver / Descargar ↗
-                            </a>
+                              <Download size={13} /> Descargar
+                            </button>
                           )}
                           {ev.drive_url && (
                             <a
@@ -894,14 +896,13 @@ export default function ActivityDetailPage() {
               <img src={previewImage.url} alt={previewImage.name} className="max-h-[75vh] max-w-full object-contain rounded-xl shadow-lg" />
             </div>
             <div className="p-4 border-t border-slate-800 flex justify-end gap-3 bg-[#070C18]">
-              <a
-                href={previewImage.url}
-                target="_blank"
-                download
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#20CDFE] text-[#07060B] hover:opacity-90 flex items-center gap-1.5"
+              <button
+                type="button"
+                onClick={() => downloadFileFromUrl(previewImage.url, previewImage.name)}
+                className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] hover:opacity-90 flex items-center gap-2 shadow-md shadow-[#20CDFE]/20 cursor-pointer"
               >
-                Descargar Imagen ↗
-              </a>
+                <Download size={15} /> Descargar Imagen
+              </button>
             </div>
           </div>
         </div>

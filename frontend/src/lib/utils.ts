@@ -44,6 +44,39 @@ export function formatFileSize(bytes?: number | null): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+export function getFileUrl(path?: string | null): string {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+
+  let apiBase = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiBase || apiBase === "undefined") {
+    apiBase = typeof window !== "undefined" && window.location.hostname !== "localhost"
+      ? "https://proyecto-benchamen.onrender.com"
+      : "http://localhost:8000";
+  }
+
+  const cleanBase = apiBase.replace(/\/$/, "");
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${cleanBase}${cleanPath}`;
+}
+
+export async function downloadFileFromUrl(url: string, filename: string) {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename || "evidencia";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch {
+    window.open(url, "_blank");
+  }
+}
+
 export const STATUS_COLORS: Record<ActivityStatus, string> = {
   pendiente:    "bg-slate-500/20 text-slate-300 border-slate-500/30",
   bloqueada:    "bg-stone-500/20 text-stone-300 border-stone-500/30",

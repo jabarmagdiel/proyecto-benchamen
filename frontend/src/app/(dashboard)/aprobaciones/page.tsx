@@ -7,7 +7,7 @@ import { activitiesApi } from "@/lib/api";
 import type { Activity } from "@/types";
 import { ACTIVITY_TYPE_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getFileUrl } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
 export default function AprobacionesPage() {
@@ -125,7 +125,7 @@ export default function AprobacionesPage() {
               
               {(a.node_type === 'end' || a.current_stage?.node_type === 'end') && a.latest_evidence_url && (
                 <div className="mb-4">
-                  <a href={a.latest_evidence_url.startsWith('http') ? a.latest_evidence_url : `${process.env.NEXT_PUBLIC_API_URL}${a.latest_evidence_url}`} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-violet-50 text-[#20CDFE] hover:bg-[#20CDFE]/20 font-semibold text-sm rounded-xl transition-colors border border-violet-100">
+                  <a href={getFileUrl(a.latest_evidence_url)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-violet-50 text-[#20CDFE] hover:bg-[#20CDFE]/20 font-semibold text-sm rounded-xl transition-colors border border-violet-100">
                     <span className="text-lg">⭐</span> Ver Producto Final
                   </a>
                 </div>
