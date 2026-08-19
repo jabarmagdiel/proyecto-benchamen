@@ -28,6 +28,78 @@ ALLOWED_EXTENSIONS = {
     ".pdf", ".mp4", ".mov", ".avi", ".webm", ".doc", ".docx", ".xls", ".xlsx", ".zip", ".rar", ".7z", ".txt"
 }
 
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".bmp", ".heic", ".avif", ".ico"}
+
+
+def _cloudinary_enabled() -> bool:
+    return bool(
+        settings.CLOUDINARY_CLOUD_NAME
+        and settings.CLOUDINARY_API_KEY
+        and settings.CLOUDINARY_API_SECRET
+    )
+
+
+async def _upload_to_cloudinary(content: bytes, filename: str, activity_id: int) -> dict:
+    """Upload file to Cloudinary and return url + public_id."""
+    import cloudinary
+    import cloudinary.uploader
+
+    cloudinary.config(
+        cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+        api_key=settings.CLOUDINARY_API_KEY,
+        api_secret=settings.CLOUDINARY_API_SECRET,
+        secure=True,
+    )
+
+    ext = os.path.splitext(filename or "")[1].lower()
+    public_id = f"benchamen/actividades/{activity_id}/{uuid.uuid4().hex}"
+    resource_type = "image" if ext in IMAGE_EXTENSIONS else ("video" if ext in {".mp4", ".mov", ".avi", ".webm"} else "raw")
+
+    result = cloudinary.uploader.upload(
+        content,
+        public_id=public_id,
+        resource_type=resource_type,
+        use_filename=False,
+        overwrite=False,
+    )
+
+    return {
+        "url": result.get("secure_url"),
+        "public_id": result.get("public_id"),
+    }
+
+
+def _delete_from_cloudinary(file_url: str) -> None:
+    """Delete a file from Cloudinary by its URL (best-effort)."""
+    try:
+        import cloudinary
+        import cloudinary.uploader
+
+        cloudinary.config(
+            cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+            api_key=settings.CLOUDINARY_API_KEY,
+            api_secret=settings.CLOUDINARY_API_SECRET,
+            secure=True,
+        )
+        # Extract public_id from URL
+        # URL format: https://res.cloudinary.com/<cloud>/image/upload/v.../benchamen/...
+        if "cloudinary.com" in file_url:
+            # Find the upload/ or raw/ segment and take everything after the version
+            for sep in ["/upload/", "/raw/upload/", "/video/upload/"]:
+                if sep in file_url:
+                    after = file_url.split(sep, 1)[1]
+                    # Remove version prefix like v1234567890/
+                    if after.startswith("v") and "/" in after:
+                        after = after.split("/", 1)[1]
+                    # Remove extension for image/video
+                    public_id = os.path.splitext(after)[0]
+                    cloudinary.uploader.destroy(public_id, resource_type="raw")
+                    cloudinary.uploader.destroy(public_id, resource_type="image")
+                    cloudinary.uploader.destroy(public_id, resource_type="video")
+                    break
+    except Exception:
+        pass
+
 
 def _get_activity(db: Session, activity_id: int) -> Activity:
     activity = db.query(Activity).filter(Activity.id == activity_id).first()
@@ -57,18 +129,10 @@ async def upload_file(db: Session, activity_id: int, user_id: int, file: UploadF
     if len(content) > max_bytes:
         raise HTTPException(status_code=400, detail=f"El archivo supera el límite de {settings.MAX_FILE_SIZE_MB}MB")
 
-    # Guardar archivo
-    upload_dir = os.path.join(settings.UPLOAD_DIR, str(activity_id))
-    os.makedirs(upload_dir, exist_ok=True)
-    unique_name = f"{uuid.uuid4().hex}{ext}"
-    file_path = os.path.join(upload_dir, unique_name)
-    with open(file_path, "wb") as f:
-        f.write(content)
-
     # Determinar tipo
     is_image = (
         (file.content_type and file.content_type.startswith("image/"))
-        or ext in [".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".bmp", ".heic", ".avif", ".ico"]
+        or ext in IMAGE_EXTENSIONS
     )
     ev_type = EvidenceType.IMAGE if is_image else EvidenceType.FILE
 
@@ -80,11 +144,32 @@ async def upload_file(db: Session, activity_id: int, user_id: int, file: UploadF
         elif ext in [".gif"]: mime_type = "image/gif"
         elif ext in [".pdf"]: mime_type = "application/pdf"
 
+    file_url: str
+    public_id: str | None = None
+
+    if _cloudinary_enabled():
+        # ── Subir a Cloudinary (almacenamiento permanente) ──────────────────────
+        try:
+            result = await _upload_to_cloudinary(content, file.filename, activity_id)
+            file_url = result["url"]
+            public_id = result.get("public_id")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error subiendo a Cloudinary: {str(e)}")
+    else:
+        # ── Guardar localmente (desarrollo / docker-compose) ────────────────────
+        upload_dir = os.path.join(settings.UPLOAD_DIR, str(activity_id))
+        os.makedirs(upload_dir, exist_ok=True)
+        unique_name = f"{uuid.uuid4().hex}{ext}"
+        file_path = os.path.join(upload_dir, unique_name)
+        with open(file_path, "wb") as f:
+            f.write(content)
+        file_url = f"/uploads/{activity_id}/{unique_name}"
+
     evidence = Evidence(
         activity_id=activity_id,
         user_id=user_id,
         evidence_type=ev_type,
-        file_url=f"/uploads/{activity_id}/{unique_name}",
+        file_url=file_url,
         file_name=file.filename,
         file_size=len(content),
         mime_type=mime_type,
@@ -99,6 +184,7 @@ async def upload_file(db: Session, activity_id: int, user_id: int, file: UploadF
     ))
     db.commit()
     db.refresh(evidence)
+
     try:
         from app.services import notification_service as notification_svc
         activity = db.query(Activity).filter(Activity.id == activity_id).first()
@@ -112,6 +198,7 @@ async def upload_file(db: Session, activity_id: int, user_id: int, file: UploadF
             )
     except Exception:
         pass
+
     return evidence
 
 
@@ -155,10 +242,15 @@ def delete(db: Session, evidence_id: int, user_id: int, is_admin: bool) -> None:
         raise HTTPException(status_code=404, detail="Evidencia no encontrada")
     if not is_admin and evidence.user_id != user_id:
         raise HTTPException(status_code=403, detail="No tienes permiso para eliminar esta evidencia")
-    # Si es archivo físico, eliminarlo
+
     if evidence.file_url:
-        file_path = evidence.file_url.lstrip("/")
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        if "cloudinary.com" in evidence.file_url:
+            _delete_from_cloudinary(evidence.file_url)
+        else:
+            # Archivo local
+            file_path = evidence.file_url.lstrip("/")
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
     db.delete(evidence)
     db.commit()

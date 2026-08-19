@@ -26,9 +26,14 @@ class Settings(BaseSettings):
     MAIL_TLS: bool = True
     MAIL_SSL: bool = False
 
-    # Upload
+    # Upload (local fallback)
     UPLOAD_DIR: str = "uploads"
     MAX_FILE_SIZE_MB: int = 20
+
+    # Cloudinary (cloud storage for production)
+    CLOUDINARY_CLOUD_NAME: str = ""
+    CLOUDINARY_API_KEY: str = ""
+    CLOUDINARY_API_SECRET: str = ""
 
     # Google Calendar OAuth2
     GOOGLE_CLIENT_ID: str = ""
