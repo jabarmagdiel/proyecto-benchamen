@@ -762,32 +762,42 @@ export default function ActividadesPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Rol Operativo</label>
-                    <select 
-                      value={selectedDepartmentId}
-                      onChange={(e) => {
-                        setSelectedDepartmentId(e.target.value);
-                        setValue("assigned_user_id", null);
-                      }}
-                      className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80"
-                    >
-                      <option value="">Cualquier rol operativo</option>
-                      {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                    </select>
+                {currentUser?.role === "administrador" ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">Filtrar por Área / Departamento</label>
+                      <select 
+                        value={selectedDepartmentId}
+                        onChange={(e) => {
+                          setSelectedDepartmentId(e.target.value);
+                          setValue("assigned_user_id", null);
+                        }}
+                        className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 text-white"
+                      >
+                        <option value="">Todos los departamentos</option>
+                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable Inicial</label>
+                      <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 text-white">
+                        <option value="">Sin asignar</option>
+                        {users
+                          .filter(u => !selectedDepartmentId || u.departments?.some((d: any) => d.id === Number(selectedDepartmentId)))
+                          .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
+                        }
+                      </select>
+                    </div>
                   </div>
+                ) : (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable Inicial</label>
-                    <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable Inicial (Operador de tu Departamento)</label>
+                    <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 text-white">
                       <option value="">Sin asignar</option>
-                      {users
-                        .filter(u => !selectedDepartmentId || u.departments?.some((d: any) => d.id === Number(selectedDepartmentId)))
-                        .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
-                      }
+                      {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)}
                     </select>
                   </div>
-                </div>
+                )}
               </div>
               <div className="flex gap-3 p-6 border-t border-slate-800/50 bg-[#15233D]/80 shrink-0">
                 <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-800/50 bg-[#0A101D]/80 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#15233D] transition-colors shadow-sm">Cancelar</button>
