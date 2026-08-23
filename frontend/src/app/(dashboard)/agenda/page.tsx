@@ -168,7 +168,7 @@ export default function AgendaPage() {
     try {
       const myRes = await appointmentsApi.my();
       setAppointments(myRes.data);
-      if (!isAdmin) {
+      if (!canManageMeetings) {
         const avail = await appointmentsApi.getAvailability();
         setAvailableSlots(avail.data);
       }
@@ -378,7 +378,7 @@ export default function AgendaPage() {
   };
 
   const daySlots = selectedDay
-    ? (isAdmin ? slotsForDay(selectedDay) : availForDay(selectedDay))
+    ? (canManageMeetings ? slotsForDay(selectedDay) : availForDay(selectedDay))
     : [];
 
   const slotsByDate = availableSlots
@@ -1389,7 +1389,7 @@ export default function AgendaPage() {
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
             {/* Columna Izquierda / Principal: Formulario Marcar Ocupado (Para Operativos / Freelancers) */}
-            <div className={isAdmin ? "xl:col-span-1 space-y-4" : "xl:col-span-3 max-w-2xl mx-auto w-full space-y-4"}>
+            <div className={canManageMeetings ? "xl:col-span-1 space-y-4" : "xl:col-span-3 max-w-2xl mx-auto w-full space-y-4"}>
               <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-5 space-y-4 shadow-xl">
                 <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
                   <h3 className="font-bold text-white text-sm flex items-center gap-2">
@@ -1506,8 +1506,8 @@ export default function AgendaPage() {
               </div>
             </div>
 
-            {/* Columna Derecha: Matriz del Equipo (Solo visible para Administradores) */}
-            {isAdmin && (
+            {/* Columna Derecha: Matriz del Equipo */}
+            {canManageMeetings && (
               <div className="xl:col-span-2 space-y-4">
               <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-5 space-y-4 shadow-xl">
                 <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
