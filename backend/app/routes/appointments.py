@@ -32,10 +32,10 @@ def create_availability(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role.value != "administrador":
+    if current_user.role.value not in ["administrador", "gerencia"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo el administrador puede publicar disponibilidad"
+            detail="Solo administradores o gerencia pueden publicar disponibilidad"
         )
     return appointment_svc.create_availability(db, admin_id=current_user.id, data=data)
 
@@ -87,10 +87,10 @@ def delete_slot(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role.value != "administrador":
+    if current_user.role.value not in ["administrador", "gerencia"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo el administrador puede eliminar slots de disponibilidad"
+            detail="Solo administradores o gerencia pueden eliminar slots de disponibilidad"
         )
     appointment_svc.delete_slot(db, appointment_id=id, admin_id=current_user.id)
     return None
