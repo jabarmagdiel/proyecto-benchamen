@@ -29,8 +29,9 @@ const adminLinks = [
 
 const gerenciaLinks = [
   { href: "/dashboard",              icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/mis-actividades",        icon: CheckSquare,     label: "Mis Tareas / Entregas" },
   { href: "/proyectos",              icon: FolderKanban,    label: "Proyectos" },
-  { href: "/actividades",            icon: ClipboardList,   label: "Actividades" },
+  { href: "/actividades",            icon: ClipboardList,   label: "Gestión de Actividades" },
   { href: "/calendario-actividades", icon: Calendar,        label: "Calendario Actividades" },
   { href: "/aprobaciones",           icon: CheckSquare,     label: "Aprobaciones" },
   { href: "/agenda",                 icon: Calendar,        label: "Agenda & Disponibilidad" },
