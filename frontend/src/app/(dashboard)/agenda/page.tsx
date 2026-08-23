@@ -771,9 +771,9 @@ export default function AgendaPage() {
           <div className="flex justify-center py-24">
             <div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
           </div>
-        ) : isAdmin ? (
+        ) : canManageMeetings ? (
 
-          /* ── VISTA ADMIN CITAS ── */
+          /* ── VISTA ADMIN / GERENCIA CITAS ── */
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             <div className="xl:col-span-1 space-y-4">
               {/* Calendario Citas */}
