@@ -44,6 +44,8 @@ export default function AgendaPage() {
   const { user } = useAuth();
   const { subscribe } = useWebSocket();
   const isAdmin = user?.role === "administrador";
+  const isGerencia = user?.role === "gerencia";
+  const canManageMeetings = isAdmin || isGerencia;
 
   /* Google Calendar connection state */
   const [gcalStatus, setGcalStatus] = useState<{ configured: boolean; connected: boolean } | null>(null);
@@ -132,12 +134,12 @@ export default function AgendaPage() {
   const [usersList, setUsersList]                             = useState<any[]>([]);
 
   useEffect(() => {
-    if (isAdmin) {
+    if (canManageMeetings) {
       usersApi.list()
         .then(res => setUsersList(res.data || []))
         .catch(err => console.error("Error al obtener lista de usuarios para reuniones:", err));
     }
-  }, [isAdmin]);
+  }, [canManageMeetings]);
 
   /* ─── PESTAÑA 2: DISPONIBILIDAD FREELANCE DEL EQUIPO ─── */
   const todayStr = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
@@ -488,7 +490,7 @@ export default function AgendaPage() {
                 </div>
               </div>
 
-              {isAdmin && (
+              {canManageMeetings && (
                 <button
                   onClick={() => {
                     setShowMeetingModal(true);
@@ -503,7 +505,7 @@ export default function AgendaPage() {
             </div>
           )}
 
-          {isAdmin && mainTab === "citas" && (
+          {canManageMeetings && mainTab === "citas" && (
             <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-800/50">
               <div className="flex flex-wrap gap-4">
                 <div className="bg-[#07060B]/50 backdrop-blur-md border border-slate-800/50 rounded-2xl px-4 py-2.5 text-center">

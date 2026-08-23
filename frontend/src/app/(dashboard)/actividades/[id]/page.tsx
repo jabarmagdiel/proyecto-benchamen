@@ -289,7 +289,8 @@ export default function ActivityDetailPage() {
   if (!activity) return <div className="text-center py-20 text-slate-400">Actividad no encontrada</div>;
 
   const isGerencia = user?.role === "gerencia";
-  const isOwner = activity.assigned_user_id === user?.user_id;
+  const isOwner = activity.assigned_user_id === user?.user_id || activity.assigned_user_id === user?.id;
+  const canUploadEvidence = isOwner || isAdmin || isGerencia;
   const canStart = (isOwner || isAdmin || isGerencia) && activity.status === "asignada";
   const canSendReview = (isOwner || isAdmin || isGerencia) && ["en_proceso", "observada"].includes(activity.status);
   const canApprove = (isAdmin || isGerencia || (user?.role === 'cliente' && (activity.node_type === 'end' || activity.current_stage?.node_type === 'end'))) && activity.status === "en_revision";
@@ -496,8 +497,8 @@ export default function ActivityDetailPage() {
               ))}
             </div>
           </div>
-          {/* Subir evidencia (operativo) */}
-          {(isOwner || isAdmin) && (
+          {/* Subir evidencia */}
+          {canUploadEvidence && (
             <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm p-5 space-y-4">
               <h3 className="font-semibold text-white">Subir evidencia</h3>
               <div>
@@ -531,7 +532,7 @@ export default function ActivityDetailPage() {
       {tab === "evidencias" && (
         <div className="space-y-6">
           {/* Formulario de carga directo en la pestaña de Evidencias */}
-          {(isOwner || isAdmin) && (
+          {canUploadEvidence && (
             <div className="bg-[#0A101D]/70 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-md p-5 space-y-4">
               <h3 className="font-bold text-white text-sm flex items-center gap-2">
                 <Upload size={16} className="text-[#20CDFE]" /> Subir Nuevas Evidencias (PNG, JPG, PDFs, Videos o Drive)
