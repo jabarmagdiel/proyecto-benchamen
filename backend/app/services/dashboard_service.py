@@ -20,6 +20,14 @@ def get_full_dashboard(
     today = date.today()
     role_val = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
 
+    user_dept_ids = [d.id for d in current_user.departments] if role_val == "gerencia" else []
+    dept_user_ids_stmt = None
+    dept_proj_ids_stmt = None
+    if user_dept_ids:
+        from app.models.user import user_departments
+        dept_user_ids_stmt = db.query(user_departments.c.user_id).filter(user_departments.c.department_id.in_(user_dept_ids)).subquery()
+        dept_proj_ids_stmt = db.query(Project.id).filter(Project.department_id.in_(user_dept_ids)).subquery()
+
     # 1. Seguridad: Si el usuario es de tipo cliente, forzar su company_id y validar proyecto
     if role_val == "cliente":
         company_id = current_user.company_id
@@ -43,6 +51,19 @@ def get_full_dashboard(
             .filter(Activity.assigned_user_id == current_user.id)
             .scalar() or 0
         )
+    elif role_val == "gerencia":
+        total_companies = (
+            db.query(func.count(Company.id.distinct()))
+            .join(Project, Project.company_id == Company.id)
+            .join(Activity, Activity.project_id == Project.id)
+            .filter(
+                (Activity.assigned_user_id == current_user.id) |
+                (Activity.created_by_id == current_user.id) |
+                (Activity.assigned_user_id.in_(dept_user_ids_stmt)) |
+                (Activity.project_id.in_(dept_proj_ids_stmt))
+            )
+            .scalar() or 0
+        )
     elif project_id:
         proj = db.query(Project).filter(Project.id == project_id).first()
         total_companies = 1 if proj else 0
@@ -52,8 +73,12 @@ def get_full_dashboard(
     # Total de Proyectos
     proj_q = db.query(func.count(Project.id))
     if role_val == "operativo":
-        # Proyectos asignados al operativo a través de sus actividades
         proj_q = proj_q.join(Activity, Activity.project_id == Project.id).filter(Activity.assigned_user_id == current_user.id)
+    elif role_val == "gerencia":
+        proj_q = proj_q.filter(
+            (Project.department_id.in_(user_dept_ids)) |
+            (Project.id.in_(dept_proj_ids_stmt))
+        )
     
     if project_id:
         proj_q = proj_q.filter(Project.id == project_id)
@@ -66,6 +91,11 @@ def get_full_dashboard(
     act_proj_q = db.query(func.count(Project.id)).filter(Project.status == ProjectStatus.IN_PROGRESS)
     if role_val == "operativo":
         act_proj_q = act_proj_q.join(Activity, Activity.project_id == Project.id).filter(Activity.assigned_user_id == current_user.id)
+    elif role_val == "gerencia":
+        act_proj_q = act_proj_q.filter(
+            (Project.department_id.in_(user_dept_ids)) |
+            (Project.id.in_(dept_proj_ids_stmt))
+        )
         
     if project_id:
         act_proj_q = act_proj_q.filter(Project.id == project_id)
@@ -74,10 +104,17 @@ def get_full_dashboard(
         
     active_projects = act_proj_q.distinct().scalar() or 0
 
-    # 3. Distribución de Actividades por Estado (1 sola consulta SQL agrupada)
+    # 3. Distribución de Actividades por Estado
     status_q = db.query(Activity.status, func.count(Activity.id))
     if role_val == "operativo":
         status_q = status_q.filter(Activity.assigned_user_id == current_user.id)
+    elif role_val == "gerencia":
+        status_q = status_q.filter(
+            (Activity.assigned_user_id == current_user.id) |
+            (Activity.created_by_id == current_user.id) |
+            (Activity.assigned_user_id.in_(dept_user_ids_stmt)) |
+            (Activity.project_id.in_(dept_proj_ids_stmt))
+        )
     if project_id:
         status_q = status_q.filter(Activity.project_id == project_id)
     elif company_id:
@@ -86,13 +123,20 @@ def get_full_dashboard(
     status_rows = status_q.group_by(Activity.status).all()
     status_counts = { (st.value if hasattr(st, "value") else str(st)): cnt for st, cnt in status_rows }
 
-    # 4. Total Actividades Demoradas (Contador)
+    # 4. Total Actividades Demoradas
     late_q = db.query(func.count(Activity.id)).filter(
         Activity.deadline < today,
         Activity.status.not_in([ActivityStatus.APPROVED, ActivityStatus.CANCELLED])
     )
     if role_val == "operativo":
         late_q = late_q.filter(Activity.assigned_user_id == current_user.id)
+    elif role_val == "gerencia":
+        late_q = late_q.filter(
+            (Activity.assigned_user_id == current_user.id) |
+            (Activity.created_by_id == current_user.id) |
+            (Activity.assigned_user_id.in_(dept_user_ids_stmt)) |
+            (Activity.project_id.in_(dept_proj_ids_stmt))
+        )
         
     if project_id:
         late_q = late_q.filter(Activity.project_id == project_id)
@@ -101,13 +145,14 @@ def get_full_dashboard(
         
     late = late_q.scalar() or 0
 
-    # 5. Carga de Trabajo (Gráfico de Barras)
-    if role_val == "administrador":
-        # Administrador ve carga agrupada por usuario operativo (Top 10)
+    # 5. Carga de Trabajo
+    if role_val in ["administrador", "gerencia"]:
         user_q = (
             db.query(User.id, User.name, func.count(Activity.id).label("count"))
             .join(Activity, Activity.assigned_user_id == User.id)
         )
+        if role_val == "gerencia":
+            user_q = user_q.filter(User.id.in_(dept_user_ids_stmt))
         if project_id:
             user_q = user_q.filter(Activity.project_id == project_id)
         elif company_id:
@@ -154,6 +199,13 @@ def get_full_dashboard(
     )
     if role_val == "operativo":
         late_list_q = late_list_q.filter(Activity.assigned_user_id == current_user.id)
+    elif role_val == "gerencia":
+        late_list_q = late_list_q.filter(
+            (Activity.assigned_user_id == current_user.id) |
+            (Activity.created_by_id == current_user.id) |
+            (Activity.assigned_user_id.in_(dept_user_ids_stmt)) |
+            (Activity.project_id.in_(dept_proj_ids_stmt))
+        )
     elif role_val == "cliente":
         late_list_q = late_list_q.filter(Project.company_id == company_id)
         

@@ -397,9 +397,9 @@ export default function ActividadesPage() {
               reset({ 
                 activity_type: "otro", 
                 priority: "media", 
-                workflow_id: workflows.length > 0 ? workflows[0].id : null 
+                workflow_id: null 
               }); 
-              setCreationMode("workflow");
+              setCreationMode("custom");
               setSelectedDepartmentId("");
               setModalOpen(true); 
             }} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-[#20CDFE]/20 transition-all">
@@ -681,38 +681,6 @@ export default function ActividadesPage() {
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
-                
-                {/* Selector de Modo de Creación */}
-                <div className="flex bg-[#0A101D] border border-slate-800 rounded-xl p-1 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCreationMode("workflow");
-                      setValue("workflow_id", workflows.length > 0 ? workflows[0].id : null);
-                    }}
-                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-                      creationMode === "workflow" 
-                        ? "bg-[#20CDFE]/20 text-[#20CDFE]" 
-                        : "text-slate-400 hover:text-slate-300"
-                    }`}
-                  >
-                    Usar Flujo de Trabajo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCreationMode("custom");
-                      setValue("workflow_id", null);
-                    }}
-                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-                      creationMode === "custom" 
-                        ? "bg-violet-500/20 text-violet-400" 
-                        : "text-slate-400 hover:text-slate-300"
-                    }`}
-                  >
-                    Actividad Personalizada
-                  </button>
-                </div>
 
                 {/* Opción Habilitable: Trabajo Independiente / Sin Proyecto */}
                 <div className="p-3 bg-[#15233D]/60 border border-slate-800 rounded-xl flex items-center justify-between gap-3">

@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { useAuth } from "@/context/AuthContext";
 import { useWebSocket } from "@/context/WebSocketContext";
 
 const schema = z.object({
@@ -37,6 +38,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
 };
 
 export default function ProyectosPage() {
+  const { user, isAdmin } = useAuth();
   const { subscribe } = useWebSocket();
   const [projects, setProjects] = useState<Project[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -176,9 +178,11 @@ export default function ProyectosPage() {
           <h2 className="text-xl font-bold text-white">Proyectos</h2>
           <p className="text-slate-400 text-sm mt-0.5">{projects.length} proyecto{projects.length !== 1 ? "s" : ""}</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-[#20CDFE]/20">
-          <Plus size={16} /> Nuevo proyecto
-        </button>
+        {isAdmin && (
+          <button onClick={openCreate} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-[#20CDFE]/20">
+            <Plus size={16} /> Nuevo proyecto
+          </button>
+        )}
       </div>
 
       {/* Filtros */}
@@ -199,7 +203,7 @@ export default function ProyectosPage() {
 
       {/* Grid de cards */}
       {loading ? (
-        <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
+        <div className="flex justify-center py-16"><div className="w-8 h-8 border-4 border-[#2E455C] border-[#20CDFE] rounded-full animate-spin" /></div>
       ) : projects.length === 0 ? (
         <div className="text-center py-16 text-slate-400 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50">
           <FolderKanban size={40} className="mx-auto mb-3 opacity-30" />
@@ -225,10 +229,12 @@ export default function ProyectosPage() {
                     )}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 ml-2">
-                  <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors"><Pencil size={13} /></button>
-                  <button onClick={() => setDeleteId(p.id)} className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
-                </div>
+                {isAdmin && (
+                  <div className="flex items-center gap-1 ml-2">
+                    <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors"><Pencil size={13} /></button>
+                    <button onClick={() => setDeleteId(p.id)} className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
+                  </div>
+                )}
               </div>
               {p.description && <p className="text-slate-400 text-xs line-clamp-2">{p.description}</p>}
               {/* Progreso */}

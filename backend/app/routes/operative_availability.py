@@ -38,9 +38,9 @@ def get_my_availabilities(
 def get_team_matrix(
     target_date: date,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return service.get_team_availability_matrix(db, target_date=target_date)
+    return service.get_team_availability_matrix(db, target_date=target_date, current_user=current_user)
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)

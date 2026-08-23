@@ -18,10 +18,10 @@ def create_meeting(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.role.value != "administrador":
+    if current_user.role.value not in ["administrador", "gerencia"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Solo el administrador puede solicitar/programar reuniones"
+            detail="Solo administradores o gerencia pueden solicitar/programar reuniones"
         )
     return appointment_svc.create_meeting(db, admin=current_user, data=data)
 

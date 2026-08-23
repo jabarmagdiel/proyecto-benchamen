@@ -46,6 +46,7 @@ PRIORITY_LABELS = {
 
 def _get_activities_data(
     db: Session,
+    current_user: Optional[User] = None,
     company_id: Optional[int] = None,
     project_id: Optional[int] = None,
     status: Optional[str] = None,
@@ -69,6 +70,18 @@ def _get_activities_data(
         .join(Project, Project.id == Activity.project_id)
         .join(Company, Company.id == Project.company_id)
     )
+    if current_user and (current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)) == "gerencia":
+        user_dept_ids = [d.id for d in current_user.departments]
+        if user_dept_ids:
+            from app.models.user import user_departments
+            dept_user_ids = db.query(user_departments.c.user_id).filter(user_departments.c.department_id.in_(user_dept_ids)).subquery()
+            dept_proj_ids = db.query(Project.id).filter(Project.department_id.in_(user_dept_ids)).subquery()
+            q = q.filter(
+                (Activity.assigned_user_id == current_user.id) |
+                (Activity.created_by_id == current_user.id) |
+                (Activity.assigned_user_id.in_(dept_user_ids)) |
+                (Activity.project_id.in_(dept_proj_ids))
+            )
     if company_id:
         q = q.filter(Company.id == company_id)
     if project_id:

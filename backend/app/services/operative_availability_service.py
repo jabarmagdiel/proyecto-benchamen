@@ -54,12 +54,19 @@ def delete_availability(db: Session, availability_id: int, current_user: User) -
     db.commit()
 
 
-def get_team_availability_matrix(db: Session, target_date: date) -> List[OperativeAvailabilitySummary]:
-    # Obtener todos los trabajadores activos (operativos y administradores)
-    workers = db.query(User).filter(
+def get_team_availability_matrix(db: Session, target_date: date, current_user: Optional[User] = None) -> List[OperativeAvailabilitySummary]:
+    # Obtener todos los trabajadores activos (operativos, gerencia y administradores)
+    workers_q = db.query(User).filter(
         User.is_active == True,
-        User.role.in_([UserRole.OPERATIVE, UserRole.ADMIN])
-    ).all()
+        User.role.in_([UserRole.OPERATIVE, UserRole.GERENCIA, UserRole.ADMIN])
+    )
+    if current_user and current_user.role == UserRole.GERENCIA:
+        user_dept_ids = [d.id for d in current_user.departments]
+        if user_dept_ids:
+            from app.models.user import user_departments
+            dept_user_ids = db.query(user_departments.c.user_id).filter(user_departments.c.department_id.in_(user_dept_ids)).subquery()
+            workers_q = workers_q.filter(User.id.in_(dept_user_ids))
+    workers = workers_q.all()
 
     # Obtener bloqueos de la fecha
     blocks = db.query(OperativeAvailability).filter(OperativeAvailability.date == target_date).all()
