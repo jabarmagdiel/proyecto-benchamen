@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Query, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import require_admin, get_current_user
+from app.core.security import require_admin, require_admin_or_gerencia, get_current_user
 from app.schemas.activity import ActivityCreate, ActivityUpdate, ActivityResponse, ActivityStatusUpdate
 from app.schemas.history import HistoryResponse
 from app.models.activity_history import ActivityHistory
@@ -43,7 +43,7 @@ def list_activities(
     return activity_svc.get_all(
         db, company_id=company_id, project_id=project_id, assigned_user_id=assigned_user_id,
         status=status, priority=priority, activity_type=activity_type, search=search, 
-        skip=skip, limit=limit, for_client=for_client
+        skip=skip, limit=limit, for_client=for_client, current_user=current_user
     )
 
 
@@ -59,8 +59,8 @@ def my_activities(
 
 
 @router.post("", response_model=ActivityResponse, status_code=201)
-def create_activity(data: ActivityCreate, db: Session = Depends(get_db), current_user=Depends(require_admin)):
-    return activity_svc.create(db, data, current_user.id)
+def create_activity(data: ActivityCreate, db: Session = Depends(get_db), current_user=Depends(require_admin_or_gerencia)):
+    return activity_svc.create(db, data, current_user)
 
 
 @router.get("/{activity_id}", response_model=ActivityResponse)
@@ -75,7 +75,7 @@ def get_activity(activity_id: int, db: Session = Depends(get_db), current_user=D
 
 @router.put("/{activity_id}", response_model=ActivityResponse)
 def update_activity(
-    activity_id: int, data: ActivityUpdate, db: Session = Depends(get_db), current_user=Depends(require_admin)
+    activity_id: int, data: ActivityUpdate, db: Session = Depends(get_db), current_user=Depends(require_admin_or_gerencia)
 ):
     return activity_svc.update(db, activity_id, data, current_user.id)
 

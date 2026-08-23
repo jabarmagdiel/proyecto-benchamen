@@ -7,10 +7,26 @@ from app.schemas.user import UserCreate, UserUpdate, UserResponse, UserListRespo
 from app.core.security import hash_password, verify_password
 
 
-def get_all(db: Session, skip: int = 0, limit: int = 100, search: Optional[str] = None) -> List[User]:
+def get_all(
+    db: Session,
+    skip: int = 0,
+    limit: int = 100,
+    search: Optional[str] = None,
+    role: Optional[str] = None,
+    department_id: Optional[int] = None,
+    department_ids: Optional[List[int]] = None,
+) -> List[User]:
     q = db.query(User)
     if search:
         q = q.filter(User.name.ilike(f"%{search}%") | User.email.ilike(f"%{search}%"))
+    if role:
+        q = q.filter(User.role == role)
+    if department_id:
+        from app.models.user import user_departments
+        q = q.join(user_departments).filter(user_departments.c.department_id == department_id)
+    elif department_ids:
+        from app.models.user import user_departments
+        q = q.join(user_departments).filter(user_departments.c.department_id.in_(department_ids)).distinct()
     return q.offset(skip).limit(limit).all()
 
 

@@ -331,7 +331,7 @@ export default function ActividadesPage() {
                   Enviar a rev.
                 </button>
              )}
-             {a.status === "en_revision" && currentUser?.role === "administrador" && (
+             {a.status === "en_revision" && (currentUser?.role === "administrador" || currentUser?.role === "gerencia") && (
                 <>
                   <button onClick={() => handleApprove(a.id)} className="flex-1 text-[10px] uppercase tracking-wider font-bold bg-green-50 text-green-700 hover:bg-green-100 py-1.5 rounded-lg transition-colors" title="Aprobar">
                     Aprobar
@@ -640,15 +640,15 @@ export default function ActividadesPage() {
                               <Send size={14} />
                             </button>
                           )}
-                          {a.status === "en_revision" && currentUser?.role === "administrador" && (
-                            <>
-                              <button onClick={() => handleApprove(a.id)} className="p-1.5 rounded-lg hover:bg-green-100 text-slate-400 hover:text-green-600 transition-colors" title="Aprobar">
-                                <CheckCircle size={14} />
-                              </button>
-                              <button onClick={() => setObserveModal({ id: a.id })} className="p-1.5 rounded-lg hover:bg-amber-100 text-slate-400 hover:text-amber-600 transition-colors" title="Observar">
-                                <AlertCircle size={14} />
-                              </button>
-                            </>
+                          {a.status === "en_revision" && (currentUser?.role === "administrador" || currentUser?.role === "gerencia") && (
+                             <>
+                               <button onClick={() => handleApprove(a.id)} className="p-1.5 rounded-lg hover:bg-green-100 text-slate-400 hover:text-green-600 transition-colors" title="Aprobar">
+                                 <CheckCircle size={14} />
+                               </button>
+                               <button onClick={() => setObserveModal({ id: a.id })} className="p-1.5 rounded-lg hover:bg-amber-100 text-slate-400 hover:text-amber-600 transition-colors" title="Observar">
+                                 <AlertCircle size={14} />
+                               </button>
+                             </>
                           )}
                           {!["aprobada", "cancelada"].includes(a.status) && (
                             <button onClick={() => handleCancel(a.id)} className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors" title="Cancelar">

@@ -3,6 +3,7 @@ from enum import Enum
 
 class UserRole(str, Enum):
     ADMIN = "administrador"
+    GERENCIA = "gerencia"
     OPERATIVE = "operativo"
     CLIENT = "cliente"
 

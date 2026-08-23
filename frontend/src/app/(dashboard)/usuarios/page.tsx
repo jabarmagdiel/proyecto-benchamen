@@ -14,7 +14,7 @@ const schema = z.object({
   email: z.string().email("Email inválido"),
   password: z.string().min(6, "Mínimo 6 caracteres").optional().or(z.literal("")),
   position: z.string().optional().default(""),
-  role: z.enum(["administrador", "operativo", "cliente"]).default("operativo"),
+  role: z.enum(["administrador", "gerencia", "operativo", "cliente"]).default("operativo"),
   department_ids: z.array(z.coerce.number()).optional().default([]),
   company_id: z.coerce.number().optional().nullable(),
 }).refine(data => {
@@ -31,6 +31,7 @@ type FormData = z.infer<typeof schema>;
 
 const ROLE_COLORS = {
   administrador: "bg-[#20CDFE]/20 text-[#20CDFE]",
+  gerencia: "bg-purple-900/40 text-purple-300 border border-purple-500/30",
   operativo: "bg-blue-100 text-blue-700",
   cliente: "bg-emerald-100 text-emerald-700",
 };
@@ -221,7 +222,7 @@ export default function UsuariosPage() {
                       </td>
                       <td className="px-4 py-3.5">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${ROLE_COLORS[u.role]}`}>
-                          {u.role === "administrador" ? "Admin" : u.role === "cliente" ? "Cliente" : "Operativo"}
+                          {u.role === "administrador" ? "Admin" : u.role === "gerencia" ? "Gerencia" : u.role === "cliente" ? "Cliente" : "Operativo"}
                         </span>
                       </td>
                       <td className="px-4 py-3.5">
@@ -304,8 +305,9 @@ export default function UsuariosPage() {
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Rol *</label>
-                <select {...register("role")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
+                <select {...register("role")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D] text-white">
                   <option value="operativo">Operativo</option>
+                  <option value="gerencia">Gerencia (Gerente de Área / Depto)</option>
                   <option value="administrador">Administrador</option>
                   <option value="cliente">Cliente (Empresa)</option>
                 </select>

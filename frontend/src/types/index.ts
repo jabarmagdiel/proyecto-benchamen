@@ -1,5 +1,5 @@
 // ─── Enums / tipos base ───────────────────────────────────────────────────────
-export type UserRole = "administrador" | "operativo" | "cliente";
+export type UserRole = "administrador" | "gerencia" | "operativo" | "cliente";
 
 export type ActivityStatus =
   | "pendiente"
@@ -398,6 +398,13 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   media: "Media",
   alta: "Alta",
   urgente: "Urgente",
+};
+
+export const USER_ROLE_LABELS: Record<UserRole, string> = {
+  administrador: "Administrador",
+  gerencia: "Gerencia",
+  operativo: "Operador",
+  cliente: "Cliente",
 };
 
 export interface NotificationItem {

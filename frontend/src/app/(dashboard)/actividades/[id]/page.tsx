@@ -288,10 +288,11 @@ export default function ActivityDetailPage() {
   );
   if (!activity) return <div className="text-center py-20 text-slate-400">Actividad no encontrada</div>;
 
+  const isGerencia = user?.role === "gerencia";
   const isOwner = activity.assigned_user_id === user?.user_id;
-  const canStart = (isOwner || isAdmin) && activity.status === "asignada";
-  const canSendReview = (isOwner || isAdmin) && ["en_proceso", "observada"].includes(activity.status);
-  const canApprove = (isAdmin || (user?.role === 'cliente' && (activity.node_type === 'end' || activity.current_stage?.node_type === 'end'))) && activity.status === "en_revision";
+  const canStart = (isOwner || isAdmin || isGerencia) && activity.status === "asignada";
+  const canSendReview = (isOwner || isAdmin || isGerencia) && ["en_proceso", "observada"].includes(activity.status);
+  const canApprove = (isAdmin || isGerencia || (user?.role === 'cliente' && (activity.node_type === 'end' || activity.current_stage?.node_type === 'end'))) && activity.status === "en_revision";
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
@@ -343,7 +344,7 @@ export default function ActivityDetailPage() {
         
         {/* Botones de acción directos */}
         <div className="flex flex-col gap-2 items-end">
-          {isAdmin && (
+          {(isAdmin || isGerencia) && (
             <button onClick={openEditModal} className="flex items-center gap-2 bg-[#1C2C4D] hover:bg-[#2A3E66] text-[#20CDFE] border border-[#20CDFE]/30 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all w-full justify-center shadow-lg">
               <Pencil size={15} /> Editar Información
             </button>

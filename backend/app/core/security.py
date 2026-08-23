@@ -75,6 +75,17 @@ def require_admin(current_user=Depends(get_current_user)):
     return current_user
 
 
+def require_admin_or_gerencia(current_user=Depends(get_current_user)):
+    from app.utils.enums import UserRole
+
+    if current_user.role not in [UserRole.ADMIN, UserRole.GERENCIA]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acceso denegado. Se requiere rol administrador o gerencia.",
+        )
+    return current_user
+
+
 def require_roles(*roles):
     """Factory de dependencia para múltiples roles."""
     def checker(current_user=Depends(get_current_user)):

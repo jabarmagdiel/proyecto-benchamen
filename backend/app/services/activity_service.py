@@ -130,6 +130,7 @@ def get_all(
     skip: int = 0,
     limit: int = 100,
     for_client: Optional[bool] = None,
+    current_user: Optional[User] = None,
 ) -> List[Activity]:
     from app.models.workflow import WorkflowStage
     q = db.query(Activity).options(*_load_options())
@@ -147,6 +148,21 @@ def get_all(
         q = q.filter(Activity.title.ilike(f"%{search}%"))
     if company_id:
         q = q.join(Project).filter(Project.company_id == company_id)
+
+    if current_user and current_user.role == UserRole.GERENCIA:
+        user_dept_ids = [d.id for d in current_user.departments]
+        if user_dept_ids:
+            from app.models.user import user_departments
+            dept_user_ids_stmt = db.query(user_departments.c.user_id).filter(user_departments.c.department_id.in_(user_dept_ids)).subquery()
+            dept_proj_ids_stmt = db.query(Project.id).filter(Project.department_id.in_(user_dept_ids)).subquery()
+
+            q = q.filter(
+                (Activity.created_by_id == current_user.id) |
+                (Activity.assigned_user_id == current_user.id) |
+                (Activity.assigned_user_id.in_(dept_user_ids_stmt)) |
+                (Activity.project_id.in_(dept_proj_ids_stmt))
+            )
+
     if for_client is not None:
         if for_client:
             q = q.outerjoin(WorkflowStage).filter(
@@ -186,7 +202,22 @@ def get_by_id(db: Session, activity_id: int) -> Activity:
     return _enrich(db, activity)
 
 
-def create(db: Session, data: ActivityCreate, creator_id: int) -> Activity:
+def create(db: Session, data: ActivityCreate, creator: User) -> Activity:
+    creator_id = creator.id
+    if creator.role == UserRole.GERENCIA and data.assigned_user_id and data.assigned_user_id != creator_id:
+        user_dept_ids = [d.id for d in creator.departments]
+        if user_dept_ids:
+            from app.models.user import user_departments
+            is_in_dept = db.query(user_departments).filter(
+                user_departments.c.user_id == data.assigned_user_id,
+                user_departments.c.department_id.in_(user_dept_ids)
+            ).first()
+            if not is_in_dept:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Solo puedes asignar actividades a operadores pertenecientes a tus departamentos"
+                )
+
     activity_data = data.model_dump()
     
     current_stage_id = None
@@ -426,12 +457,29 @@ async def send_to_review(db: Session, activity_id: int, current_user: User, bg: 
 
 
 async def approve_activity(db: Session, activity_id: int, current_user: User, bg: BackgroundTasks) -> Activity:
-    """Admin o Cliente: Aprobar actividad"""
+    """Admin, Gerencia o Cliente: Aprobar actividad"""
     activity = get_by_id(db, activity_id)
     if current_user.role.value == "cliente" and activity.project and activity.project.company_id != current_user.company_id:
         raise HTTPException(status_code=403, detail="No tienes permiso para aprobar esta actividad")
-    if current_user.role.value not in ["administrador", "cliente"]:
-        raise HTTPException(status_code=403, detail="Solo administradores o clientes pueden aprobar actividades")
+    if current_user.role.value not in ["administrador", "gerencia", "cliente"]:
+        raise HTTPException(status_code=403, detail="Solo administradores, gerencia o clientes pueden aprobar actividades")
+
+    if current_user.role.value == "gerencia":
+        user_dept_ids = [d.id for d in current_user.departments]
+        from app.models.user import user_departments
+        is_owner_or_creator = activity.created_by_id == current_user.id or activity.assigned_user_id == current_user.id
+        is_dept_user = False
+        if activity.assigned_user_id:
+            is_dept_user = db.query(user_departments).filter(
+                user_departments.c.user_id == activity.assigned_user_id,
+                user_departments.c.department_id.in_(user_dept_ids)
+            ).first() is not None
+        is_dept_proj = False
+        if activity.project and activity.project.department_id:
+            is_dept_proj = activity.project.department_id in user_dept_ids
+
+        if not (is_owner_or_creator or is_dept_user or is_dept_proj):
+            raise HTTPException(status_code=403, detail="No tienes permiso para aprobar actividades fuera de tu departamento")
         
     if current_user.role.value == "cliente" and activity.status != ActivityStatus.IN_REVIEW:
         raise HTTPException(status_code=400, detail=f"Los clientes solo pueden aprobar actividades 'En Revisión'")
@@ -476,12 +524,29 @@ async def approve_activity(db: Session, activity_id: int, current_user: User, bg
 async def observe_activity(
     db: Session, activity_id: int, current_user: User, data: ActivityStatusUpdate, bg: BackgroundTasks
 ) -> Activity:
-    """Admin o Cliente: Observar actividad"""
+    """Admin, Gerencia o Cliente: Observar actividad"""
     activity = get_by_id(db, activity_id)
     if current_user.role.value == "cliente" and activity.project and activity.project.company_id != current_user.company_id:
         raise HTTPException(status_code=403, detail="No tienes permiso para observar esta actividad")
-    if current_user.role.value not in ["administrador", "cliente"]:
-        raise HTTPException(status_code=403, detail="Solo administradores o clientes pueden observar actividades")
+    if current_user.role.value not in ["administrador", "gerencia", "cliente"]:
+        raise HTTPException(status_code=403, detail="Solo administradores, gerencia o clientes pueden observar actividades")
+
+    if current_user.role.value == "gerencia":
+        user_dept_ids = [d.id for d in current_user.departments]
+        from app.models.user import user_departments
+        is_owner_or_creator = activity.created_by_id == current_user.id or activity.assigned_user_id == current_user.id
+        is_dept_user = False
+        if activity.assigned_user_id:
+            is_dept_user = db.query(user_departments).filter(
+                user_departments.c.user_id == activity.assigned_user_id,
+                user_departments.c.department_id.in_(user_dept_ids)
+            ).first() is not None
+        is_dept_proj = False
+        if activity.project and activity.project.department_id:
+            is_dept_proj = activity.project.department_id in user_dept_ids
+
+        if not (is_owner_or_creator or is_dept_user or is_dept_proj):
+            raise HTTPException(status_code=403, detail="No tienes permiso para observar actividades fuera de tu departamento")
         
     if current_user.role.value == "cliente" and activity.status != ActivityStatus.IN_REVIEW:
         raise HTTPException(status_code=400, detail=f"Los clientes solo pueden observar actividades 'En Revisión'")

@@ -4,7 +4,7 @@
 -- ============================================================
 
 -- Tipos ENUM
-CREATE TYPE user_role AS ENUM ('administrador', 'operativo', 'cliente');
+CREATE TYPE user_role AS ENUM ('administrador', 'gerencia', 'operativo', 'cliente');
 CREATE TYPE activity_status AS ENUM ('pendiente', 'asignada', 'en_proceso', 'en_revision', 'observada', 'aprobada', 'cancelada', 'bloqueada');
 CREATE TYPE project_status AS ENUM ('planificado', 'en_proceso', 'en_pausa', 'finalizado', 'cancelado');
 CREATE TYPE activity_type AS ENUM ('filmacion', 'edicion_video', 'diseno_grafico', 'fotografia', 'copywriting', 'publicacion_redes', 'planificacion_contenido', 'reunion_cliente', 'entrega_material', 'otro');

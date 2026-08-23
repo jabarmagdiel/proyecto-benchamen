@@ -27,6 +27,16 @@ const adminLinks = [
   { href: "/reportes",               icon: BarChart3,       label: "Reportes" },
 ];
 
+const gerenciaLinks = [
+  { href: "/dashboard",              icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/proyectos",              icon: FolderKanban,    label: "Proyectos" },
+  { href: "/actividades",            icon: ClipboardList,   label: "Actividades" },
+  { href: "/calendario-actividades", icon: Calendar,        label: "Calendario Actividades" },
+  { href: "/aprobaciones",           icon: CheckSquare,     label: "Aprobaciones" },
+  { href: "/agenda",                 icon: Calendar,        label: "Agenda & Disponibilidad" },
+  { href: "/reportes",               icon: BarChart3,       label: "Reportes" },
+];
+
 const operativeLinks = [
   { href: "/dashboard",              icon: LayoutDashboard, label: "Dashboard" },
   { href: "/mis-actividades",        icon: CheckSquare,     label: "Mis Actividades" },
@@ -52,6 +62,8 @@ export default function Sidebar() {
   let links = operativeLinks;
   if (user?.role === "administrador") {
     links = adminLinks;
+  } else if (user?.role === "gerencia") {
+    links = gerenciaLinks;
   } else if (user?.role === "cliente") {
     links = clientLinks;
   }

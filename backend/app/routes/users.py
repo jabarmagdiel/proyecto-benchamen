@@ -13,12 +13,33 @@ router = APIRouter(prefix="/api/users", tags=["Usuarios"])
 @router.get("", response_model=List[UserListResponse])
 def list_users(
     search: Optional[str] = Query(None),
+    role: Optional[str] = Query(None),
+    department_id: Optional[int] = Query(None),
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    _=Depends(require_admin),
+    current_user=Depends(get_current_user),
 ):
-    return user_svc.get_all(db, skip=skip, limit=limit, search=search)
+    from app.utils.enums import UserRole
+    dept_ids = None
+    if current_user.role == UserRole.GERENCIA:
+        user_dept_ids = [d.id for d in current_user.departments]
+        if department_id and department_id in user_dept_ids:
+            dept_ids = [department_id]
+        else:
+            dept_ids = user_dept_ids
+    elif department_id:
+        dept_ids = [department_id]
+
+    return user_svc.get_all(
+        db,
+        skip=skip,
+        limit=limit,
+        search=search,
+        role=role,
+        department_id=None,
+        department_ids=dept_ids,
+    )
 
 
 @router.get("/capacity", response_model=List[UserCapacityResponse])

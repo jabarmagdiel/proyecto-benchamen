@@ -140,6 +140,10 @@ def run_migrations():
         ),
         # Permite crear proyectos sin empresa (Clientes externos / Sin empresa)
         (
+            "user_role.add_gerencia",
+            "ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'gerencia';",
+        ),
+        (
             "projects.company_id_drop_not_null",
             "ALTER TABLE projects ALTER COLUMN company_id DROP NOT NULL;",
         ),
