@@ -217,8 +217,16 @@ export default function UsuariosPage() {
                       </td>
                       <td className="px-4 py-3.5 text-slate-300">{u.email}</td>
                       <td className="px-4 py-3.5 text-slate-400">{u.position || "-"}</td>
-                      <td className="px-4 py-3.5 text-slate-400">
-                        {u.role === "cliente" ? (company?.name || "Cargando empresa...") : (u.departments?.map(d => d.name).join(", ") || "-")}
+                      <td className="px-4 py-3.5 text-slate-400 text-xs">
+                        {u.role === "cliente" ? (
+                          <span className="text-emerald-400 font-medium">🏢 {company?.name || "Sin empresa"}</span>
+                        ) : u.role === "gerencia" ? (
+                          <span className="text-purple-300 font-medium">👔 Gerente de: {u.departments?.map(d => d.name).join(", ") || "Sin deptos."}</span>
+                        ) : u.role === "administrador" ? (
+                          <span className="text-[#20CDFE] font-medium">👑 Acceso Global</span>
+                        ) : (
+                          <span>{u.departments?.map(d => d.name).join(", ") || "-"}</span>
+                        )}
                       </td>
                       <td className="px-4 py-3.5">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${ROLE_COLORS[u.role]}`}>
@@ -255,81 +263,143 @@ export default function UsuariosPage() {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-slate-800/50 w-full max-w-md animate-fade-in">
-            <div className="flex items-center justify-between p-6 border-b border-slate-800/50">
-              <h3 className="text-lg font-bold text-white">{editing ? "Editar usuario" : "Nuevo usuario"}</h3>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 text-2xl leading-none">&times;</button>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0A101D] border border-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-[#0F172A]/50">
+              <div>
+                <h3 className="text-base font-bold text-white">{editing ? "Editar Usuario" : "Nuevo Usuario"}</h3>
+                <p className="text-xs text-slate-400">Asigna el rol y configura las áreas o empresas asignadas</p>
+              </div>
+              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-white text-xl leading-none">&times;</button>
             </div>
-            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Nombre *</label>
-                  <input {...register("name")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
-                  {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
-                </div>
-                {selectedRole !== "cliente" && (
-                  <>
-                    <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Cargo (Ej. Director Creativo)</label>
-                      <input {...register("position")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-2">Especialidades</label>
-                      <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar p-1">
-                        {departments.map(d => (
-                          <label key={d.id} className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer hover:text-white transition-colors">
-                            <input
-                              type="checkbox"
-                              value={d.id}
-                              {...register("department_ids")}
-                              className="rounded border-[#2E455C] bg-[#0A101D] text-[#20CDFE] focus:ring-[#20CDFE] focus:ring-offset-[#07060B]"
-                            />
-                            {d.name}
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+              {/* Rol Principal */}
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Email *</label>
-                <input {...register("email")} type="email" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">{editing ? "Nueva contraseña (dejar vacío para no cambiar)" : "Contraseña *"}</label>
-                <input {...register("password")} type="password" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
-                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Rol *</label>
-                <select {...register("role")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D] text-white">
-                  <option value="operativo">Operativo</option>
-                  <option value="gerencia">Gerencia (Gerente de Área / Depto)</option>
-                  <option value="administrador">Administrador</option>
-                  <option value="cliente">Cliente (Empresa)</option>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">1. Seleccionar Rol del Usuario *</label>
+                <select
+                  {...register("role")}
+                  className="w-full px-3 py-2.5 border border-slate-700 rounded-xl text-sm bg-[#15233D] text-white font-semibold focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
+                >
+                  <option value="operativo">🛠️ Operativo (Ejecutor de Tareas)</option>
+                  <option value="gerencia">👔 Gerencia (Gerente de Departamento / Área)</option>
+                  <option value="administrador">👑 Administrador (Acceso Total)</option>
+                  <option value="cliente">💼 Cliente (Empresa Externa)</option>
                 </select>
               </div>
 
-              {selectedRole === "cliente" && (
+              {/* Información Personal */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Empresa *</label>
-                  <select {...register("company_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200">
-                    <option value="">Seleccionar empresa...</option>
-                    {companies.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                  {errors.company_id && <p className="text-red-500 text-xs mt-1">{errors.company_id.message as string}</p>}
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Nombre Completo *</label>
+                  <input {...register("name")} placeholder="Ej. Carlos Pérez" className="w-full px-3 py-2 border border-slate-800 rounded-xl text-sm bg-[#070C18] text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]" />
+                  {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name.message}</p>}
                 </div>
-              )}
 
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-800/50 rounded-xl text-sm text-slate-300 hover:bg-[#15233D]">Cancelar</button>
-                <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60">
-                  {submitting ? "Guardando..." : editing ? "Actualizar" : "Crear usuario"}
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Email *</label>
+                  <input {...register("email")} type="email" placeholder="carlos@empresa.com" className="w-full px-3 py-2 border border-slate-800 rounded-xl text-sm bg-[#070C18] text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]" />
+                  {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
+                </div>
+              </div>
+
+              {/* Sección Dinámica según el Rol */}
+              <div className="pt-2 border-t border-slate-800/80">
+                {selectedRole === "gerencia" && (
+                  <div className="p-3.5 rounded-xl bg-purple-950/30 border border-purple-800/40 space-y-3">
+                    <div>
+                      <h4 className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                        👔 Departamento(s) que va a Dirigir / Administrar *
+                      </h4>
+                      <p className="text-[11px] text-purple-400/80 mt-0.5">
+                        El gerente podrá asignar tareas y aprobar entregas de los operadores en estas áreas.
+                      </p>
+                    </div>
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pr-1">
+                      {departments.map(d => (
+                        <label key={d.id} className="flex items-center gap-2 text-xs font-medium text-slate-200 cursor-pointer hover:text-white p-1.5 rounded-lg hover:bg-purple-900/30 transition-colors">
+                          <input
+                            type="checkbox"
+                            value={d.id}
+                            {...register("department_ids")}
+                            className="rounded border-purple-700 bg-purple-950 text-purple-400 focus:ring-purple-400"
+                          />
+                          {d.name}
+                        </label>
+                      ))}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Cargo / Título de Gerencia</label>
+                      <input {...register("position")} placeholder="Ej. Gerente de Sistemas / Jefe Audiovisual" className="w-full px-3 py-2 border border-slate-800 rounded-xl text-xs bg-[#070C18] text-white focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                    </div>
+                  </div>
+                )}
+
+                {selectedRole === "operativo" && (
+                  <div className="p-3.5 rounded-xl bg-blue-950/30 border border-blue-800/40 space-y-3">
+                    <div>
+                      <h4 className="text-xs font-bold text-blue-300 flex items-center gap-1.5">
+                        🛠️ Especialidades / Áreas Operativas Asignadas *
+                      </h4>
+                      <p className="text-[11px] text-blue-400/80 mt-0.5">
+                        Selecciona los departamentos donde este operador realiza tareas.
+                      </p>
+                    </div>
+                    <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pr-1">
+                      {departments.map(d => (
+                        <label key={d.id} className="flex items-center gap-2 text-xs font-medium text-slate-200 cursor-pointer hover:text-white p-1.5 rounded-lg hover:bg-blue-900/30 transition-colors">
+                          <input
+                            type="checkbox"
+                            value={d.id}
+                            {...register("department_ids")}
+                            className="rounded border-blue-700 bg-blue-950 text-blue-400 focus:ring-blue-400"
+                          />
+                          {d.name}
+                        </label>
+                      ))}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Cargo u Oficio Operativo</label>
+                      <input {...register("position")} placeholder="Ej. Editor de Video Senior / Diseñador UX" className="w-full px-3 py-2 border border-slate-800 rounded-xl text-xs bg-[#070C18] text-white focus:outline-none focus:ring-2 focus:ring-blue-400" />
+                    </div>
+                  </div>
+                )}
+
+                {selectedRole === "cliente" && (
+                  <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-800/40 space-y-2">
+                    <h4 className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                      💼 Empresa Cliente Asociada *
+                    </h4>
+                    <select {...register("company_id")} className="w-full px-3 py-2 border border-slate-800 rounded-xl text-xs bg-[#070C18] text-white focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                      <option value="">Seleccionar empresa cliente...</option>
+                      {companies.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                    {errors.company_id && <p className="text-red-400 text-xs">{errors.company_id.message as string}</p>}
+                  </div>
+                )}
+
+                {selectedRole === "administrador" && (
+                  <div className="p-3.5 rounded-xl bg-[#20CDFE]/10 border border-[#20CDFE]/30 flex items-center gap-2.5 text-xs text-[#20CDFE]">
+                    <span className="text-base">👑</span>
+                    <span><strong>Acceso Global:</strong> El Administrador supervisa todos los departamentos, empresas y proyectos sin restricción.</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Contraseña */}
+              <div className="pt-1">
+                <label className="block text-xs font-medium text-slate-300 mb-1">{editing ? "Nueva contraseña (dejar vacío para mantener la actual)" : "Contraseña *"}</label>
+                <input {...register("password")} type="password" placeholder="••••••••" className="w-full px-3 py-2 border border-slate-800 rounded-xl text-sm bg-[#070C18] text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]" />
+                {errors.password && <p className="text-red-400 text-xs mt-1">{errors.password.message}</p>}
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex gap-3 pt-3 border-t border-slate-800/80">
+                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-800 rounded-xl text-xs font-bold text-slate-300 hover:bg-slate-800 transition-colors">Cancelar</button>
+                <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-xs font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-lg shadow-[#20CDFE]/20">
+                  {submitting ? "Guardando..." : editing ? "Actualizar Usuario" : "Crear Usuario"}
                 </button>
               </div>
             </form>
