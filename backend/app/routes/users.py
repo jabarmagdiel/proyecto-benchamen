@@ -23,11 +23,17 @@ def list_users(
     from app.utils.enums import UserRole
     dept_ids = None
     if current_user.role == UserRole.GERENCIA:
-        user_dept_ids = [d.id for d in current_user.departments]
-        if department_id and department_id in user_dept_ids:
+        user_dept_levels = [getattr(d, 'level', 1) or 1 for d in current_user.departments]
+        min_level = min(user_dept_levels) if user_dept_levels else 1
+        
+        from app.models.department import Department
+        accessible_depts = db.query(Department).filter(Department.level >= min_level).all()
+        accessible_dept_ids = [d.id for d in accessible_depts]
+        
+        if department_id and department_id in accessible_dept_ids:
             dept_ids = [department_id]
         else:
-            dept_ids = user_dept_ids
+            dept_ids = accessible_dept_ids
     elif department_id:
         dept_ids = [department_id]
 

@@ -65,6 +65,7 @@ export interface Department {
   id: number;
   name: string;
   description?: string;
+  level?: number;
   is_active: boolean;
 }
 

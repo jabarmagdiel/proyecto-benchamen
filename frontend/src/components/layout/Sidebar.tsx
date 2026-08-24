@@ -33,6 +33,7 @@ const gerenciaLinks = [
   { href: "/actividades",            icon: ClipboardList,   label: "Gestión de Actividades" },
   { href: "/calendario-actividades", icon: Calendar,        label: "Calendario Actividades" },
   { href: "/mis-actividades",        icon: CheckSquare,     label: "Mis Tareas / Entregas" },
+  { href: "/departamentos",          icon: Building2,       label: "Roles & Jerarquía" },
   { href: "/aprobaciones",           icon: CheckSquare,     label: "Aprobaciones" },
   { href: "/agenda",                 icon: Calendar,        label: "Agenda & Disponibilidad" },
   { href: "/reportes",               icon: BarChart3,       label: "Reportes" },

@@ -62,6 +62,11 @@ def run_migrations():
             ON CONFLICT DO NOTHING;
             """,
         ),
+        # departments level
+        (
+            "departments.level",
+            "ALTER TABLE departments ADD COLUMN IF NOT EXISTS level INT DEFAULT 1;",
+        ),
         # workflow_id en activities
         (
             "activities.workflow_id",
