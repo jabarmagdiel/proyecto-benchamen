@@ -110,6 +110,39 @@ export default function ActividadesPage() {
     } finally { setLoading(false); }
   };
 
+  const getAssignableUsers = () => {
+    const currentId = currentUser?.user_id || currentUser?.id;
+    const userDepts = (currentUser as any)?.departments || [];
+    const minLevel = userDepts.length > 0 
+      ? Math.min(...userDepts.map((d: any) => d.level || 1)) 
+      : 1;
+
+    return users.filter((u) => {
+      // 1. Regla: Un usuario no puede asignarse una tarea a sí mismo
+      if (u.id === currentId) return false;
+
+      // 2. Excluir usuarios rol cliente
+      if (u.role === "cliente") return false;
+
+      // 3. Filtro por departamento seleccionado en modal si aplica
+      if (selectedDepartmentId && !u.departments?.some((d: any) => d.id === Number(selectedDepartmentId))) {
+        return false;
+      }
+
+      // 4. Administrador puede asignar a cualquier usuario (excepto a sí mismo)
+      if (currentUser?.role === "administrador") return true;
+
+      // 5. Gerencia: Puede asignar a gerentes y operadores de departamentos de igual o menor nivel de jerarquía
+      if (currentUser?.role === "gerencia") {
+        const uDepts = u.departments || [];
+        if (uDepts.length === 0) return true;
+        return uDepts.some((d: any) => (d.level || 1) >= minLevel);
+      }
+
+      return true;
+    });
+  };
+
   useEffect(() => { load(); }, [search, filterStatus, filterCompany, filterProject, filterUser]);
 
   useEffect(() => {
@@ -782,11 +815,11 @@ export default function ActividadesPage() {
                       <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable Inicial</label>
                       <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 text-white">
                         <option value="">Sin asignar</option>
-                        {users
-                          .filter(u => u.role !== "cliente")
-                          .filter(u => !selectedDepartmentId || u.departments?.some((d: any) => d.id === Number(selectedDepartmentId)))
-                          .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
-                        }
+                        {getAssignableUsers().map(u => (
+                          <option key={u.id} value={u.id}>
+                            {u.name} ({u.position || (u.role === "gerencia" ? "Gerente" : "Operativo")})
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -795,10 +828,11 @@ export default function ActividadesPage() {
                     <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable Inicial</label>
                     <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 text-white">
                       <option value="">Sin asignar</option>
-                      {users
-                        .filter(u => u.role !== "cliente")
-                        .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
-                      }
+                      {getAssignableUsers().map(u => (
+                        <option key={u.id} value={u.id}>
+                          {u.name} ({u.position || (u.role === "gerencia" ? "Gerente" : "Operativo")})
+                        </option>
+                      ))}
                     </select>
                   </div>
                 )}
