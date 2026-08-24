@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Plus, Search, Filter, Eye, CheckCircle, AlertCircle,
   Clock, XCircle, ClipboardList, LayoutList, LayoutGrid,
-  User as UserIcon, Calendar as CalendarIcon, Trash2, Play, Send
+  User as UserIcon, Calendar as CalendarIcon, Trash2, Play, Send, Pencil
 } from "lucide-react";
 import { activitiesApi, projectsApi, companiesApi, usersApi, workflowsApi, departmentsApi } from "@/lib/api";
 import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
@@ -180,6 +180,44 @@ export default function ActividadesPage() {
     setTimeout(() => setToast(null), 3500);
   };
 
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+
+  const openNewModal = () => {
+    setEditingActivity(null);
+    setIsIndependent(false);
+    reset({
+      title: "",
+      description: "",
+      reference_link: "",
+      activity_type: "otro",
+      priority: "media",
+      assigned_user_id: undefined,
+      start_date: "",
+      deadline: "",
+      workflow_id: undefined,
+      project_id: undefined,
+    });
+    setModalOpen(true);
+  };
+
+  const openEditModal = (a: Activity) => {
+    setEditingActivity(a);
+    setIsIndependent(!a.project_id);
+    reset({
+      title: a.title,
+      description: a.description || "",
+      reference_link: a.reference_link || "",
+      activity_type: a.activity_type,
+      priority: a.priority,
+      assigned_user_id: a.assigned_user_id || undefined,
+      start_date: a.start_date || "",
+      deadline: a.deadline || "",
+      workflow_id: a.workflow_id || undefined,
+      project_id: a.project_id || undefined,
+    });
+    setModalOpen(true);
+  };
+
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
     try {
@@ -192,10 +230,17 @@ export default function ActividadesPage() {
         payload.project_id = null;
       }
 
-      await activitiesApi.create(payload);
-      showToast("Actividad creada correctamente");
-      setModalOpen(false); load();
-    } catch (e: any) { showToast(e?.response?.data?.detail || "Error al crear", "error"); }
+      if (editingActivity) {
+        await activitiesApi.update(editingActivity.id, payload);
+        showToast("Actividad actualizada correctamente");
+      } else {
+        await activitiesApi.create(payload);
+        showToast("Actividad creada correctamente");
+      }
+      setModalOpen(false);
+      setEditingActivity(null);
+      load();
+    } catch (e: any) { showToast(e?.response?.data?.detail || "Error al procesar", "error"); }
     finally { setSubmitting(false); }
   };
 
@@ -321,7 +366,14 @@ export default function ActividadesPage() {
           <Link href={`/actividades/${a.id}`} className="font-bold text-white hover:text-[#20CDFE] transition-colors text-sm line-clamp-2">
             {a.title}
           </Link>
-          <div className="shrink-0"><PriorityBadge priority={a.priority} /></div>
+          <div className="shrink-0 flex items-center gap-1">
+            {canModifyActivity(a) && (
+              <button onClick={() => openEditModal(a)} className="p-1 rounded-lg text-slate-400 hover:text-violet-300 hover:bg-[#15233D] transition-colors" title="Editar información">
+                <Pencil size={13} />
+              </button>
+            )}
+            <PriorityBadge priority={a.priority} />
+          </div>
         </div>
 
         <div className="text-xs text-slate-400 font-medium line-clamp-1">
@@ -475,16 +527,7 @@ export default function ActividadesPage() {
               </button>
             </div>
 
-            <button onClick={() => { 
-              reset({ 
-                activity_type: "otro", 
-                priority: "media", 
-                workflow_id: null 
-              }); 
-              setCreationMode("custom");
-              setSelectedDepartmentId("");
-              setModalOpen(true); 
-            }} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-[#20CDFE]/20 transition-all">
+            <button onClick={openNewModal} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-[#20CDFE]/20 transition-all">
               <Plus size={16} /> <span className="hidden sm:inline">Nueva actividad</span>
             </button>
           </div>
@@ -714,6 +757,11 @@ export default function ActividadesPage() {
                           <Link href={`/actividades/${a.id}`} className="p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors" title="Ver detalle">
                             <Eye size={14} />
                           </Link>
+                          {canModifyActivity(a) && (
+                            <button onClick={() => openEditModal(a)} className="p-1.5 rounded-lg hover:bg-violet-900/40 text-violet-400 hover:text-violet-300 transition-colors" title="Editar actividad">
+                              <Pencil size={14} />
+                            </button>
+                          )}
                           {["pendiente", "asignada"].includes(a.status) && (a.assigned_user_id === currentUser?.id || currentUser?.role === "administrador") && (
                             <button onClick={() => handleUpdateStatus(a.id, "en_proceso")} className="p-1.5 rounded-lg hover:bg-blue-900/40 text-blue-400 hover:text-blue-300 transition-colors" title="Iniciar Trabajo">
                               <Play size={14} />
@@ -760,8 +808,10 @@ export default function ActividadesPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#0A101D]/90 backdrop-blur-2xl rounded-2xl shadow-[0_10px_40px_rgba(32,205,254,0.15)] border border-slate-800/50 w-full max-w-lg animate-fade-in max-h-[90vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-slate-800/50 shrink-0">
-              <h3 className="text-lg font-bold text-white">Nueva actividad</h3>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-300 transition-colors rounded-lg p-1 hover:bg-[#1C2C4D]"><XCircle size={20}/></button>
+              <h3 className="text-lg font-bold text-white">
+                {editingActivity ? "Editar información de la actividad" : "Nueva actividad"}
+              </h3>
+              <button onClick={() => { setModalOpen(false); setEditingActivity(null); }} className="text-slate-400 hover:text-slate-300 transition-colors rounded-lg p-1 hover:bg-[#1C2C4D]"><XCircle size={20}/></button>
             </div>
             <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
@@ -889,9 +939,9 @@ export default function ActividadesPage() {
                 )}
               </div>
               <div className="flex gap-3 p-6 border-t border-slate-800/50 bg-[#15233D]/80 shrink-0">
-                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 px-4 py-2.5 border border-slate-800/50 bg-[#0A101D]/80 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#15233D] transition-colors shadow-sm">Cancelar</button>
+                <button type="button" onClick={() => { setModalOpen(false); setEditingActivity(null); }} className="flex-1 px-4 py-2.5 border border-slate-800/50 bg-[#0A101D]/80 rounded-xl text-sm font-semibold text-slate-300 hover:bg-[#15233D] transition-colors shadow-sm">Cancelar</button>
                 <button type="submit" disabled={submitting} className="flex-1 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 disabled:opacity-60 transition-all shadow-md shadow-violet-500/20">
-                  {submitting ? "Creando..." : "Crear actividad"}
+                  {submitting ? (editingActivity ? "Guardando..." : "Creando...") : (editingActivity ? "Guardar cambios" : "Crear actividad")}
                 </button>
               </div>
             </form>
