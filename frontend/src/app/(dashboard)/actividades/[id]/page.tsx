@@ -290,6 +290,9 @@ export default function ActivityDetailPage() {
 
   const isGerencia = user?.role === "gerencia";
   const isOwner = activity.assigned_user_id === user?.user_id || activity.assigned_user_id === user?.id;
+  const isCreatedByAdmin = activity.created_by?.role === "administrador" || (activity as any).created_by_role === "administrador";
+  const isCreator = activity.created_by_id === user?.user_id || activity.created_by_id === user?.id || activity.created_by?.id === user?.user_id || activity.created_by?.id === user?.id;
+  const canEditInfo = isAdmin || isCreator;
   const canUploadEvidence = isOwner || isAdmin || isGerencia;
   const canStart = (isOwner || isAdmin || isGerencia) && activity.status === "asignada";
   const canSendReview = (isOwner || isAdmin || isGerencia) && ["en_proceso", "observada"].includes(activity.status);
@@ -345,7 +348,7 @@ export default function ActivityDetailPage() {
         
         {/* Botones de acción directos */}
         <div className="flex flex-col gap-2 items-end">
-          {(isAdmin || isGerencia) && (
+          {canEditInfo && (
             <button onClick={openEditModal} className="flex items-center gap-2 bg-[#1C2C4D] hover:bg-[#2A3E66] text-[#20CDFE] border border-[#20CDFE]/30 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-all w-full justify-center shadow-lg">
               <Pencil size={15} /> Editar Información
             </button>

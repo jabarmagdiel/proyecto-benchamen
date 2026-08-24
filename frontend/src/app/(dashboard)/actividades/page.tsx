@@ -226,7 +226,24 @@ export default function ActividadesPage() {
     } catch (e: any) { showToast(e?.response?.data?.detail || "Error al eliminar", "error"); }
   };
 
+  const canModifyActivity = (a: Activity) => {
+    if (currentUser?.role === "administrador") return true;
+
+    const isCreatedByAdmin = a.created_by?.role === "administrador" || (a as any).created_by_role === "administrador";
+    if (isCreatedByAdmin) return false;
+
+    const currentId = currentUser?.user_id || currentUser?.id;
+    if (a.created_by_id === currentId || a.created_by?.id === currentId) return true;
+
+    return false;
+  };
+
   const handleAssignUser = async (activityId: number, userId: string) => {
+    const act = activities.find(a => a.id === activityId);
+    if (act && !canModifyActivity(act)) {
+      showToast("No tienes permisos para modificar actividades creadas por la Administración", "error");
+      return;
+    }
     try {
       const assigned_user_id = userId ? parseInt(userId) : null;
       await activitiesApi.update(activityId, { assigned_user_id });
@@ -236,6 +253,11 @@ export default function ActividadesPage() {
   };
 
   const handleUpdateStatus = async (activityId: number, newStatus: ActivityStatus) => {
+    const act = activities.find(a => a.id === activityId);
+    if (act && !canModifyActivity(act)) {
+      showToast("No tienes permisos para modificar el estado de actividades creadas por la Administración", "error");
+      return;
+    }
     try {
       if (newStatus === "aprobada") {
         await activitiesApi.approve(activityId);
@@ -244,7 +266,6 @@ export default function ActividadesPage() {
         await activitiesApi.cancel(activityId);
         showToast("Actividad cancelada");
       } else if (newStatus === "en_proceso") {
-        // Use proper start endpoint if possible, fallback to update for admins
         try {
           await activitiesApi.start(activityId);
           showToast("▶️ Actividad iniciada");
@@ -253,7 +274,6 @@ export default function ActividadesPage() {
           showToast("Estado actualizado");
         }
       } else if (newStatus === "en_revision") {
-        // Use proper sendReview endpoint if possible, fallback to update for admins
         try {
           await activitiesApi.sendReview(activityId);
           showToast("📤 Enviado a revisión");
@@ -357,7 +377,8 @@ export default function ActividadesPage() {
             <select
               value={a.assigned_user_id || ""}
               onChange={(e) => handleAssignUser(a.id, e.target.value)}
-              className="w-full text-xs font-semibold appearance-none bg-[#15233D] hover:bg-[#1C2C4D] border border-slate-800/50 rounded-lg py-2 pl-8 pr-3 cursor-pointer outline-none transition-colors text-white"
+              disabled={!canModifyActivity(a)}
+              className="w-full text-xs font-semibold appearance-none bg-[#15233D] hover:bg-[#1C2C4D] border border-slate-800/50 rounded-lg py-2 pl-8 pr-3 cursor-pointer outline-none transition-colors text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Sin asignar</option>
               {users.map(u => (
@@ -621,7 +642,8 @@ export default function ActividadesPage() {
                         <select
                           value={a.assigned_user_id || ""}
                           onChange={(e) => handleAssignUser(a.id, e.target.value)}
-                          className="bg-transparent border border-slate-800/50 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-violet-200 hover:border-violet-300 outline-none transition-colors"
+                          disabled={!canModifyActivity(a)}
+                          className="bg-transparent border border-slate-800/50 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-violet-200 hover:border-violet-300 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">Sin asignar</option>
                           {users.map(u => (
@@ -634,7 +656,8 @@ export default function ActividadesPage() {
                         <select
                           value={a.status}
                           onChange={(e) => handleUpdateStatus(a.id, e.target.value as ActivityStatus)}
-                          className="bg-transparent border border-slate-800/50 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-violet-200 hover:border-violet-300 outline-none transition-colors"
+                          disabled={!canModifyActivity(a)}
+                          className="bg-transparent border border-slate-800/50 rounded-md py-1 px-2 text-xs focus:ring-2 focus:ring-violet-200 hover:border-violet-300 outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => (
                             <option key={k} value={k}>{v}</option>

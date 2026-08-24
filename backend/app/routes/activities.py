@@ -77,6 +77,11 @@ def get_activity(activity_id: int, db: Session = Depends(get_db), current_user=D
 def update_activity(
     activity_id: int, data: ActivityUpdate, db: Session = Depends(get_db), current_user=Depends(require_admin_or_gerencia)
 ):
+    activity = activity_svc.get_by_id(db, activity_id)
+    if current_user.role.value != "administrador":
+        if activity.created_by and activity.created_by.role.value == "administrador":
+            from fastapi import HTTPException
+            raise HTTPException(status_code=403, detail="No tienes permisos para modificar actividades creadas por la Administración")
     return activity_svc.update(db, activity_id, data, current_user.id)
 
 

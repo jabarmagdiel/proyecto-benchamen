@@ -96,6 +96,8 @@ class ActivityListResponse(BaseModel):
     status: ActivityStatus
     workflow_id: Optional[int] = None
     deadline: Optional[date]
+    created_by_id: Optional[int] = None
+    created_by: Optional[UserListResponse] = None
     assigned_user: Optional[UserListResponse] = None
     project_name: Optional[str] = None
     company_name: Optional[str] = None
