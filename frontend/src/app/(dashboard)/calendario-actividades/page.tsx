@@ -23,12 +23,12 @@ const DAY_NAMES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const FULL_DAY_NAMES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; border: string; dot: string; icon: any }> = {
-  pendiente: { bg: "bg-amber-500/10", text: "text-amber-300", border: "border-amber-500/30", dot: "bg-amber-400", icon: Clock },
+  pendiente: { bg: "bg-slate-500/10", text: "text-slate-300", border: "border-slate-500/30", dot: "bg-slate-400", icon: Clock },
   en_proceso: { bg: "bg-blue-500/10", text: "text-blue-300", border: "border-blue-500/30", dot: "bg-blue-400", icon: RefreshCw },
-  en_revision: { bg: "bg-purple-500/10", text: "text-purple-300", border: "border-purple-500/30", dot: "bg-purple-400", icon: Eye },
-  aprobada: { bg: "bg-emerald-500/10", text: "text-emerald-300", border: "border-emerald-500/30", dot: "bg-emerald-400", icon: CheckCircle2 },
-  observada: { bg: "bg-rose-500/10", text: "text-rose-300", border: "border-rose-500/30", dot: "bg-rose-400", icon: AlertTriangle },
-  cancelada: { bg: "bg-slate-500/10", text: "text-slate-400", border: "border-slate-500/30", dot: "bg-slate-400", icon: XCircle },
+  en_revision: { bg: "bg-slate-500/20", text: "text-slate-300", border: "border-slate-500/30", dot: "bg-slate-400", icon: Eye },
+  aprobada: { bg: "bg-emerald-500/20", text: "text-emerald-400", border: "border-emerald-500/30", dot: "bg-emerald-400", icon: CheckCircle2 },
+  observada: { bg: "bg-amber-500/10", text: "text-amber-300", border: "border-amber-500/30", dot: "bg-amber-400", icon: AlertTriangle },
+  cancelada: { bg: "bg-[#1C2C4D]", text: "text-slate-400", border: "border-slate-700", dot: "bg-slate-500", icon: XCircle },
 };
 
 function getDaysInMonth(year: number, month: number) {

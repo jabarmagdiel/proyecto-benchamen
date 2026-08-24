@@ -34,12 +34,12 @@ import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
 const STATUS_COLORS: Record<string, string> = {
-  pendiente: "#94a3b8",   // Slate-400
+  pendiente: "#64748b",   // Slate-500
   asignada: "#6366f1",    // Indigo-500
   en_proceso: "#8b5cf6",  // Violet-500
-  en_revision: "#3b82f6", // Blue-500
+  en_revision: "#94a3b8", // Slate-400 (Plomo)
   observada: "#f59e0b",   // Amber-500
-  aprobada: "#10b981",    // Emerald-500
+  aprobada: "#10b981",    // Emerald-500 (Verde)
   cancelada: "#f43f5e",   // Rose-500
 };
 
@@ -67,9 +67,9 @@ const STATUS_BORDER_COLORS: Record<string, string> = {
   pendiente: "border-slate-800/50 bg-[#15233D] text-slate-600",
   asignada: "border-indigo-200 bg-indigo-50 text-[#20CDFE]",
   en_proceso: "border-violet-200 bg-[#20CDFE]/20 text-[#20CDFE]",
-  en_revision: "border-blue-200 bg-blue-50 text-blue-600",
+  en_revision: "border-slate-500/30 bg-slate-500/20 text-slate-300",
   observada: "border-amber-200 bg-amber-50 text-amber-600",
-  aprobada: "border-emerald-200 bg-emerald-50 text-emerald-600",
+  aprobada: "border-emerald-500/30 bg-emerald-500/20 text-emerald-400",
   cancelada: "border-rose-200 bg-rose-50 text-rose-600",
 };
 

@@ -82,9 +82,9 @@ export const STATUS_COLORS: Record<ActivityStatus, string> = {
   bloqueada:    "bg-stone-500/20 text-stone-300 border-stone-500/30",
   asignada:     "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
   en_proceso:   "bg-[#20CDFE]/20 text-[#20CDFE] border-[#20CDFE]/30",
-  en_revision:  "bg-blue-500/20 text-blue-300 border-blue-500/30",
+  en_revision:  "bg-slate-500/20 text-slate-300 border-slate-500/30",
   observada:    "bg-amber-500/20 text-amber-300 border-amber-500/30",
-  aprobada:     "bg-[#1ED1B4]/20 text-[#1ED1B4] border-[#1ED1B4]/30",
+  aprobada:     "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
   cancelada:    "bg-red-500/20 text-red-300 border-red-500/30",
 };
 
@@ -100,9 +100,9 @@ export const STATUS_DOT_COLORS: Record<ActivityStatus, string> = {
   bloqueada:   "bg-stone-400",
   asignada:    "bg-indigo-500",
   en_proceso:  "bg-violet-500",
-  en_revision: "bg-blue-500",
+  en_revision: "bg-slate-400",
   observada:   "bg-amber-500",
-  aprobada:    "bg-green-500",
+  aprobada:    "bg-emerald-500",
   cancelada:   "bg-red-500",
 };
 
