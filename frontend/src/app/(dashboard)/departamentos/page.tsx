@@ -80,30 +80,38 @@ export default function RolesOperativosPage() {
     }
   };
 
-  const handleMoveLevel = async (dept: Department, direction: "up" | "down") => {
-    const currentLevel = dept.level || 1;
-    const targetLevel = direction === "up" ? Math.max(1, currentLevel - 1) : currentLevel + 1;
-    if (targetLevel === currentLevel) return;
-
+  const saveNormalizedLevels = async (list: Department[]) => {
+    setDepartments(list);
     try {
-      const otherDept = departments.find(d => (d.level || 1) === targetLevel);
-      if (otherDept) {
-        await departmentsApi.update(otherDept.id, { level: currentLevel });
-      }
-      await departmentsApi.update(dept.id, { level: targetLevel });
-      loadData();
+      await Promise.all(
+        list.map((dept, idx) => {
+          const newLvl = idx + 1;
+          if (dept.level !== newLvl) {
+            return departmentsApi.update(dept.id, { level: newLvl });
+          }
+          return Promise.resolve();
+        })
+      );
     } catch (err) {
-      console.error("Error moving department level:", err);
+      console.error("Error saving normalized levels:", err);
     }
   };
 
-  const handleUpdateLevelDirect = async (deptId: number, newLevel: number) => {
-    try {
-      await departmentsApi.update(deptId, { level: newLevel });
-      loadData();
-    } catch (err) {
-      console.error("Error updating level:", err);
-    }
+  const handleSwapIndex = async (fromIndex: number, toIndex: number) => {
+    if (fromIndex < 0 || toIndex < 0 || fromIndex >= departments.length || toIndex >= departments.length || fromIndex === toIndex) return;
+
+    const list = [...departments];
+    const [moved] = list.splice(fromIndex, 1);
+    list.splice(toIndex, 0, moved);
+
+    // Update levels sequentially
+    const updatedList = list.map((d, idx) => ({ ...d, level: idx + 1 }));
+    await saveNormalizedLevels(updatedList);
+  };
+
+  const handleMoveToLevel = async (currentIndex: number, targetLevel: number) => {
+    const targetIndex = Math.max(0, Math.min(departments.length - 1, targetLevel - 1));
+    await handleSwapIndex(currentIndex, targetIndex);
   };
 
   const handleDelete = async (id: number) => {
@@ -146,7 +154,7 @@ export default function RolesOperativosPage() {
             <Crown className="text-amber-400" size={20} />
             <h2 className="text-base font-extrabold text-white">Escalafón Dinámico de Autoridad</h2>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-              Arrastra o Ajusta Niveles
+              🖱️ Drag & Drop Interactivo
             </span>
           </div>
           <span className="text-xs text-slate-400 font-semibold">
@@ -154,35 +162,48 @@ export default function RolesOperativosPage() {
           </span>
         </div>
         <p className="text-xs text-slate-400 leading-relaxed">
-          Los gerentes de departamentos con mayor jerarquía (nivel menor) pueden asignar tareas a gerentes y operadores de departamentos subordinados. Usa los botones ⬆️ / ⬇️ para reordenar la escala.
+          Arrastra y suelta las tarjetas para reordenar la jerarquía, o usa los botones ⬆️ / ⬇️. El reordenamiento actualizará automáticamente la jerarquía de mando.
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
           {departments.map((dept, index) => (
             <div 
               key={`h-${dept.id}`}
-              className="bg-[#15233D]/80 border border-slate-800 hover:border-[#20CDFE]/60 rounded-2xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden group transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-[#20CDFE]/10"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/plain", index.toString());
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const fromIndex = Number(e.dataTransfer.getData("text/plain"));
+                if (!isNaN(fromIndex)) {
+                  handleSwapIndex(fromIndex, index);
+                }
+              }}
+              className="bg-[#15233D]/80 border border-slate-800 hover:border-[#20CDFE]/80 rounded-2xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden group transition-all duration-300 shadow-md hover:shadow-2xl hover:shadow-[#20CDFE]/15 cursor-grab active:cursor-grabbing"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600/30 to-indigo-600/30 text-purple-300 border border-purple-500/40">
-                  Nivel {dept.level || index + 1}
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600/40 to-indigo-600/40 text-purple-200 border border-purple-500/40 shadow-sm flex items-center gap-1">
+                  <Crown size={10} className="text-amber-400" />
+                  Nivel {index + 1}
                 </span>
 
                 {/* Botones de Reordenamiento Dinámico */}
                 <div className="flex items-center gap-1 bg-[#0A101D] border border-slate-800 rounded-lg p-0.5">
                   <button
-                    onClick={() => handleMoveLevel(dept, "up")}
+                    onClick={() => handleSwapIndex(index, index - 1)}
                     disabled={index === 0}
-                    className="p-1 hover:bg-[#20CDFE]/20 text-slate-300 hover:text-[#20CDFE] rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="Subir Nivel de Autoridad"
+                    className="px-1.5 py-0.5 hover:bg-[#20CDFE]/20 text-slate-300 hover:text-[#20CDFE] rounded transition-colors disabled:opacity-20 disabled:cursor-not-allowed text-xs font-bold"
+                    title="Subir posición"
                   >
                     ⬆️
                   </button>
                   <button
-                    onClick={() => handleMoveLevel(dept, "down")}
+                    onClick={() => handleSwapIndex(index, index + 1)}
                     disabled={index === departments.length - 1}
-                    className="p-1 hover:bg-[#20CDFE]/20 text-slate-300 hover:text-[#20CDFE] rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    title="Bajar Nivel de Autoridad"
+                    className="px-1.5 py-0.5 hover:bg-[#20CDFE]/20 text-slate-300 hover:text-[#20CDFE] rounded transition-colors disabled:opacity-20 disabled:cursor-not-allowed text-xs font-bold"
+                    title="Bajar posición"
                   >
                     ⬇️
                   </button>
@@ -198,14 +219,14 @@ export default function RolesOperativosPage() {
               </div>
 
               <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
-                <span className="text-slate-400 font-medium">Cargar nivel:</span>
+                <span className="text-slate-400 font-medium">Asignar Nivel:</span>
                 <select
-                  value={dept.level || index + 1}
-                  onChange={(e) => handleUpdateLevelDirect(dept.id, Number(e.target.value))}
+                  value={index + 1}
+                  onChange={(e) => handleMoveToLevel(index, Number(e.target.value))}
                   className="bg-[#0A101D] border border-slate-800 text-white text-[11px] font-bold px-2 py-0.5 rounded-lg focus:ring-1 focus:ring-[#20CDFE] outline-none cursor-pointer"
                 >
-                  {[1, 2, 3, 4, 5, 6].map(lvl => (
-                    <option key={`lvl-opt-${lvl}`} value={lvl}>Nivel {lvl}</option>
+                  {departments.map((_, idx) => (
+                    <option key={`lvl-opt-${idx + 1}`} value={idx + 1}>Nivel {idx + 1}</option>
                   ))}
                 </select>
               </div>
