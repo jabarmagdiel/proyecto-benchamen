@@ -205,17 +205,28 @@ def get_by_id(db: Session, activity_id: int) -> Activity:
 def create(db: Session, data: ActivityCreate, creator: User) -> Activity:
     creator_id = creator.id
     if creator.role == UserRole.GERENCIA and data.assigned_user_id and data.assigned_user_id != creator_id:
-        user_dept_ids = [d.id for d in creator.departments]
-        if user_dept_ids:
-            from app.models.user import user_departments
-            is_in_dept = db.query(user_departments).filter(
-                user_departments.c.user_id == data.assigned_user_id,
-                user_departments.c.department_id.in_(user_dept_ids)
-            ).first()
-            if not is_in_dept:
+        creator_depts = creator.departments or []
+        creator_min_level = min([d.level for d in creator_depts if d.level is not None] or [1])
+
+        target_user = db.query(User).filter(User.id == data.assigned_user_id).first()
+        if target_user:
+            target_depts = target_user.departments or []
+            target_min_level = min([d.level for d in target_depts if d.level is not None] or [999])
+
+            if target_user.role == UserRole.GERENCIA and target_min_level <= creator_min_level:
                 raise HTTPException(
                     status_code=403,
-                    detail="Solo puedes asignar actividades a operadores pertenecientes a tus departamentos"
+                    detail="No puedes asignar actividades a gerentes de igual o mayor jerarquía"
+                )
+            if target_min_level < creator_min_level:
+                raise HTTPException(
+                    status_code=403,
+                    detail="No puedes asignar actividades a usuarios de departamentos de mayor jerarquía"
+                )
+            if target_depts and not any((d.level if d.level is not None else 1) >= creator_min_level for d in target_depts):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Solo puedes asignar actividades a operadores pertenecientes a tus departamentos o de menor jerarquía"
                 )
 
     activity_data = data.model_dump()
@@ -284,8 +295,33 @@ def update(db: Session, activity_id: int, data: ActivityUpdate, editor_id: int) 
     for key, val in data.model_dump(exclude_unset=True).items():
         setattr(activity, key, val)
         
-    # Si se reasignó el usuario
     if data.assigned_user_id and data.assigned_user_id != prev_assigned:
+        editor = db.query(User).filter(User.id == editor_id).first()
+        if editor and editor.role == UserRole.GERENCIA and data.assigned_user_id != editor_id:
+            editor_depts = editor.departments or []
+            editor_min_level = min([d.level for d in editor_depts if d.level is not None] or [1])
+
+            target_user = db.query(User).filter(User.id == data.assigned_user_id).first()
+            if target_user:
+                target_depts = target_user.departments or []
+                target_min_level = min([d.level for d in target_depts if d.level is not None] or [999])
+
+                if target_user.role == UserRole.GERENCIA and target_min_level <= editor_min_level:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="No puedes asignar actividades a gerentes de igual o mayor jerarquía"
+                    )
+                if target_min_level < editor_min_level:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="No puedes asignar actividades a usuarios de departamentos de mayor jerarquía"
+                    )
+                if target_depts and not any((d.level if d.level is not None else 1) >= editor_min_level for d in target_depts):
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Solo puedes asignar actividades a operadores pertenecientes a tus departamentos o de menor jerarquía"
+                    )
+
         if activity.status == ActivityStatus.PENDING:
             activity.status = ActivityStatus.ASSIGNED
         _add_history(db, activity_id, editor_id, HistoryAction.ASSIGNED, f"Reasignada al usuario {data.assigned_user_id}")
