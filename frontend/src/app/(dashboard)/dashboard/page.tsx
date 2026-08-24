@@ -32,6 +32,7 @@ import type {
 } from "@/types";
 import { formatDate } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { useWebSocket } from "@/context/WebSocketContext";
 
 const STATUS_COLORS: Record<string, string> = {
   pendiente: "#64748b",   // Slate-500
@@ -177,14 +178,30 @@ export default function DashboardPage() {
     }
   };
 
+  const { subscribe } = useWebSocket();
+
   useEffect(() => {
     Promise.all([
       loadFilters(),
       loadNotifications(),
-      loadStats(),
+      loadStats(selectedCompanyId, selectedProjectId),
       loadClientProjects()
     ]);
-  }, [user?.user_id]); // Solo re-ejecutar si cambia el usuario
+  }, [user?.user_id]);
+
+  useEffect(() => {
+    const unsubActivities = subscribe("activities", () => {
+      loadStats(selectedCompanyId, selectedProjectId);
+    });
+    const unsubProjects = subscribe("projects", () => {
+      loadStats(selectedCompanyId, selectedProjectId);
+      loadFilters();
+    });
+    return () => {
+      unsubActivities();
+      unsubProjects();
+    };
+  }, [subscribe, selectedCompanyId, selectedProjectId]);
 
   // Manejar cambio de filtros
   const handleCompanyChange = (compId: string) => {

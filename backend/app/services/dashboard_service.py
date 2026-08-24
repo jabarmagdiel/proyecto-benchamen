@@ -20,13 +20,22 @@ def get_full_dashboard(
     today = date.today()
     role_val = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
 
-    user_dept_ids = [d.id for d in current_user.departments] if role_val == "gerencia" else []
+    user_dept_ids = []
     dept_user_ids_stmt = None
     dept_proj_ids_stmt = None
-    if user_dept_ids:
+    if role_val == "gerencia":
         from app.models.user import user_departments
-        dept_user_ids_stmt = db.query(user_departments.c.user_id).filter(user_departments.c.department_id.in_(user_dept_ids)).subquery()
-        dept_proj_ids_stmt = db.query(Project.id).filter(Project.department_id.in_(user_dept_ids)).subquery()
+        from app.models.department import Department
+
+        creator_depts = current_user.departments or []
+        creator_min_level = min([d.level for d in creator_depts if d.level is not None] or [1])
+        
+        sub_depts = db.query(Department.id).filter(Department.level >= creator_min_level, Department.is_active == True).all()
+        user_dept_ids = [d.id for d in sub_depts] if sub_depts else [d.id for d in creator_depts]
+
+        if user_dept_ids:
+            dept_user_ids_stmt = db.query(user_departments.c.user_id).filter(user_departments.c.department_id.in_(user_dept_ids)).subquery()
+            dept_proj_ids_stmt = db.query(Project.id).filter(Project.department_id.in_(user_dept_ids)).subquery()
 
     # 1. Seguridad: Si el usuario es de tipo cliente, forzar su company_id y validar proyecto
     if role_val == "cliente":
