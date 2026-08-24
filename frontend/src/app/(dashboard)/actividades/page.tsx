@@ -112,10 +112,17 @@ export default function ActividadesPage() {
 
   const getAssignableUsers = () => {
     const currentId = currentUser?.user_id || currentUser?.id;
+    
+    // Helper para obtener el nivel real desde la lista de departamentos cargados
+    const getDeptLevel = (deptId: number) => {
+      const found = departments.find(d => d.id === deptId);
+      return found?.level ?? 1;
+    };
+
     const userDepts = (currentUser as any)?.departments || [];
     const currentMinLevel = userDepts.length > 0 
-      ? Math.min(...userDepts.map((d: any) => d.level || 1)) 
-      : 1;
+      ? Math.min(...userDepts.map((d: any) => getDeptLevel(d.id))) 
+      : 999;
 
     return users.filter((u) => {
       // 1. Regla: Un usuario no puede asignarse una tarea a sí mismo
@@ -132,19 +139,26 @@ export default function ActividadesPage() {
       // 4. Administrador puede asignar a cualquier usuario (excepto a sí mismo y clientes)
       if (currentUser?.role === "administrador") return true;
 
-      // 5. Gerencia: Solo puede asignar a usuarios cuyo rango máximo de autoridad sea MENOR O IGUAL al del gerente actual
+      // 5. Gerencia: Solo puede asignar a usuarios cuyos rangos de autoridad sean estrictamente inferiores (o a sus operadores de departamento)
       if (currentUser?.role === "gerencia") {
         const uDepts = u.departments || [];
         if (uDepts.length === 0) return true;
 
         // Calcular el nivel máximo de autoridad del usuario destino (mínimo número de level)
-        const uMinLevel = Math.min(...uDepts.map((d: any) => d.level || 1));
+        const uMinLevel = Math.min(...uDepts.map((d: any) => getDeptLevel(d.id)));
 
-        // Si el usuario destino tiene mayor jerarquía que el gerente actual (uMinLevel < currentMinLevel), NO se permite asignar
-        if (uMinLevel < currentMinLevel) return false;
+        // Si el usuario destino tiene rango Gerencia y su autoridad es mayor o igual a la mía (uMinLevel <= currentMinLevel), NO se permite asignar
+        if (u.role === "gerencia" && uMinLevel <= currentMinLevel) {
+          return false;
+        }
+
+        // Si el usuario destino es Operativo de un nivel superior (uMinLevel < currentMinLevel), tampoco se permite
+        if (uMinLevel < currentMinLevel) {
+          return false;
+        }
 
         // Verificar que pertenezca a algún departamento igual o subordinado (level >= currentMinLevel)
-        return uDepts.some((d: any) => (d.level || 1) >= currentMinLevel);
+        return uDepts.some((d: any) => getDeptLevel(d.id) >= currentMinLevel);
       }
 
       return true;
