@@ -113,7 +113,7 @@ export default function ActividadesPage() {
   const getAssignableUsers = () => {
     const currentId = currentUser?.user_id || currentUser?.id;
     const userDepts = (currentUser as any)?.departments || [];
-    const minLevel = userDepts.length > 0 
+    const currentMinLevel = userDepts.length > 0 
       ? Math.min(...userDepts.map((d: any) => d.level || 1)) 
       : 1;
 
@@ -129,14 +129,22 @@ export default function ActividadesPage() {
         return false;
       }
 
-      // 4. Administrador puede asignar a cualquier usuario (excepto a sí mismo)
+      // 4. Administrador puede asignar a cualquier usuario (excepto a sí mismo y clientes)
       if (currentUser?.role === "administrador") return true;
 
-      // 5. Gerencia: Puede asignar a gerentes y operadores de departamentos de igual o menor nivel de jerarquía
+      // 5. Gerencia: Solo puede asignar a usuarios cuyo rango máximo de autoridad sea MENOR O IGUAL al del gerente actual
       if (currentUser?.role === "gerencia") {
         const uDepts = u.departments || [];
         if (uDepts.length === 0) return true;
-        return uDepts.some((d: any) => (d.level || 1) >= minLevel);
+
+        // Calcular el nivel máximo de autoridad del usuario destino (mínimo número de level)
+        const uMinLevel = Math.min(...uDepts.map((d: any) => d.level || 1));
+
+        // Si el usuario destino tiene mayor jerarquía que el gerente actual (uMinLevel < currentMinLevel), NO se permite asignar
+        if (uMinLevel < currentMinLevel) return false;
+
+        // Verificar que pertenezca a algún departamento igual o subordinado (level >= currentMinLevel)
+        return uDepts.some((d: any) => (d.level || 1) >= currentMinLevel);
       }
 
       return true;
