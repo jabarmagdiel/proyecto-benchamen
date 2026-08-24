@@ -783,7 +783,7 @@ export default function ActividadesPage() {
                       <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 text-white">
                         <option value="">Sin asignar</option>
                         {users
-                          .filter(u => u.role !== "gerencia" && u.role !== "administrador")
+                          .filter(u => u.role !== "cliente")
                           .filter(u => !selectedDepartmentId || u.departments?.some((d: any) => d.id === Number(selectedDepartmentId)))
                           .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
                         }
@@ -792,11 +792,11 @@ export default function ActividadesPage() {
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable Inicial (Operador de tu Departamento)</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Responsable Inicial</label>
                     <select {...register("assigned_user_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 text-white">
                       <option value="">Sin asignar</option>
                       {users
-                        .filter(u => u.role !== "gerencia" && u.role !== "administrador")
+                        .filter(u => u.role !== "cliente")
                         .map(u => <option key={u.id} value={u.id}>{u.name} ({u.position || u.role})</option>)
                       }
                     </select>
