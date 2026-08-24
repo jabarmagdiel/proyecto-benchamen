@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { departmentsApi, usersApi } from "@/lib/api";
 import { Department, User } from "@/types";
+import { useAuth } from "@/context/AuthContext";
 import { Plus, Pencil, Trash2, Building2, Shield, ArrowDown, Crown, Layers, Sparkles } from "lucide-react";
 
 export default function RolesOperativosPage() {
+  const { user } = useAuth();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,6 +125,20 @@ export default function RolesOperativosPage() {
       console.error("Error deleting department:", err);
     }
   };
+
+  if (user && user.role !== "administrador") {
+    return (
+      <div className="p-12 text-center text-slate-400 space-y-3">
+        <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
+          🔒
+        </div>
+        <h2 className="text-lg font-bold text-white">Acceso Restringido</h2>
+        <p className="text-xs text-slate-400 max-w-sm mx-auto">
+          Solo el Administrador del sistema tiene permisos para gestionar la Jerarquía de Mando y Roles Operativos.
+        </p>
+      </div>
+    );
+  }
 
   if (loading) return <div className="p-8 text-center text-slate-400">Cargando roles y jerarquía...</div>;
 
