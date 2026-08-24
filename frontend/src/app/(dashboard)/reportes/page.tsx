@@ -11,6 +11,17 @@ import type { DashboardFull, Company } from "@/types";
 import { ACTIVITY_STATUS_LABELS } from "@/types";
 import { CHART_COLORS } from "@/lib/utils";
 
+const STATUS_COLORS: Record<string, string> = {
+  pendiente: "#64748b",   // Slate-500
+  bloqueada: "#78716c",   // Stone-500
+  asignada: "#6366f1",    // Indigo-500
+  en_proceso: "#8b5cf6",  // Violet-500
+  en_revision: "#94a3b8", // Slate-400 (Plomo)
+  observada: "#f59e0b",   // Amber-500
+  aprobada: "#10b981",    // Emerald-500 (Verde)
+  cancelada: "#f43f5e",   // Rose-500
+};
+
 export default function ReportesPage() {
   const [data, setData] = useState<DashboardFull | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -27,6 +38,7 @@ export default function ReportesPage() {
   const statusChartData = data?.activity_by_status.map((s) => ({
     name: ACTIVITY_STATUS_LABELS[s.status as keyof typeof ACTIVITY_STATUS_LABELS] || s.status,
     value: s.count,
+    statusKey: s.status,
   })) || [];
 
   const userChartData = data?.activity_by_user || [];
@@ -90,7 +102,9 @@ export default function ReportesPage() {
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie data={statusChartData} cx="50%" cy="50%" outerRadius={100} innerRadius={50} paddingAngle={3} dataKey="value">
-                  {statusChartData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                  {statusChartData.map((s, i) => (
+                    <Cell key={`cell-${i}`} fill={STATUS_COLORS[s.statusKey] || "#cbd5e1"} />
+                  ))}
                 </Pie>
                 <Tooltip />
                 <Legend />
@@ -122,9 +136,9 @@ export default function ReportesPage() {
           <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 shadow-sm p-6 lg:col-span-2">
             <h3 className="font-semibold text-white mb-4">Resumen general</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {statusChartData.map((s, i) => (
+              {statusChartData.map((s) => (
                 <div key={s.name} className="text-center p-4 rounded-xl bg-[#15233D] border border-slate-800/50">
-                  <div className="w-3 h-3 rounded-full mx-auto mb-2" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                  <div className="w-3 h-3 rounded-full mx-auto mb-2" style={{ background: STATUS_COLORS[s.statusKey] || "#cbd5e1" }} />
                   <p className="text-2xl font-bold text-white">{s.value}</p>
                   <p className="text-xs text-slate-400 mt-0.5 capitalize">{s.name}</p>
                 </div>
