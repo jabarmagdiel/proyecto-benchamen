@@ -80,6 +80,32 @@ export default function RolesOperativosPage() {
     }
   };
 
+  const handleMoveLevel = async (dept: Department, direction: "up" | "down") => {
+    const currentLevel = dept.level || 1;
+    const targetLevel = direction === "up" ? Math.max(1, currentLevel - 1) : currentLevel + 1;
+    if (targetLevel === currentLevel) return;
+
+    try {
+      const otherDept = departments.find(d => (d.level || 1) === targetLevel);
+      if (otherDept) {
+        await departmentsApi.update(otherDept.id, { level: currentLevel });
+      }
+      await departmentsApi.update(dept.id, { level: targetLevel });
+      loadData();
+    } catch (err) {
+      console.error("Error moving department level:", err);
+    }
+  };
+
+  const handleUpdateLevelDirect = async (deptId: number, newLevel: number) => {
+    try {
+      await departmentsApi.update(deptId, { level: newLevel });
+      loadData();
+    } catch (err) {
+      console.error("Error updating level:", err);
+    }
+  };
+
   const handleDelete = async (id: number) => {
     if (!confirm("¿Estás seguro de eliminar este rol operativo?")) return;
     try {
@@ -113,34 +139,75 @@ export default function RolesOperativosPage() {
         </button>
       </div>
 
-      {/* Tarjeta de Visualización de Jerarquía */}
+      {/* Tarjeta de Visualización Dinámica de Jerarquía */}
       <div className="bg-[#0A101D]/70 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-6 shadow-xl space-y-4">
-        <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
-          <Crown className="text-amber-400" size={20} />
-          <h2 className="text-base font-extrabold text-white">Escalafón de Autoridad y Delegación</h2>
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-            Niveles de Mando
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+          <div className="flex items-center gap-2">
+            <Crown className="text-amber-400" size={20} />
+            <h2 className="text-base font-extrabold text-white">Escalafón Dinámico de Autoridad</h2>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              Arrastra o Ajusta Niveles
+            </span>
+          </div>
+          <span className="text-xs text-slate-400 font-semibold">
+            Nivel 1 = Máxima Autoridad
           </span>
         </div>
         <p className="text-xs text-slate-400 leading-relaxed">
-          Los gerentes de departamentos con mayor jerarquía (nivel numérico menor, p. ej. Nivel 1 o Nivel 2) pueden asignar tareas a gerentes y operadores de departamentos subordinados (niveles mayores).
+          Los gerentes de departamentos con mayor jerarquía (nivel menor) pueden asignar tareas a gerentes y operadores de departamentos subordinados. Usa los botones ⬆️ / ⬇️ para reordenar la escala.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
           {departments.map((dept, index) => (
             <div 
               key={`h-${dept.id}`}
-              className="bg-[#15233D]/60 border border-slate-800 rounded-2xl p-4 flex flex-col justify-between space-y-2 relative overflow-hidden group hover:border-[#20CDFE]/50 transition-all"
+              className="bg-[#15233D]/80 border border-slate-800 hover:border-[#20CDFE]/60 rounded-2xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden group transition-all duration-300 shadow-md hover:shadow-xl hover:shadow-[#20CDFE]/10"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-[#20CDFE]/20 text-[#20CDFE] border border-[#20CDFE]/30">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-gradient-to-r from-purple-600/30 to-indigo-600/30 text-purple-300 border border-purple-500/40">
                   Nivel {dept.level || index + 1}
                 </span>
-                <Sparkles size={14} className="text-amber-400 opacity-60" />
+
+                {/* Botones de Reordenamiento Dinámico */}
+                <div className="flex items-center gap-1 bg-[#0A101D] border border-slate-800 rounded-lg p-0.5">
+                  <button
+                    onClick={() => handleMoveLevel(dept, "up")}
+                    disabled={index === 0}
+                    className="p-1 hover:bg-[#20CDFE]/20 text-slate-300 hover:text-[#20CDFE] rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Subir Nivel de Autoridad"
+                  >
+                    ⬆️
+                  </button>
+                  <button
+                    onClick={() => handleMoveLevel(dept, "down")}
+                    disabled={index === departments.length - 1}
+                    className="p-1 hover:bg-[#20CDFE]/20 text-slate-300 hover:text-[#20CDFE] rounded transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Bajar Nivel de Autoridad"
+                  >
+                    ⬇️
+                  </button>
+                </div>
               </div>
+
               <div>
-                <h4 className="font-extrabold text-white text-sm">{dept.name}</h4>
-                <p className="text-[11px] text-slate-400 line-clamp-1">{dept.description || "Sin descripción"}</p>
+                <h4 className="font-extrabold text-white text-sm flex items-center gap-1.5">
+                  <Shield size={14} className="text-[#20CDFE]" />
+                  {dept.name}
+                </h4>
+                <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{dept.description || "Sin descripción"}</p>
+              </div>
+
+              <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400 font-medium">Cargar nivel:</span>
+                <select
+                  value={dept.level || index + 1}
+                  onChange={(e) => handleUpdateLevelDirect(dept.id, Number(e.target.value))}
+                  className="bg-[#0A101D] border border-slate-800 text-white text-[11px] font-bold px-2 py-0.5 rounded-lg focus:ring-1 focus:ring-[#20CDFE] outline-none cursor-pointer"
+                >
+                  {[1, 2, 3, 4, 5, 6].map(lvl => (
+                    <option key={`lvl-opt-${lvl}`} value={lvl}>Nivel {lvl}</option>
+                  ))}
+                </select>
               </div>
             </div>
           ))}
