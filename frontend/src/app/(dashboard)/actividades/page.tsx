@@ -213,6 +213,11 @@ export default function ActividadesPage() {
   };
 
   const handleCancel = async (id: number) => {
+    const act = activities.find(a => a.id === id);
+    if (act && !canModifyActivity(act)) {
+      showToast("No tienes permisos para cancelar actividades creadas por la Administración", "error");
+      return;
+    }
     if (!confirm("¿Cancelar esta actividad?")) return;
     try { await activitiesApi.cancel(id); showToast("Actividad cancelada"); load(); }
     catch (e: any) { showToast(e?.response?.data?.detail || "Error", "error"); }
@@ -418,7 +423,7 @@ export default function ActividadesPage() {
                   </button>
                 </>
              )}
-             {!["aprobada", "cancelada"].includes(a.status) && (
+             {!["aprobada", "cancelada"].includes(a.status) && canModifyActivity(a) && (
                 <button onClick={() => handleCancel(a.id)} className="w-8 h-8 flex items-center justify-center shrink-0 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Cancelar">
                   <XCircle size={14} />
                 </button>
@@ -729,7 +734,7 @@ export default function ActividadesPage() {
                                </button>
                              </>
                           )}
-                          {!["aprobada", "cancelada"].includes(a.status) && (
+                          {!["aprobada", "cancelada"].includes(a.status) && canModifyActivity(a) && (
                             <button onClick={() => handleCancel(a.id)} className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors" title="Cancelar">
                               <XCircle size={14} />
                             </button>
