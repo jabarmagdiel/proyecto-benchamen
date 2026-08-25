@@ -251,3 +251,12 @@ export const subscriptionsApi = {
     api.patch(`/api/subscriptions/${cpId}/add-quota`, { item_name: itemName, quantity }),
 };
 
+/* ── Finances API ── */
+export const financesApi = {
+  list: (params?: object) => api.get("/api/finances", { params }),
+  summary: () => api.get("/api/finances/summary"),
+  create: (data: object) => api.post("/api/finances", data),
+  update: (id: number, data: object) => api.put(`/api/finances/${id}`, data),
+  delete: (id: number) => api.delete(`/api/finances/${id}`),
+};
+

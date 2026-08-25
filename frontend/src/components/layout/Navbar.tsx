@@ -16,6 +16,8 @@ import { useWebSocket } from "@/context/WebSocketContext";
 const PAGE_TITLES: Record<string, string> = {
   "/dashboard":      "Dashboard",
   "/finanzas":       "Finanzas & Control de Pagos",
+  "/finanzas/ingresos": "Gestión de Ingresos",
+  "/finanzas/egresos":  "Gestión de Egresos",
   "/empresas":       "Gestión de Empresas",
   "/proyectos":      "Gestión de Proyectos",
   "/actividades":    "Gestión de Actividades",

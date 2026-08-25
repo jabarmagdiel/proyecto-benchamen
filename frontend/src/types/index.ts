@@ -442,3 +442,54 @@ export interface OperativeAvailabilitySummary {
   assigned_activities_titles: string[];
 }
 
+export type TransactionType = "ingreso" | "egreso";
+
+export interface FinancialTransaction {
+  id: number;
+  type: TransactionType;
+  title: string;
+  description?: string | null;
+  amount: number;
+  category: string;
+  payment_method?: string | null;
+  payment_reference?: string | null;
+  receipt_url?: string | null;
+  transaction_date: string;
+  company_id?: number | null;
+  project_id?: number | null;
+  created_by_id: number;
+  created_at: string;
+  updated_at: string;
+  company?: Company | null;
+  project?: Project | null;
+  created_by?: User | null;
+}
+
+export interface CategorySummary {
+  category: string;
+  type: TransactionType;
+  total_amount: number;
+  count: number;
+}
+
+export interface MonthlyFlow {
+  year: number;
+  month: number;
+  month_name: string;
+  total_ingresos: number;
+  total_egresos: number;
+  balance: number;
+}
+
+export interface FinancialSummary {
+  total_ingresos_manuales: number;
+  total_ingresos_qr_verificados: number;
+  total_ingresos_global: number;
+  total_egresos_global: number;
+  balance_neto: number;
+  ingresos_count: number;
+  egresos_count: number;
+  categories_breakdown: CategorySummary[];
+  monthly_flow: MonthlyFlow[];
+}
+

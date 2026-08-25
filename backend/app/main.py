@@ -231,6 +231,7 @@ from app.routes import (
     subscriptions,
     google_calendar,
     websocket,
+    finances,
 )
 
 app.include_router(auth.router)
@@ -252,6 +253,7 @@ app.include_router(operative_availability.router)
 app.include_router(subscriptions.router)
 app.include_router(google_calendar.router)
 app.include_router(websocket.router)
+app.include_router(finances.router)
 
 
 @app.get("/", tags=["Root"])
