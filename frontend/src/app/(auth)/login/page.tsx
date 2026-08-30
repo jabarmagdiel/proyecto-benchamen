@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -62,10 +63,10 @@ export default function LoginPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#20CDFE]/10 blur-[100px] rounded-full pointer-events-none" />
 
         <div className="relative text-center z-10 flex flex-col items-center">
-          {/* Logo official ADDONS */}
-          <div className="flex items-center justify-center mb-8 p-4 rounded-3xl backdrop-blur-md">
+          {/* Logo official ADDONS con enlace a la web principal */}
+          <Link href="/" title="Ir a addonsoficial.com" className="flex items-center justify-center mb-8 p-4 rounded-3xl backdrop-blur-md hover:scale-105 transition-transform cursor-pointer">
             <img src="/logo.png" alt="ADDONS" className="w-64 h-auto object-contain drop-shadow-[0_0_25px_rgba(32,205,254,0.2)]" />
-          </div>
+          </Link>
 
           <p className="text-slate-300 text-lg leading-relaxed max-w-md font-light">
             Centraliza la gestión de tus clientes, proyectos y actividades en una sola plataforma potente y fácil de usar.
@@ -91,10 +92,10 @@ export default function LoginPage() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#1ED1B4]/5 blur-[120px] rounded-full pointer-events-none" />
         
         <div className="w-full max-w-md animate-fade-in relative z-10">
-          {/* Logo mobile */}
-          <div className="flex lg:hidden flex-col items-center mb-8">
+          {/* Logo mobile con enlace a la web principal */}
+          <Link href="/" title="Ir a addonsoficial.com" className="flex lg:hidden flex-col items-center mb-8 hover:scale-105 transition-transform cursor-pointer">
             <img src="/logo.png" alt="ADDONS" className="w-48 h-auto object-contain" />
-          </div>
+          </Link>
 
           <div className="bg-[#15233D] rounded-3xl shadow-2xl p-8 lg:p-10 border border-slate-800/50 backdrop-blur-xl">
             <h2 className="text-3xl font-bold text-white mb-2">Bienvenido</h2>

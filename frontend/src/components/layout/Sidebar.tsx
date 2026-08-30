@@ -82,12 +82,16 @@ export default function Sidebar() {
         "flex items-center px-4 py-5 border-b border-slate-800/50",
         collapsed ? "justify-center px-0" : "justify-center"
       )}>
-        <div className={cn(
-          "flex shrink-0 items-center justify-center relative overflow-hidden transition-all duration-300",
-          collapsed ? "w-10 h-10" : "w-48 h-16"
-        )}>
-          <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
-        </div>
+        <Link
+          href="/"
+          title="Ir a addonsoficial.com"
+          className={cn(
+            "flex shrink-0 items-center justify-center relative overflow-hidden transition-all duration-300 hover:opacity-90 hover:scale-105 cursor-pointer",
+            collapsed ? "w-10 h-10" : "w-48 h-16"
+          )}
+        >
+          <img src="/logo.png" alt="ADDONS" className="w-full h-full object-contain" />
+        </Link>
       </div>
 
       {/* Nav links */}
