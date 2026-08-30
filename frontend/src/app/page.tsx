@@ -253,8 +253,9 @@ export default function LandingPage() {
           </p>
 
           <div className="flex items-center gap-6 text-xs text-slate-400 font-medium">
+            <Link href="/terminos" className="hover:text-[#20CDFE] transition-colors">Términos & Condiciones</Link>
+            <Link href="/privacidad" className="hover:text-[#20CDFE] transition-colors">Privacidad</Link>
             <Link href="/login" className="hover:text-[#20CDFE] transition-colors">Sistema</Link>
-            <Link href="/login" className="hover:text-[#20CDFE] transition-colors">Soporte</Link>
           </div>
         </div>
       </footer>
