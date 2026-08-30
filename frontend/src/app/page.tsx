@@ -1,676 +1,756 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { 
-  Sparkles, 
-  TrendingUp, 
-  Target, 
-  Code, 
-  Palette, 
+import {
   Lock,
-  ArrowRight, 
-  ShieldCheck, 
-  CheckCircle2, 
-  Zap, 
-  BarChart3, 
-  Users, 
-  Globe, 
-  Star, 
-  Award, 
-  ChevronRight,
-  Video,
-  Megaphone,
-  Rocket,
-  MessageSquare,
-  HeartHandshake,
-  Check,
-  ChevronDown,
-  Play,
-  Flame,
-  ArrowUpRight,
   Menu,
-  X
+  X,
+  ArrowRight,
+  TrendingUp,
+  Megaphone,
+  Palette,
+  Video,
+  Code,
+  Target,
+  Users,
+  ChevronDown,
+  Star,
+  Sparkles,
+  Zap,
+  BarChart3,
+  Rocket,
+  HeartHandshake,
+  ArrowUpRight,
+  Play,
+  CheckCircle2,
+  Globe,
+  Award,
 } from "lucide-react";
 
+/* ── Tiny hook: run callback when element enters viewport ── */
+function useInView(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect(); } },
+      { threshold }
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [ref, threshold]);
+  return inView;
+}
+
+/* ── Service card data ── */
+const SERVICES = [
+  {
+    icon: <Megaphone size={26} />,
+    color: "cyan",
+    title: "Publicidad & Meta Ads",
+    desc: "Campañas de alto rendimiento en Instagram, Facebook y TikTok Ads con ROAS comprobado y optimización constante.",
+    tags: ["Píxel & API Conversiones", "Testeo A/B", "Optimización ROAS"],
+    gradient: "from-[#20CDFE]/20 to-cyan-500/5",
+    border: "hover:border-[#20CDFE]/50",
+    iconBg: "bg-[#20CDFE]/10 text-[#20CDFE] border-[#20CDFE]/20",
+    glow: "hover:shadow-[#20CDFE]/10",
+  },
+  {
+    icon: <Palette size={26} />,
+    color: "purple",
+    title: "Branding & Identidad",
+    desc: "Identidades visuales premium que imponen autoridad inmediata: logo, manual de marca, paletas y tipografías.",
+    tags: ["Logo & Manual de Marca", "Paletas Cromáticas", "Plantillas Redes"],
+    gradient: "from-violet-500/20 to-purple-500/5",
+    border: "hover:border-violet-500/50",
+    iconBg: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+    glow: "hover:shadow-violet-500/10",
+  },
+  {
+    icon: <Video size={26} />,
+    color: "emerald",
+    title: "Producción Audiovisual",
+    desc: "Reels y TikToks cinematográficos diseñados para captar atención en los primeros 3 segundos. Cámara propia.",
+    tags: ["Guiones & Ganchos", "Edición Dinámica", "Foto de Producto"],
+    gradient: "from-emerald-500/20 to-teal-500/5",
+    border: "hover:border-emerald-500/50",
+    iconBg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    glow: "hover:shadow-emerald-500/10",
+  },
+  {
+    icon: <Code size={26} />,
+    color: "amber",
+    title: "Desarrollo Web & Apps",
+    desc: "Sitios web y tiendas virtuales de alta conversión, optimizados para SEO, velocidad y UX impecable.",
+    tags: ["Diseño Responsivo", "Pasarelas de Pago", "SEO en Google"],
+    gradient: "from-amber-500/20 to-orange-500/5",
+    border: "hover:border-amber-500/50",
+    iconBg: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    glow: "hover:shadow-amber-500/10",
+  },
+  {
+    icon: <Target size={26} />,
+    color: "indigo",
+    title: "Estrategia & Growth",
+    desc: "Embudos de venta automatizados, email marketing y secuencias de WhatsApp para escalar clientes.",
+    tags: ["Embudos de Conversión", "WhatsApp & Email", "Fidelización"],
+    gradient: "from-indigo-500/20 to-blue-500/5",
+    border: "hover:border-indigo-500/50",
+    iconBg: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+    glow: "hover:shadow-indigo-500/10",
+  },
+  {
+    icon: <Users size={26} />,
+    color: "rose",
+    title: "Social Media & Community",
+    desc: "Gestión de redes sociales con plan editorial mensual, copywriting persuasivo e interacción orgánica.",
+    tags: ["Plan de Contenidos", "Copywriting", "Gestión Comunidad"],
+    gradient: "from-rose-500/20 to-pink-500/5",
+    border: "hover:border-rose-500/50",
+    iconBg: "bg-rose-500/10 text-rose-400 border-rose-500/20",
+    glow: "hover:shadow-rose-500/10",
+  },
+];
+
+/* ── Stats data ── */
+const STATS = [
+  { value: "4.9x", label: "ROAS Promedio", sub: "Meta Ads & TikTok Ads", color: "text-[#20CDFE]" },
+  { value: "+500K", label: "Alcance Mensual", sub: "En todas las plataformas", color: "text-violet-400" },
+  { value: "+50", label: "Marcas Escaladas", sub: "Resultados comprobados", color: "text-emerald-400" },
+  { value: "99%", label: "Retención", sub: "Clientes satisfechos", color: "text-amber-400" },
+];
+
+/* ── Testimonials ── */
+const TESTIMONIALS = [
+  {
+    name: "Valentina M.",
+    role: "Fundadora · E-Commerce de Moda",
+    quote: "ADDONS triplicó nuestras ventas online en menos de 60 días. El equipo sabe exactamente qué hacer con los anuncios de Meta.",
+    stars: 5,
+    avatar: "VM",
+    color: "bg-violet-500",
+  },
+  {
+    name: "Carlos R.",
+    role: "Gerente · Cadena de Restaurantes",
+    quote: "El contenido audiovisual que produjeron fue de otro nivel. Mis publicaciones pasaron de 500 a 80,000 reproducciones.",
+    stars: 5,
+    avatar: "CR",
+    color: "bg-[#20CDFE]",
+  },
+  {
+    name: "Sofía T.",
+    role: "CEO · Empresa de Servicios",
+    quote: "El branding que nos diseñaron nos hizo ver como una empresa de primer nivel internacional. 100% recomendado.",
+    stars: 5,
+    avatar: "ST",
+    color: "bg-emerald-500",
+  },
+];
+
+/* ── FAQ data ── */
+const FAQS = [
+  {
+    q: "¿Cómo ayuda ADDONS a incrementar las ventas de mi empresa?",
+    a: "Diseñamos un plan integral personalizado que combina pauta publicitaria optimizada en Meta Ads/TikTok Ads, branding de alto nivel y embudos de conversión probados para generar clientes potenciales día a día.",
+  },
+  {
+    q: "¿En cuánto tiempo se empiezan a ver resultados?",
+    a: "Las campañas de pauta digital comienzan a generar contactos desde la primera semana de activación. Realizamos optimizaciones constantes de ROAS para escalar la inversión progresivamente semana a semana.",
+  },
+  {
+    q: "¿Incluyen producción de video y contenido fotográfico?",
+    a: "¡Sí! Contamos con equipo especializado en producción audiovisual, edición para Reels/TikToks, fotografía corporativa de producto y diseño gráfico publicitario de alta conversión.",
+  },
+  {
+    q: "¿Cómo accedo a reportes y avances de mi proyecto?",
+    a: "Clientes y gerentes tienen acceso al Portal Privado de ADDONS (botón Iniciar Sesión) donde revisan informes en tiempo real, descargan archivos y pueden agendar reuniones.",
+  },
+  {
+    q: "¿Trabajan con empresas fuera del país?",
+    a: "Sí. Trabajamos de forma remota con marcas de toda Latinoamérica y España. Nuestras herramientas digitales y reuniones por videollamada permiten una colaboración perfecta sin importar la ubicación.",
+  },
+];
+
+/* ═══════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
-  const [activeTab, setActiveTab] = useState("todos");
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [scrolled, setScrolled] = useState(false);
 
-  const portfolioItems = [
-    {
-      id: 1,
-      category: "meta-ads",
-      categoryName: "Meta Ads & Pauta",
-      title: "Campaña Meta Ads E-Commerce",
-      result: "+380% ROAS en 45 días",
-      tag: "Instagram & Facebook Ads",
-      img: "/hero-marketing.png",
-    },
-    {
-      id: 2,
-      category: "branding",
-      categoryName: "Branding & Diseño",
-      title: "Rediseño de Identidad Corporativa",
-      result: "Posicionamiento Prémium",
-      tag: "Branding & Manual de Marca",
-      img: "/creative-portfolio.png",
-    },
-    {
-      id: 3,
-      category: "video",
-      categoryName: "Producción Audiovisual",
-      title: "Contenido Viral Reels & TikTok",
-      result: "+1.2M Reproducciones",
-      tag: "Video & Copywriting",
-      img: "/video-showcase.png",
-    },
-    {
-      id: 4,
-      category: "web",
-      categoryName: "Desarrollo Web",
-      title: "E-Commerce de Alta Conversión",
-      result: "2.4s Carga • +45% Conversión",
-      tag: "Next.js & UI/UX Design",
-      img: "/hero-marketing.png",
-    },
-  ];
+  const heroRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const servicesRef = useRef<HTMLDivElement>(null);
+  const testimonialsRef = useRef<HTMLDivElement>(null);
 
-  const filteredPortfolio = activeTab === "todos" 
-    ? portfolioItems 
-    : portfolioItems.filter(item => item.category === activeTab);
+  const heroVisible = useInView(heroRef, 0.1);
+  const statsVisible = useInView(statsRef, 0.2);
+  const servicesVisible = useInView(servicesRef, 0.1);
+  const testimonialsVisible = useInView(testimonialsRef, 0.1);
 
-  const faqs = [
-    {
-      q: "¿Cómo ayuda ADDONS a incrementar las ventas de mi empresa?",
-      a: "Diseñamos un plan integral personalizado que combina pauta publicitaria optimizada en Meta Ads/TikTok Ads, branding de alto nivel y embudos de conversión probados para generar clientes potenciales día a día."
-    },
-    {
-      q: "¿En cuánto tiempo se empiezan a ver los resultados de las campañas?",
-      a: "Las campañas de pauta digital comienzan a generar contactos y clientes desde la primera semana de activación. Realizamos optimizaciones constantes de ROAS para escalar la inversión progresivamente."
-    },
-    {
-      q: "¿Incluyen producción de video y contenido fotográfico?",
-      a: "¡Sí! Contamos con equipo especializado en producción audiovisual, edición para Reels/TikToks, fotografía corporativa de producto y diseño gráfico publicitario de alta conversión."
-    },
-    {
-      q: "¿Cómo accedo a los entregables y avances de mi proyecto?",
-      a: "Tus gerentes y clientes cuentan con acceso directo al Portal Privado de ADDONS mediante el botón 'Iniciar Sesión' donde pueden revisar informes en tiempo real, descargar archivos y agendar citas."
-    }
-  ];
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#07060B] text-white selection:bg-[#20CDFE] selection:text-[#07060B] overflow-x-hidden font-sans">
-      
-      {/* ── Background Glow Effects ── */}
-      <div className="fixed top-0 left-1/4 w-[750px] h-[750px] bg-[#20CDFE]/10 rounded-full blur-[170px] pointer-events-none -z-10 animate-glow" />
-      <div className="fixed bottom-0 right-1/4 w-[650px] h-[650px] bg-purple-600/10 rounded-full blur-[170px] pointer-events-none -z-10" />
+    <div className="min-h-screen bg-[#050509] text-white selection:bg-[#20CDFE] selection:text-[#050509] overflow-x-hidden">
 
-      {/* ── 1. Navbar ── */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#07060B]/85 border-b border-slate-800/80 transition-all">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          
-          {/* Logo Oficial ADDONS */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="h-12 w-auto flex items-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="/logo.png" 
-                alt="ADDONS" 
-                className="h-10 w-auto object-contain drop-shadow-[0_0_20px_rgba(32,205,254,0.4)] group-hover:scale-105 transition-transform" 
-              />
-            </div>
+      {/* ═══ AMBIENT BACKGROUND ═══ */}
+      <div className="fixed inset-0 pointer-events-none -z-20">
+        {/* Dot grid */}
+        <div className="absolute inset-0 bg-dots opacity-100" />
+        {/* Glow orbs */}
+        <div className="absolute top-[-20%] left-[-10%] w-[700px] h-[700px] bg-[#20CDFE]/8 rounded-full blur-[130px] animate-glow" />
+        <div className="absolute top-[30%] right-[-15%] w-[600px] h-[600px] bg-violet-600/8 rounded-full blur-[130px] animate-glow delay-300" />
+        <div className="absolute bottom-[-10%] left-[30%] w-[500px] h-[500px] bg-emerald-600/6 rounded-full blur-[120px]" />
+      </div>
+
+      {/* ═══ 1 · NAVBAR ═══ */}
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#050509]/95 backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.06)]" : "bg-transparent"}`}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-[72px] flex items-center justify-between">
+
+          {/* Logo */}
+          <Link href="/" className="group flex items-center gap-3 shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="ADDONS"
+              className="h-9 w-auto object-contain drop-shadow-[0_0_18px_rgba(32,205,254,0.45)] group-hover:drop-shadow-[0_0_28px_rgba(32,205,254,0.7)] transition-all duration-300"
+            />
           </Link>
 
-          {/* Nav Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-bold text-slate-300">
-            <a href="#inicio" className="hover:text-[#20CDFE] transition-colors">Inicio</a>
-            <a href="#servicios" className="hover:text-[#20CDFE] transition-colors">Servicios</a>
-            <a href="#portafolio" className="hover:text-[#20CDFE] transition-colors">Casos de Éxito</a>
-            <a href="#faq" className="hover:text-[#20CDFE] transition-colors">Preguntas Frecuentes</a>
-            <a href="#contacto" className="hover:text-[#20CDFE] transition-colors">Contacto</a>
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-1">
+            {[
+              { href: "#servicios", label: "Servicios" },
+              { href: "#resultados", label: "Resultados" },
+              { href: "#testimonios", label: "Clientes" },
+              { href: "#faq", label: "FAQ" },
+              { href: "#contacto", label: "Contacto" },
+            ].map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="relative px-4 py-2 text-[13px] font-medium text-slate-400 hover:text-white transition-colors duration-200 rounded-lg hover:bg-white/5 group"
+              >
+                {item.label}
+                <span className="absolute inset-x-4 bottom-1 h-px bg-[#20CDFE] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center rounded-full" />
+              </a>
+            ))}
           </nav>
 
-          {/* CTA Button Iniciar Sesión & Mobile Toggle */}
+          {/* Right side */}
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] via-[#1ED1B4] to-indigo-500 text-[#07060B] px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs font-black shadow-lg shadow-[#20CDFE]/20 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/10 hover:border-[#20CDFE]/40 hover:bg-[#20CDFE]/8 text-white px-4 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200"
             >
-              <Lock size={14} />
-              <span className="hidden sm:inline">Iniciar Sesión</span>
-              <span className="sm:hidden">Ingresar</span>
+              <Lock size={14} className="text-[#20CDFE]" />
+              <span>Iniciar Sesión</span>
             </Link>
-
+            <a
+              href="#contacto"
+              className="btn-shimmer text-[#050509] px-5 py-2 rounded-xl text-[13px] font-bold shadow-lg hover:scale-[1.03] active:scale-[0.97] transition-transform duration-150"
+            >
+              Contáctanos
+            </a>
             <button
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
-              className="md:hidden p-2 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white border border-slate-700"
-              aria-label="Abrir menú"
+              className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/8 transition-colors"
+              aria-label="Menú"
             >
-              {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+              {mobileNavOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile drawer */}
         {mobileNavOpen && (
-          <div className="md:hidden bg-[#0A101D] border-b border-slate-800 px-6 py-4 space-y-3 animate-fade-in">
-            <a 
-              href="#inicio" 
-              onClick={() => setMobileNavOpen(false)}
-              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
-            >
-              Inicio
-            </a>
-            <a 
-              href="#servicios" 
-              onClick={() => setMobileNavOpen(false)}
-              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
-            >
-              Servicios
-            </a>
-            <a 
-              href="#portafolio" 
-              onClick={() => setMobileNavOpen(false)}
-              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
-            >
-              Casos de Éxito
-            </a>
-            <a 
-              href="#faq" 
-              onClick={() => setMobileNavOpen(false)}
-              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
-            >
-              Preguntas Frecuentes
-            </a>
-            <a 
-              href="#contacto" 
-              onClick={() => setMobileNavOpen(false)}
-              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
-            >
-              Contacto
-            </a>
+          <div className="md:hidden glass border-t border-white/6 px-5 py-5 space-y-1 animate-fade-in">
+            {[
+              { href: "#servicios", label: "Servicios" },
+              { href: "#resultados", label: "Resultados" },
+              { href: "#testimonios", label: "Clientes" },
+              { href: "#faq", label: "Preguntas Frecuentes" },
+              { href: "#contacto", label: "Contacto" },
+            ].map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileNavOpen(false)}
+                className="flex items-center gap-2 py-3 px-3 rounded-xl text-[14px] font-medium text-slate-300 hover:text-white hover:bg-white/6 transition-all"
+              >
+                <ArrowRight size={14} className="text-[#20CDFE]" />
+                {item.label}
+              </a>
+            ))}
+            <div className="pt-3 border-t border-white/6 flex flex-col gap-2">
+              <Link href="/login" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 text-[14px] font-semibold text-white hover:bg-white/6 transition-all">
+                <Lock size={14} className="text-[#20CDFE]" /> Iniciar Sesión
+              </Link>
+            </div>
           </div>
         )}
       </header>
 
-      {/* ── 2. Hero Section con Imágenes & Animaciones ── */}
-      <section id="inicio" className="relative pt-12 pb-20 md:pt-20 md:pb-32 max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          {/* Columna Izquierda: Texto & CTA */}
-          <div className="lg:col-span-7 space-y-8 text-center lg:text-left">
-            
-            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#15233D]/90 border border-[#20CDFE]/40 text-[#20CDFE] text-xs font-black shadow-2xl backdrop-blur-md animate-fade-in">
-              <Sparkles size={14} className="text-amber-400 animate-spin" />
-              <span>Agencia Digital de Marketing, Branding & Estrategia</span>
-            </div>
+      {/* ═══ 2 · HERO ═══ */}
+      <section id="inicio" className="relative pt-20 pb-28 md:pt-28 md:pb-40 max-w-7xl mx-auto px-5 sm:px-8">
+        <div ref={heroRef} className="text-center">
 
-            <h1 className="text-4xl sm:text-6xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
-              Elevamos tu Marca al <br />
-              <span className="bg-gradient-to-r from-[#20CDFE] via-[#1ED1B4] to-purple-400 bg-clip-text text-transparent">
-                Siguiente Nivel Digital
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-normal max-w-2xl mx-auto lg:mx-0">
-              Diseñamos estrategias de contenido persuasivo, campañas de alto rendimiento en Meta Ads & TikTok, branding prémium y desarrollo web para hacer escalar las ventas de tu negocio.
-            </p>
-
-            {/* Botones de Acción */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
-              <a
-                href="#contacto"
-                className="w-full sm:w-auto flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#20CDFE] via-[#1ED1B4] to-indigo-500 text-[#07060B] px-8 py-4 rounded-2xl font-black text-sm shadow-2xl shadow-[#20CDFE]/30 hover:scale-105 transition-all"
-              >
-                <Rocket size={18} />
-                <span>Agendar Consulta Gratuita</span>
-              </a>
-              <Link
-                href="/login"
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0A101D] text-slate-300 hover:text-white px-6 py-4 rounded-2xl font-bold text-sm border border-slate-800 hover:border-slate-700 transition-all"
-              >
-                <Lock size={15} className="text-[#20CDFE]" />
-                <span>Acceso a Clientes & Equipo</span>
-              </Link>
-            </div>
-
-            {/* Métricas destacadas */}
-            <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-800/80">
-              <div>
-                <p className="text-2xl sm:text-3xl font-black text-[#20CDFE] flex items-center gap-1">
-                  <TrendingUp size={20} /> 4.9x
-                </p>
-                <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">ROAS Meta Ads</p>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-3xl font-black text-purple-400 flex items-center gap-1">
-                  <Award size={20} /> +500K
-                </p>
-                <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Alcance Mensual</p>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-3xl font-black text-emerald-400 flex items-center gap-1">
-                  <Star size={20} /> 99%
-                </p>
-                <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider mt-1">Clientes Retenidos</p>
-              </div>
-            </div>
-
+          {/* Badge */}
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full glass glow-border-cyan text-[12px] font-semibold text-[#20CDFE] mb-8 transition-all duration-700 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#20CDFE] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#20CDFE]" />
+            </span>
+            Agencia de Marketing Digital & Desarrollo · Santo Domingo, RD
           </div>
 
-          {/* Columna Derecha: Mockup Visual con Animación 3D */}
-          <div className="lg:col-span-5 relative">
-            
-            {/* Glow Aura */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#20CDFE]/30 via-purple-500/30 to-emerald-500/20 rounded-3xl blur-3xl -z-10" />
+          {/* Headline */}
+          <h1 className={`text-[clamp(2.4rem,7vw,5.5rem)] font-black tracking-[-0.03em] leading-[1.05] mb-6 transition-all duration-700 delay-100 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+            Llevamos tu marca al{" "}
+            <span className="relative inline-block">
+              <span className="text-gradient">siguiente nivel</span>
+              {/* underline decoration */}
+              <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 300 12" preserveAspectRatio="none">
+                <path d="M0,8 Q75,0 150,8 Q225,16 300,8" stroke="url(#grad)" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                <defs>
+                  <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#20CDFE"/>
+                    <stop offset="50%" stopColor="#1ED1B4"/>
+                    <stop offset="100%" stopColor="#8B5CF6"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </span>{" "}
+            <br className="hidden sm:block" />
+            digital.
+          </h1>
 
-            {/* Tarjeta Principal de Imagen Hero */}
-            <div className="relative rounded-3xl overflow-hidden border border-[#20CDFE]/40 bg-[#0A101D] shadow-2xl shadow-[#20CDFE]/20 group">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="/hero-marketing.png" 
-                alt="Marketing Analytics Showcase" 
-                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700" 
-              />
+          {/* Sub */}
+          <p className={`text-[clamp(1rem,2.2vw,1.2rem)] text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10 transition-all duration-700 delay-200 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+            Diseñamos estrategias de Meta Ads de alto ROAS, identidades de marca premium,
+            contenido audiovisual viral y sitios web que convierten visitas en clientes.
+          </p>
 
-              <div className="absolute inset-0 bg-gradient-to-t from-[#07060B] via-transparent to-transparent opacity-80" />
-
-              <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-[#0A101D]/90 border border-slate-700/80 backdrop-blur-md">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="text-xs font-black text-white">Campañas Activas de Alto ROAS</span>
-                  </div>
-                  <span className="text-xs font-mono text-[#20CDFE] font-bold">ADDONS Digital</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Insignia Flotante 1: Visual ROAS */}
-            <div className="absolute -top-6 -left-6 bg-[#0A101D]/90 border border-purple-500/50 p-4 rounded-2xl backdrop-blur-xl shadow-2xl animate-float hidden sm:flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-400 font-bold">
-                ⚡
-              </div>
-              <div>
-                <p className="text-xs font-black text-white">+380% Conversiones</p>
-                <p className="text-[10px] text-slate-400">Meta Ads & TikTok</p>
-              </div>
-            </div>
-
-            {/* Insignia Flotante 2: Garantía de Entregas */}
-            <div className="absolute -bottom-6 -right-6 bg-[#0A101D]/90 border border-emerald-500/50 p-4 rounded-2xl backdrop-blur-xl shadow-2xl animate-float-slow hidden sm:flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold">
-                🎯
-              </div>
-              <div>
-                <p className="text-xs font-black text-white">Estrategia 100% Medible</p>
-                <p className="text-[10px] text-slate-400">Reportes Semanales</p>
-              </div>
-            </div>
-
+          {/* CTAs */}
+          <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-700 delay-300 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+            <a
+              href="#contacto"
+              className="group btn-shimmer text-[#050509] px-8 py-4 rounded-2xl font-bold text-[15px] shadow-2xl shadow-[#20CDFE]/20 hover:scale-[1.03] active:scale-[0.97] transition-transform duration-150 flex items-center gap-2.5 w-full sm:w-auto justify-center"
+            >
+              <Rocket size={18} />
+              Agendar Consulta Gratis
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </a>
+            <a
+              href="#resultados"
+              className="group glass-bright text-white px-8 py-4 rounded-2xl font-semibold text-[15px] hover:bg-white/8 transition-all flex items-center gap-2.5 w-full sm:w-auto justify-center"
+            >
+              <Play size={16} className="text-[#20CDFE]" />
+              Ver Resultados
+            </a>
           </div>
 
+          {/* Trust indicators */}
+          <div className={`flex flex-wrap items-center justify-center gap-5 mt-12 text-[12px] text-slate-500 transition-all duration-700 delay-400 ${heroVisible ? "opacity-100" : "opacity-0"}`}>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 size={13} className="text-emerald-400" /> Sin contrato permanente
+            </span>
+            <span className="w-px h-4 bg-slate-800 hidden sm:block" />
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 size={13} className="text-emerald-400" /> Resultados desde la semana 1
+            </span>
+            <span className="w-px h-4 bg-slate-800 hidden sm:block" />
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 size={13} className="text-emerald-400" /> +50 marcas escaladas
+            </span>
+          </div>
+        </div>
+
+        {/* Hero visual: floating dashboard mockup */}
+        <div className={`relative mt-20 max-w-4xl mx-auto transition-all duration-1000 delay-300 ${heroVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
+
+          {/* Main dashboard card */}
+          <div className="relative glass glow-border-cyan rounded-3xl overflow-hidden shadow-2xl shadow-black/60 animate-float">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/hero-marketing.png"
+              alt="ADDONS Marketing Analytics Dashboard"
+              className="w-full h-auto object-cover"
+            />
+            {/* gradient overlay at bottom */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050509]/60 via-transparent to-transparent" />
+
+            {/* Live badge */}
+            <div className="absolute top-5 left-5 flex items-center gap-2 glass px-3 py-1.5 rounded-full text-[11px] font-bold text-white">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping-slow" />
+              LIVE · Campañas Activas
+            </div>
+          </div>
+
+          {/* Floating card 1 */}
+          <div className="absolute -top-6 -left-8 hidden lg:flex items-center gap-3 glass glow-border-purple rounded-2xl px-4 py-3 shadow-2xl animate-float-slow">
+            <div className="w-9 h-9 rounded-xl bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400 text-sm font-bold shrink-0">⚡</div>
+            <div>
+              <p className="text-[11px] font-black text-white leading-tight">+380% Conversiones</p>
+              <p className="text-[10px] text-slate-400">Meta Ads · E-commerce</p>
+            </div>
+          </div>
+
+          {/* Floating card 2 */}
+          <div className="absolute -bottom-6 -right-8 hidden lg:flex items-center gap-3 glass glow-border-cyan rounded-2xl px-4 py-3 shadow-2xl animate-float delay-300">
+            <div className="w-9 h-9 rounded-xl bg-[#20CDFE]/15 border border-[#20CDFE]/30 flex items-center justify-center text-[#20CDFE] text-sm font-bold shrink-0">🎯</div>
+            <div>
+              <p className="text-[11px] font-black text-white leading-tight">Estrategia 100% Medible</p>
+              <p className="text-[10px] text-slate-400">Reportes semanales</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── 3. Marquee Infinito de Marcas ── */}
-      <section className="py-8 bg-[#0A101D]/80 border-y border-slate-800/80 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 text-center mb-4">
-          <p className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
-            Marcas & Proyectos Impulsados por ADDONS
-          </p>
-        </div>
-        
-        <div className="flex overflow-hidden relative">
-          <div className="flex gap-12 items-center whitespace-nowrap animate-marquee">
-            {["E-COMMERCE FASHION", "RESTAURANTES & GOURMET", "CLÍNICAS & SALUD", "REAL ESTATE & INMOBILIARIAS", "FINTECH & SOFTWARE", "RETAIL & FRANQUICIAS", "E-COMMERCE FASHION", "RESTAURANTES & GOURMET"].map((brand, i) => (
-              <div key={i} className="flex items-center gap-3 px-6 py-2 rounded-xl bg-[#15233D]/40 border border-slate-800 text-slate-300 text-xs font-black tracking-wider uppercase shrink-0">
-                <Flame size={14} className="text-[#20CDFE]" />
+      {/* ═══ 3 · MARQUEE CLIENTS ═══ */}
+      <div className="py-7 overflow-hidden border-y border-white/5 bg-white/[0.015]">
+        <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600 mb-5">
+          Sectores que hemos escalado
+        </p>
+        <div className="flex overflow-hidden">
+          <div className="animate-marquee gap-10 items-center">
+            {[
+              "E-Commerce & Fashion",
+              "Restaurantes & Gourmet",
+              "Clínicas & Salud",
+              "Real Estate & Inmobiliarias",
+              "Fintech & Software",
+              "Retail & Franquicias",
+              "Turismo & Hoteles",
+              "Educación Online",
+              "E-Commerce & Fashion",
+              "Restaurantes & Gourmet",
+              "Clínicas & Salud",
+              "Real Estate & Inmobiliarias",
+              "Fintech & Software",
+              "Retail & Franquicias",
+              "Turismo & Hoteles",
+              "Educación Online",
+            ].map((brand, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-2.5 shrink-0 mx-5 text-[11px] font-bold text-slate-500 uppercase tracking-widest"
+              >
+                <span className="w-1 h-1 rounded-full bg-[#20CDFE]/60" />
                 {brand}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ 4 · STATS ═══ */}
+      <section id="resultados" className="py-24 max-w-7xl mx-auto px-5 sm:px-8">
+        <div ref={statsRef} className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {STATS.map((stat, i) => (
+            <div
+              key={i}
+              className={`relative glass-bright rounded-3xl p-6 sm:p-8 text-center overflow-hidden group hover:bg-white/6 transition-all duration-300 ${statsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+              style={{ transitionDelay: `${i * 80}ms` }}
+            >
+              {/* background accent */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-b from-white/4 to-transparent rounded-3xl" />
+              <p className={`stat-number text-4xl sm:text-5xl ${stat.color} mb-2`}>{stat.value}</p>
+              <p className="text-[13px] font-bold text-white mb-1">{stat.label}</p>
+              <p className="text-[11px] text-slate-500">{stat.sub}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══ 5 · SERVICES ═══ */}
+      <section id="servicios" className="py-24 bg-gradient-to-b from-transparent via-white/[0.015] to-transparent">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+
+          {/* Section header */}
+          <div className="text-center mb-16">
+            <span className="inline-block text-[11px] font-bold uppercase tracking-[0.18em] text-[#20CDFE] bg-[#20CDFE]/8 border border-[#20CDFE]/20 px-4 py-1.5 rounded-full mb-5">
+              Servicios Estratégicos
+            </span>
+            <h2 className="text-[clamp(1.8rem,4vw,3.2rem)] font-black tracking-tight text-white mb-4">
+              Todo lo que necesitas para crecer
+            </h2>
+            <p className="text-slate-400 text-base max-w-2xl mx-auto leading-relaxed">
+              Combinamos creatividad, datos y tecnología para escalar marcas de cualquier tamaño.
+            </p>
+          </div>
+
+          <div
+            ref={servicesRef}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+          >
+            {SERVICES.map((svc, i) => (
+              <div
+                key={i}
+                className={`group relative bg-[#0D0F1A] border border-white/6 ${svc.border} ${svc.glow} rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl overflow-hidden ${servicesVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                style={{ transitionDelay: `${i * 60}ms` }}
+              >
+                {/* Gradient bg on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${svc.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-3xl`} />
+
+                <div className={`relative w-12 h-12 rounded-2xl border ${svc.iconBg} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300`}>
+                  {svc.icon}
+                </div>
+
+                <h3 className="relative text-[17px] font-bold text-white mb-2.5 flex items-center gap-2">
+                  {svc.title}
+                  <ArrowUpRight size={15} className="text-slate-600 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all opacity-0 group-hover:opacity-100" />
+                </h3>
+
+                <p className="relative text-[13px] text-slate-400 leading-relaxed mb-5">{svc.desc}</p>
+
+                <ul className="relative space-y-1.5 border-t border-white/5 pt-4">
+                  {svc.tags.map((tag, j) => (
+                    <li key={j} className="flex items-center gap-2 text-[12px] text-slate-400">
+                      <CheckCircle2 size={12} className="text-[#20CDFE] shrink-0" />
+                      {tag}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── 4. Servicios de la Agencia con Gráficos & Hover ── */}
-      <section id="servicios" className="py-24 max-w-7xl mx-auto px-6">
-        
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-black uppercase tracking-widest text-[#20CDFE] px-3.5 py-1.5 rounded-full bg-[#20CDFE]/10 border border-[#20CDFE]/30">
-            Nuestros Servicios Estratégicos
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-black text-white mt-4 mb-4 tracking-tight">
-            Especialistas en Crecimiento de Marcas
-          </h2>
-          <p className="text-slate-400 text-sm">
-            Combinamos creatividad de alto nivel con análisis de datos para aumentar tus ventas y consolidar tu posición en el mercado.
-          </p>
-        </div>
+      {/* ═══ 6 · VIDEO PRODUCTION FEATURE ═══ */}
+      <section className="py-24 max-w-7xl mx-auto px-5 sm:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          
-          {/* Card 1: Publicidad & Meta Ads */}
-          <div className="bg-[#0A101D] border border-slate-800 hover:border-[#20CDFE]/60 rounded-3xl p-8 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-[#20CDFE]/15 group">
-            <div className="w-14 h-14 rounded-2xl bg-[#20CDFE]/10 border border-[#20CDFE]/30 flex items-center justify-center text-[#20CDFE] mb-6 group-hover:scale-110 transition-transform">
-              <Megaphone size={28} />
+          {/* Visual */}
+          <div className="relative order-2 lg:order-1">
+            <div className="absolute inset-0 bg-violet-600/15 rounded-[2.5rem] blur-3xl -z-10 animate-glow" />
+            <div className="relative rounded-[2rem] overflow-hidden glass glow-border-purple shadow-2xl group">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/video-showcase.png"
+                alt="Estudio de Producción Audiovisual ADDONS"
+                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#050509]/50 to-transparent" />
+
+              {/* Play button overlay */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="w-16 h-16 rounded-full glass-bright border border-white/20 flex items-center justify-center shadow-2xl">
+                  <Play size={22} className="text-white fill-white ml-1" />
+                </div>
+              </div>
             </div>
-            <h3 className="text-xl font-black text-white mb-3 flex items-center gap-2">
-              Publicidad & Meta Ads <ArrowUpRight size={18} className="text-[#20CDFE] opacity-0 group-hover:opacity-100 transition-opacity" />
-            </h3>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6">
-              Campañas avanzadas en Instagram, Facebook y TikTok Ads orientadas a la captación constante de compradores y leads de alta intención.
-            </p>
-            <ul className="space-y-2 border-t border-slate-800/80 pt-4 text-xs text-slate-300">
-              <li className="flex items-center gap-2">✓ Configuración de Píxel & API Conversiones</li>
-              <li className="flex items-center gap-2">✓ Testeo A/B de Copy & Creativos</li>
-              <li className="flex items-center gap-2">✓ Optimización Continua de ROAS</li>
-            </ul>
+
+            {/* stat badge */}
+            <div className="absolute -bottom-5 -left-5 hidden sm:flex items-center gap-3 glass glow-border-cyan px-4 py-3 rounded-2xl shadow-2xl animate-float-slow">
+              <BarChart3 size={20} className="text-[#20CDFE]" />
+              <div>
+                <p className="text-[11px] font-black text-white">+1.2M Reproducciones</p>
+                <p className="text-[10px] text-slate-400">en 30 días · TikTok & Reels</p>
+              </div>
+            </div>
           </div>
 
-          {/* Card 2: Branding e Identidad */}
-          <div className="bg-[#0A101D] border border-slate-800 hover:border-purple-500/60 rounded-3xl p-8 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-purple-500/15 group">
-            <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-6 group-hover:scale-110 transition-transform">
-              <Palette size={28} />
-            </div>
-            <h3 className="text-xl font-black text-white mb-3 flex items-center gap-2">
-              Branding & Identidad <ArrowUpRight size={18} className="text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </h3>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6">
-              Diseño de identidad visual prémium, manuales de marca, logotipos y presencia estética memorable que impone autoridad inmediata.
+          {/* Text */}
+          <div className="order-1 lg:order-2 space-y-6">
+            <span className="inline-block text-[11px] font-bold uppercase tracking-[0.18em] text-violet-400 bg-violet-500/8 border border-violet-500/20 px-4 py-1.5 rounded-full">
+              Producción Audiovisual
+            </span>
+            <h2 className="text-[clamp(1.8rem,4vw,3rem)] font-black tracking-tight text-white leading-tight">
+              Contenido que para el dedo y convierte
+            </h2>
+            <p className="text-slate-400 text-base leading-relaxed">
+              En la era de TikTok y Reels, 3 segundos deciden si ganás o perdés un cliente. 
+              Producimos piezas cinematográficas diseñadas para detener el scroll y generar acción inmediata.
             </p>
-            <ul className="space-y-2 border-t border-slate-800/80 pt-4 text-xs text-slate-300">
-              <li className="flex items-center gap-2">✓ Logotipos & Manual de Identidad</li>
-              <li className="flex items-center gap-2">✓ Paletas Cromáticas & Tipografías</li>
-              <li className="flex items-center gap-2">✓ Plantillas de Contenido para Redes</li>
-            </ul>
-          </div>
 
-          {/* Card 3: Producción Audiovisual */}
-          <div className="bg-[#0A101D] border border-slate-800 hover:border-emerald-500/60 rounded-3xl p-8 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-500/15 group">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
-              <Video size={28} />
-            </div>
-            <h3 className="text-xl font-black text-white mb-3 flex items-center gap-2">
-              Producción de Video & Reels <ArrowUpRight size={18} className="text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </h3>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6">
-              Producción audiovisual en alta definición, edición dinámica de Reels & TikToks persuasivos y sesiones de fotografía de producto.
-            </p>
-            <ul className="space-y-2 border-t border-slate-800/80 pt-4 text-xs text-slate-300">
-              <li className="flex items-center gap-2">✓ Guiones Persuasivos & Ganchos</li>
-              <li className="flex items-center gap-2">✓ Edición Dinámica con Subtítulos</li>
-              <li className="flex items-center gap-2">✓ Fotografía Corporativa de Producto</li>
-            </ul>
-          </div>
-
-          {/* Card 4: Desarrollo Web & E-Commerce */}
-          <div className="bg-[#0A101D] border border-slate-800 hover:border-amber-500/60 rounded-3xl p-8 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-amber-500/15 group">
-            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mb-6 group-hover:scale-110 transition-transform">
-              <Code size={28} />
-            </div>
-            <h3 className="text-xl font-black text-white mb-3 flex items-center gap-2">
-              Desarrollo Web & Landing Pages <ArrowUpRight size={18} className="text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </h3>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6">
-              Sitios web ultramodernos, tiendas virtuales y páginas de aterrizaje optimizadas para carga ultrarrápida y alta conversión.
-            </p>
-            <ul className="space-y-2 border-t border-slate-800/80 pt-4 text-xs text-slate-300">
-              <li className="flex items-center gap-2">✓ Diseño Responsivo Móvil 100%</li>
-              <li className="flex items-center gap-2">✓ Integración con Pasarelas de Pago</li>
-              <li className="flex items-center gap-2">✓ Optimización SEO en Google</li>
-            </ul>
-          </div>
-
-          {/* Card 5: Growth Marketing */}
-          <div className="bg-[#0A101D] border border-slate-800 hover:border-indigo-500/60 rounded-3xl p-8 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/15 group">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6 group-hover:scale-110 transition-transform">
-              <Target size={28} />
-            </div>
-            <h3 className="text-xl font-black text-white mb-3 flex items-center gap-2">
-              Estrategia de Growth & Embudos <ArrowUpRight size={18} className="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </h3>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6">
-              Embudos de venta automatizados, secuencia de correos y automatización de clientes para convertir prospectos fríos en clientes recurrentes.
-            </p>
-            <ul className="space-y-2 border-t border-slate-800/80 pt-4 text-xs text-slate-300">
-              <li className="flex items-center gap-2">✓ Embudos de Conversión Directa</li>
-              <li className="flex items-center gap-2">✓ Automatización de WhatsApp & Email</li>
-              <li className="flex items-center gap-2">✓ Estrategia de Fidelización</li>
-            </ul>
-          </div>
-
-          {/* Card 6: Community Management */}
-          <div className="bg-[#0A101D] border border-slate-800 hover:border-rose-500/60 rounded-3xl p-8 transition-all hover:-translate-y-2 hover:shadow-2xl hover:shadow-rose-500/15 group">
-            <div className="w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-6 group-hover:scale-110 transition-transform">
-              <Users size={28} />
-            </div>
-            <h3 className="text-xl font-black text-white mb-3 flex items-center gap-2">
-              Social Media & Community <ArrowUpRight size={18} className="text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </h3>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6">
-              Administración profesional de redes sociales, planificación editorial mensual, atención de comentarios e interacción orgánica constante.
-            </p>
-            <ul className="space-y-2 border-t border-slate-800/80 pt-4 text-xs text-slate-300">
-              <li className="flex items-center gap-2">✓ Plan de Contenidos Mensual</li>
-              <li className="flex items-center gap-2">✓ Redacción Persuasiva (Copywriting)</li>
-              <li className="flex items-center gap-2">✓ Gestión Interactiva de Comunidad</li>
-            </ul>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ── 5. Showcase de Trabajos & Producción Visual ── */}
-      <section id="portafolio" className="py-24 bg-[#0A101D]/70 border-y border-slate-800/80">
-        <div className="max-w-7xl mx-auto px-6">
-          
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-            <div>
-              <span className="text-xs font-black uppercase tracking-widest text-[#20CDFE] px-3.5 py-1.5 rounded-full bg-[#20CDFE]/10 border border-[#20CDFE]/30">
-                Portafolio Creativo
-              </span>
-              <h2 className="text-3xl sm:text-5xl font-black text-white mt-4 tracking-tight">
-                Casos de Éxito Destacados
-              </h2>
-            </div>
-
-            {/* Filtros Interactivos por Pestañas */}
-            <div className="flex flex-wrap gap-2 bg-[#15233D]/60 p-1.5 rounded-2xl border border-slate-800">
+            <div className="grid grid-cols-2 gap-3 pt-2">
               {[
-                { id: "todos", label: "Todos" },
-                { id: "meta-ads", label: "Meta Ads" },
-                { id: "branding", label: "Branding" },
-                { id: "video", label: "Producción Video" },
-                { id: "web", label: "Desarrollo Web" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                    activeTab === tab.id
-                      ? "bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] shadow-lg shadow-[#20CDFE]/20"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  {tab.label}
-                </button>
+                { label: "Reels & TikToks", desc: "Formato vertical viral", color: "border-violet-500/30 text-violet-400" },
+                { label: "Foto de Producto", desc: "Estudio profesional", color: "border-[#20CDFE]/30 text-[#20CDFE]" },
+                { label: "Anuncios de Video", desc: "Creativos de conversión", color: "border-emerald-500/30 text-emerald-400" },
+                { label: "Contenido UGC", desc: "Auténtico y efectivo", color: "border-amber-500/30 text-amber-400" },
+              ].map((item, i) => (
+                <div key={i} className={`rounded-2xl bg-white/3 border ${item.color} p-4 hover:bg-white/5 transition-colors`}>
+                  <p className={`text-[14px] font-bold mb-1 ${item.color.split(" ")[1]}`}>{item.label}</p>
+                  <p className="text-[12px] text-slate-500">{item.desc}</p>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Grid de Trabajos Visuales */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {filteredPortfolio.map((item) => (
-              <div 
-                key={item.id} 
-                className="group relative rounded-3xl overflow-hidden bg-[#15233D]/60 border border-slate-800 hover:border-[#20CDFE]/50 transition-all shadow-2xl"
+        </div>
+      </section>
+
+      {/* ═══ 7 · TESTIMONIALS ═══ */}
+      <section id="testimonios" className="py-24 bg-gradient-to-b from-transparent via-white/[0.018] to-transparent">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8">
+
+          <div ref={testimonialsRef} className="text-center mb-16">
+            <span className="inline-block text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-400 bg-emerald-500/8 border border-emerald-500/20 px-4 py-1.5 rounded-full mb-5">
+              Lo que dicen nuestros clientes
+            </span>
+            <h2 className="text-[clamp(1.8rem,4vw,3.2rem)] font-black tracking-tight text-white">
+              Resultados que hablan por sí solos
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {TESTIMONIALS.map((t, i) => (
+              <div
+                key={i}
+                className={`relative glass-bright rounded-3xl p-7 border border-white/6 hover:border-white/12 transition-all duration-300 hover:-translate-y-1 group ${testimonialsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+                style={{ transitionDelay: `${i * 100}ms` }}
               >
-                <div className="aspect-video w-full overflow-hidden relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img 
-                    src={item.img} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#07060B] via-[#07060B]/40 to-transparent" />
+                {/* Stars */}
+                <div className="flex gap-1 mb-5">
+                  {Array(t.stars).fill(0).map((_, j) => (
+                    <Star key={j} size={14} className="text-amber-400 fill-amber-400" />
+                  ))}
                 </div>
 
-                <div className="absolute bottom-0 left-0 right-0 p-8 space-y-3">
-                  <span className="text-[11px] font-black uppercase tracking-widest text-[#20CDFE] bg-[#20CDFE]/10 border border-[#20CDFE]/30 px-3 py-1 rounded-full">
-                    {item.tag}
-                  </span>
-                  <h3 className="text-2xl font-black text-white group-hover:text-[#20CDFE] transition-colors">
-                    {item.title}
-                  </h3>
-                  <div className="flex items-center justify-between text-xs font-bold text-slate-300 pt-2 border-t border-slate-800">
-                    <span className="text-emerald-400 flex items-center gap-1.5">
-                      <TrendingUp size={14} /> {item.result}
-                    </span>
-                    <span className="text-slate-400 group-hover:text-white flex items-center gap-1">
-                      Ver Detalles <ArrowRight size={14} />
-                    </span>
+                {/* Quote */}
+                <p className="text-[14px] text-slate-300 leading-relaxed mb-6">
+                  &ldquo;{t.quote}&rdquo;
+                </p>
+
+                {/* Author */}
+                <div className="flex items-center gap-3 border-t border-white/6 pt-5">
+                  <div className={`w-10 h-10 rounded-full ${t.color} flex items-center justify-center text-[#050509] text-[12px] font-black shrink-0`}>
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-bold text-white">{t.name}</p>
+                    <p className="text-[11px] text-slate-500">{t.role}</p>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-
         </div>
       </section>
 
-      {/* ── 6. Galería de Producción Audiovisual ── */}
-      <section className="py-24 max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
-          <div className="lg:col-span-6 relative">
-            <div className="absolute inset-0 bg-purple-600/20 rounded-3xl blur-3xl -z-10" />
-            <div className="rounded-3xl overflow-hidden border border-purple-500/40 shadow-2xl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img 
-                src="/video-showcase.png" 
-                alt="Producción Audiovisual Studio" 
-                className="w-full h-auto object-cover hover:scale-105 transition-transform duration-700" 
-              />
-            </div>
-          </div>
+      {/* ═══ 8 · FAQ ═══ */}
+      <section id="faq" className="py-24 max-w-3xl mx-auto px-5 sm:px-8">
 
-          <div className="lg:col-span-6 space-y-6">
-            <span className="text-xs font-black uppercase tracking-widest text-purple-400 px-3.5 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/30">
-              Producción de Alto Nivel
+        <div className="text-center mb-14">
+          <span className="inline-block text-[11px] font-bold uppercase tracking-[0.18em] text-[#20CDFE] bg-[#20CDFE]/8 border border-[#20CDFE]/20 px-4 py-1.5 rounded-full mb-5">
+            Preguntas Frecuentes
+          </span>
+          <h2 className="text-[clamp(1.8rem,4vw,3rem)] font-black tracking-tight text-white">
+            Resolvemos tus dudas
+          </h2>
+        </div>
+
+        <div className="space-y-3">
+          {FAQS.map((faq, i) => (
+            <div
+              key={i}
+              className={`glass-bright border border-white/6 rounded-2xl overflow-hidden transition-all duration-200 ${openFaq === i ? "border-[#20CDFE]/25" : "hover:border-white/10"}`}
+            >
+              <button
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left"
+              >
+                <span className="text-[14px] font-semibold text-white leading-snug">{faq.q}</span>
+                <ChevronDown
+                  size={18}
+                  className={`shrink-0 text-slate-400 transition-transform duration-300 ${openFaq === i ? "rotate-180 text-[#20CDFE]" : ""}`}
+                />
+              </button>
+              {openFaq === i && (
+                <div className="px-6 pb-6 text-[13px] text-slate-400 leading-relaxed border-t border-white/5 pt-4 animate-fade-in">
+                  {faq.a}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══ 9 · CTA FINAL ═══ */}
+      <section id="contacto" className="py-20 px-5 sm:px-8 max-w-7xl mx-auto mb-16">
+        <div className="relative rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-[#0D1225] via-[#0A1020] to-[#0D0F1A] border border-white/8 p-10 sm:p-16 text-center shadow-2xl">
+
+          {/* Ambient glows inside CTA */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-[#20CDFE]/12 rounded-full blur-3xl -z-0" />
+          <div className="absolute bottom-0 right-0 w-[400px] h-[250px] bg-violet-600/12 rounded-full blur-3xl -z-0" />
+
+          {/* Grid overlay */}
+          <div className="absolute inset-0 bg-grid opacity-60 -z-0" />
+
+          <div className="relative z-10">
+            <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-amber-400 bg-amber-500/8 border border-amber-500/20 px-4 py-1.5 rounded-full mb-6">
+              <Sparkles size={12} /> ¿Listo para escalar?
             </span>
-            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
-              Creación de Contenido Audiovisual que Conecta
+            <h2 className="text-[clamp(1.8rem,4.5vw,4rem)] font-black tracking-tight text-white mb-4">
+              Empieza hoy. Crece mañana.
             </h2>
-            <p className="text-slate-300 text-sm leading-relaxed">
-              En la era de TikTok y Reels, el video es el rey del contenido. Grabamos y editamos piezas cinematográficas diseñadas para captar la atención en los primeros 3 segundos.
+            <p className="text-slate-400 text-base max-w-xl mx-auto mb-10 leading-relaxed">
+              Agenda tu consulta estratégica gratuita y descubre cómo llevar tu marca 
+              al siguiente nivel digital con ADDONS.
             </p>
 
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="p-4 rounded-2xl bg-[#0A101D] border border-slate-800">
-                <p className="text-xl font-black text-purple-400">Reels & TikToks</p>
-                <p className="text-xs text-slate-400 mt-1">Formato vertical de alta retención</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-[#0A101D] border border-slate-800">
-                <p className="text-xl font-black text-[#20CDFE]">Foto de Producto</p>
-                <p className="text-xs text-slate-400 mt-1">Sesiones de estudio profesional</p>
-              </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a
+                href="mailto:hola@addonsoficial.com"
+                className="btn-shimmer text-[#050509] px-9 py-4 rounded-2xl font-bold text-[15px] shadow-2xl shadow-[#20CDFE]/25 hover:scale-[1.03] active:scale-[0.97] transition-transform duration-150 flex items-center gap-2.5 w-full sm:w-auto justify-center"
+              >
+                <HeartHandshake size={19} />
+                Hablar con un Estratega
+              </a>
+              <Link
+                href="/login"
+                className="glass-bright border border-white/10 hover:border-[#20CDFE]/30 text-white px-8 py-4 rounded-2xl font-semibold text-[15px] transition-all hover:bg-white/6 flex items-center gap-2.5 w-full sm:w-auto justify-center"
+              >
+                <Lock size={16} className="text-[#20CDFE]" />
+                Portal de Clientes
+              </Link>
+            </div>
+
+            {/* mini trust badges */}
+            <div className="flex flex-wrap items-center justify-center gap-6 mt-10 text-[11px] text-slate-600">
+              <span className="flex items-center gap-1.5"><Award size={12} className="text-amber-400" /> +50 marcas exitosas</span>
+              <span className="flex items-center gap-1.5"><Globe size={12} className="text-[#20CDFE]" /> Toda Latinoamérica</span>
+              <span className="flex items-center gap-1.5"><Zap size={12} className="text-violet-400" /> Resultados desde semana 1</span>
             </div>
           </div>
-
         </div>
       </section>
 
-      {/* ── 7. Preguntas Frecuentes (FAQ) ── */}
-      <section id="faq" className="py-24 bg-[#0A101D]/70 border-y border-slate-800/80">
-        <div className="max-w-4xl mx-auto px-6">
-          
-          <div className="text-center mb-16">
-            <span className="text-xs font-black uppercase tracking-widest text-[#20CDFE] px-3.5 py-1.5 rounded-full bg-[#20CDFE]/10 border border-[#20CDFE]/30">
-              Resolvemos tus Dudas
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-black text-white mt-4 tracking-tight">
-              Preguntas Frecuentes
-            </h2>
-          </div>
+      {/* ═══ 10 · FOOTER ═══ */}
+      <footer className="border-t border-white/5 bg-[#050509]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 py-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 items-center">
 
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div 
-                key={index}
-                className="bg-[#15233D]/60 border border-slate-800 rounded-2xl overflow-hidden transition-all"
-              >
-                <button
-                  onClick={() => setOpenFaq(openFaq === index ? null : index)}
-                  className="w-full p-6 text-left flex items-center justify-between font-bold text-sm text-white hover:text-[#20CDFE] transition-colors"
-                >
-                  <span>{faq.q}</span>
-                  <ChevronDown 
-                    size={18} 
-                    className={`shrink-0 transition-transform duration-300 ${openFaq === index ? "rotate-180 text-[#20CDFE]" : "text-slate-400"}`} 
-                  />
-                </button>
-                {openFaq === index && (
-                  <div className="px-6 pb-6 text-xs text-slate-300 leading-relaxed border-t border-slate-800/60 pt-4 animate-fade-in">
-                    {faq.a}
-                  </div>
-                )}
+            {/* Logo + tagline */}
+            <div className="flex items-center gap-3">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="ADDONS" className="h-8 w-auto object-contain opacity-90" />
+              <div className="text-[11px] text-slate-600 leading-tight">
+                Agencia de Marketing<br />Digital & Desarrollo
               </div>
-            ))}
-          </div>
+            </div>
 
-        </div>
-      </section>
+            {/* Copyright */}
+            <p className="text-[11px] text-slate-600 text-center">
+              © {new Date().getFullYear()} ADDONS Official · Todos los derechos reservados.
+            </p>
 
-      {/* ── 8. Contacto & CTA Final ── */}
-      <section id="contacto" className="py-24 max-w-5xl mx-auto px-6">
-        <div className="relative rounded-3xl bg-gradient-to-r from-[#20CDFE]/20 via-[#1ED1B4]/10 to-purple-600/20 border border-[#20CDFE]/40 p-8 sm:p-14 text-center overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#20CDFE]/20 rounded-full blur-3xl pointer-events-none -z-10" />
-          
-          <span className="text-amber-400 text-xs font-black uppercase tracking-widest bg-amber-500/10 border border-amber-500/30 px-3.5 py-1.5 rounded-full inline-block mb-4">
-            🚀 ¿Listo para escalar tu negocio?
-          </span>
-          <h2 className="text-3xl sm:text-5xl font-black text-white mb-4 tracking-tight">
-            Llevemos tu Marca al Siguiente Nivel
-          </h2>
-          <p className="text-slate-300 text-sm max-w-xl mx-auto mb-8 leading-relaxed">
-            Contáctanos hoy mismo y agendaremos una reunión estratégica para diseñar el plan publicitario a la medida de tu empresa.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-            <Link
-              href="/login"
-              className="w-full sm:w-auto bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-[#20CDFE]/20 hover:scale-105 transition-all flex items-center justify-center gap-2"
-            >
-              <HeartHandshake size={18} />
-              <span>Contactar con ADDONS Digital</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 9. Footer Oficial ── */}
-      <footer className="border-t border-slate-800/80 py-12 bg-[#07060B]">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
-          
-          {/* Logo Footer */}
-          <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="ADDONS" className="h-8 w-auto object-contain" />
-            <span className="text-xs text-slate-400 font-medium">| Agencia Digital de Marketing & Estrategia</span>
-          </div>
-          
-          <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} ADDONS Official. Todos los derechos reservados.
-          </p>
-
-          {/* Links Legales y Acceso */}
-          <div className="flex items-center gap-6 text-xs text-slate-400 font-medium">
-            <Link href="/terminos" className="hover:text-[#20CDFE] transition-colors">Términos & Condiciones</Link>
-            <Link href="/privacidad" className="hover:text-[#20CDFE] transition-colors">Privacidad</Link>
-            <Link href="/login" className="hover:text-[#20CDFE] transition-colors">Acceso Sistema</Link>
+            {/* Links */}
+            <div className="flex items-center justify-end gap-6 text-[12px] text-slate-500 font-medium">
+              <Link href="/terminos" className="hover:text-white transition-colors">Términos</Link>
+              <Link href="/privacidad" className="hover:text-white transition-colors">Privacidad</Link>
+              <Link href="/login" className="hover:text-[#20CDFE] transition-colors flex items-center gap-1">
+                <Lock size={11} /> Acceso
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
