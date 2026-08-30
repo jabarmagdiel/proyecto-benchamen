@@ -596,6 +596,30 @@ export default function IngresosPage() {
                       </button>
                     </div>
                   )}
+
+                  {/* Separador y opción Drive */}
+                  <div className="flex items-center gap-3 pt-1">
+                    <div className="flex-1 h-px bg-slate-800" />
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">o pegar link</span>
+                    <div className="flex-1 h-px bg-slate-800" />
+                  </div>
+                  <div className="relative">
+                    <ExternalLink size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <input
+                      type="url"
+                      value={localFilePreview ? "" : form.receipt_url}
+                      onChange={(e) => {
+                        setForm({ ...form, receipt_url: e.target.value });
+                        if (e.target.value) {
+                          setLocalFilePreview(null);
+                          setLocalFileName("");
+                        }
+                      }}
+                      placeholder="Link de Google Drive, Dropbox u otro..."
+                      disabled={uploadingReceipt}
+                      className="w-full pl-9 pr-3.5 py-2 bg-[#15233D]/60 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 disabled:opacity-50"
+                    />
+                  </div>
                 </div>
               </div>
 
