@@ -1,6 +1,6 @@
 from datetime import date
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -42,6 +42,43 @@ def get_summary(
     _=Depends(require_admin),
 ):
     return finance_svc.get_financial_summary(db)
+
+
+@router.get("/excel")
+def export_excel(
+    type: Optional[str] = Query(None),
+    company_id: Optional[int] = Query(None),
+    project_id: Optional[int] = Query(None),
+    start_date: Optional[date] = Query(None),
+    end_date: Optional[date] = Query(None),
+    db: Session = Depends(get_db),
+    _=Depends(require_admin),
+):
+    return finance_svc.export_finances_excel(
+        db, type=type, company_id=company_id, project_id=project_id, start_date=start_date, end_date=end_date
+    )
+
+
+@router.post("/upload-receipt")
+async def upload_receipt(
+    file: UploadFile = File(...),
+    _=Depends(require_admin),
+):
+    import os, uuid
+    from app.core.config import settings
+
+    upload_dir = os.path.join(settings.UPLOAD_DIR, "finances")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ext = os.path.splitext(file.filename)[1]
+    unique_name = f"{uuid.uuid4().hex}{ext}"
+    file_path = os.path.join(upload_dir, unique_name)
+
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    return {"url": f"/uploads/finances/{unique_name}"}
 
 
 @router.post("", response_model=FinancialTransactionResponse, status_code=201)

@@ -258,5 +258,30 @@ export const financesApi = {
   create: (data: object) => api.post("/api/finances", data),
   update: (id: number, data: object) => api.put(`/api/finances/${id}`, data),
   delete: (id: number) => api.delete(`/api/finances/${id}`),
+  uploadReceipt: (formData: FormData) =>
+    api.post("/api/finances/upload-receipt", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
+  exportExcel: async (params?: object) => {
+    try {
+      const response = await api.get("/api/finances/excel", {
+        params,
+        responseType: "blob",
+      });
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Reporte_Financiero_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error al exportar Excel financiero:", error);
+    }
+  },
 };
 

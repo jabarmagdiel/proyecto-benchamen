@@ -215,6 +215,26 @@ export default function EgresosPage() {
 
   const totalEgresos = transactions.reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
+  // File Upload State
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingReceipt(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await financesApi.uploadReceipt(formData);
+      setForm((prev) => ({ ...prev, receipt_url: res.data.url }));
+      showToast("✅ Comprobante subido correctamente");
+    } catch (err) {
+      showToast("Error al subir archivo de comprobante", "error");
+    } finally {
+      setUploadingReceipt(false);
+    }
+  };
+
   return (
     <>
       {toast && (
@@ -239,12 +259,21 @@ export default function EgresosPage() {
             </p>
           </div>
 
-          <button
-            onClick={openCreateModal}
-            className="bg-gradient-to-r from-rose-500 to-red-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-rose-500/20 hover:opacity-90 transition-all flex items-center gap-2"
-          >
-            <Plus size={16} /> Registrar Nuevo Egreso
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => financesApi.exportExcel({ type: "egreso" })}
+              className="bg-[#15233D] border border-slate-800 text-slate-200 font-bold text-xs px-3.5 py-2.5 rounded-xl hover:bg-slate-800 transition-all flex items-center gap-2"
+            >
+              <ExternalLink size={15} className="text-rose-400" /> Exportar Informe Excel
+            </button>
+
+            <button
+              onClick={openCreateModal}
+              className="bg-gradient-to-r from-rose-500 to-red-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-rose-500/20 hover:opacity-90 transition-all flex items-center gap-2"
+            >
+              <Plus size={16} /> Registrar Nuevo Egreso
+            </button>
+          </div>
         </div>
 
         {/* METRICAS DE EGRESOS */}
@@ -488,14 +517,29 @@ export default function EgresosPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Link de Comprobante / Recibo Adjunto (URL)</label>
-                <input
-                  type="url"
-                  value={form.receipt_url}
-                  onChange={(e) => setForm({ ...form, receipt_url: e.target.value })}
-                  placeholder="https://drive.google.com/factura.pdf"
-                  className="w-full px-3.5 py-2.5 bg-[#15233D]/60 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-rose-500"
-                />
+                <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
+                  <span>Comprobante / Recibo Adjunto</span>
+                  <span className="text-[11px] text-rose-400 font-normal">Subir archivo o pegar enlace</span>
+                </label>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleFileUpload}
+                      disabled={uploadingReceipt}
+                      className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-rose-500/20 file:text-rose-400 hover:file:bg-rose-500/30 cursor-pointer bg-[#15233D]/60 border border-slate-800 rounded-xl"
+                    />
+                  </div>
+                  {uploadingReceipt && <p className="text-xs text-rose-400 font-semibold animate-pulse">Subiendo archivo...</p>}
+                  <input
+                    type="url"
+                    value={form.receipt_url}
+                    onChange={(e) => setForm({ ...form, receipt_url: e.target.value })}
+                    placeholder="O pega una URL/Link de Drive o archivo..."
+                    className="w-full px-3.5 py-2 bg-[#15233D]/60 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-rose-500"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -541,8 +585,8 @@ export default function EgresosPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 text-white text-xs font-extrabold hover:opacity-90 shadow-lg shadow-rose-500/20"
+                  disabled={submitting || uploadingReceipt}
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 text-white text-xs font-extrabold hover:opacity-90 shadow-lg shadow-rose-500/20 disabled:opacity-50"
                 >
                   {submitting ? "Guardando..." : editingItem ? "Guardar Cambios" : "Registrar Egreso"}
                 </button>
@@ -552,7 +596,7 @@ export default function EgresosPage() {
         </div>
       )}
 
-      {/* VISOR DE COMPROBANTE */}
+      {/* VISOR INTELIGENTE DE COMPROBANTE */}
       {previewReceiptUrl && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
           <div className="bg-[#0A101D] border border-rose-500/40 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -563,8 +607,41 @@ export default function EgresosPage() {
               <button onClick={() => setPreviewReceiptUrl(null)} className="p-2 text-slate-300 hover:text-white">✕</button>
             </div>
             <div className="p-6 overflow-auto flex-1 flex items-center justify-center bg-[#07060B]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewReceiptUrl} alt="Comprobante" className="max-h-[70vh] w-auto object-contain rounded-xl" />
+              {(() => {
+                const url = previewReceiptUrl;
+                const fullUrl = url.startsWith("/uploads/") ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${url}` : url;
+                const isImage = /\.(jpeg|jpg|gif|png|webp)($|\?)/i.test(url) || url.startsWith("/uploads/");
+                const isPdf = /\.pdf($|\?)/i.test(url);
+
+                if (isImage) {
+                  return (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={fullUrl} alt="Comprobante" className="max-h-[70vh] w-auto object-contain rounded-xl shadow-2xl border border-slate-800" />
+                  );
+                }
+
+                if (isPdf) {
+                  return (
+                    <iframe src={fullUrl} className="w-full h-[70vh] rounded-xl border border-slate-800" title="Comprobante PDF" />
+                  );
+                }
+
+                return (
+                  <div className="text-center py-10 space-y-4">
+                    <FileText size={48} className="mx-auto text-rose-400 opacity-80" />
+                    <p className="text-sm font-bold text-white">Enlace Externo o Documento Adjunto</p>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto truncate font-mono">{url}</p>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-red-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-rose-500/20 hover:opacity-90 transition-all"
+                    >
+                      <ExternalLink size={16} /> Abrir Enlace en Pestaña Nueva
+                    </a>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

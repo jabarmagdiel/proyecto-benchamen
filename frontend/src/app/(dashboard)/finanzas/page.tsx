@@ -135,6 +135,13 @@ export default function FinanzasPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => financesApi.exportExcel()}
+              className="bg-[#15233D] border border-slate-800 text-slate-200 font-bold text-xs px-3.5 py-2.5 rounded-xl hover:bg-slate-800 transition-all flex items-center gap-2"
+            >
+              <FileText size={15} className="text-[#20CDFE]" /> Exportar Informe Excel
+            </button>
+
             <Link
               href="/finanzas/ingresos"
               className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 hover:opacity-90 transition-all flex items-center gap-1.5"
@@ -491,8 +498,41 @@ export default function FinanzasPage() {
               <button onClick={() => setPreviewReceiptUrl(null)} className="p-2 text-slate-300 hover:text-white">✕</button>
             </div>
             <div className="p-6 overflow-auto flex-1 flex items-center justify-center bg-[#07060B]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewReceiptUrl} alt="Comprobante" className="max-h-[70vh] w-auto object-contain rounded-xl" />
+              {(() => {
+                const url = previewReceiptUrl;
+                const fullUrl = url.startsWith("/uploads/") ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${url}` : url;
+                const isImage = /\.(jpeg|jpg|gif|png|webp)($|\?)/i.test(url) || url.startsWith("/uploads/");
+                const isPdf = /\.pdf($|\?)/i.test(url);
+
+                if (isImage) {
+                  return (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={fullUrl} alt="Comprobante" className="max-h-[70vh] w-auto object-contain rounded-xl shadow-2xl border border-slate-800" />
+                  );
+                }
+
+                if (isPdf) {
+                  return (
+                    <iframe src={fullUrl} className="w-full h-[70vh] rounded-xl border border-slate-800" title="Comprobante PDF" />
+                  );
+                }
+
+                return (
+                  <div className="text-center py-10 space-y-4">
+                    <FileText size={48} className="mx-auto text-[#20CDFE] opacity-80" />
+                    <p className="text-sm font-bold text-white">Enlace Externo o Documento Adjunto</p>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto truncate font-mono">{url}</p>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-[#20CDFE]/20 hover:opacity-90 transition-all"
+                    >
+                      <ExternalLink size={16} /> Abrir Enlace en Pestaña Nueva
+                    </a>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
