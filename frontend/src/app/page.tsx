@@ -28,12 +28,15 @@ import {
   ChevronDown,
   Play,
   Flame,
-  ArrowUpRight
+  ArrowUpRight,
+  Menu,
+  X
 } from "lucide-react";
 
 export default function LandingPage() {
   const [activeTab, setActiveTab] = useState("todos");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const portfolioItems = [
     {
@@ -129,17 +132,67 @@ export default function LandingPage() {
             <a href="#contacto" className="hover:text-[#20CDFE] transition-colors">Contacto</a>
           </nav>
 
-          {/* CTA Button Iniciar Sesión */}
+          {/* CTA Button Iniciar Sesión & Mobile Toggle */}
           <div className="flex items-center gap-3">
             <Link
               href="/login"
-              className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] via-[#1ED1B4] to-indigo-500 text-[#07060B] px-5 py-2.5 rounded-xl text-xs font-black shadow-lg shadow-[#20CDFE]/20 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] via-[#1ED1B4] to-indigo-500 text-[#07060B] px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs font-black shadow-lg shadow-[#20CDFE]/20 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               <Lock size={14} />
-              <span>Iniciar Sesión</span>
+              <span className="hidden sm:inline">Iniciar Sesión</span>
+              <span className="sm:hidden">Ingresar</span>
             </Link>
+
+            <button
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              className="md:hidden p-2 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white border border-slate-700"
+              aria-label="Abrir menú"
+            >
+              {mobileNavOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileNavOpen && (
+          <div className="md:hidden bg-[#0A101D] border-b border-slate-800 px-6 py-4 space-y-3 animate-fade-in">
+            <a 
+              href="#inicio" 
+              onClick={() => setMobileNavOpen(false)}
+              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
+            >
+              Inicio
+            </a>
+            <a 
+              href="#servicios" 
+              onClick={() => setMobileNavOpen(false)}
+              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
+            >
+              Servicios
+            </a>
+            <a 
+              href="#portafolio" 
+              onClick={() => setMobileNavOpen(false)}
+              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
+            >
+              Casos de Éxito
+            </a>
+            <a 
+              href="#faq" 
+              onClick={() => setMobileNavOpen(false)}
+              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
+            >
+              Preguntas Frecuentes
+            </a>
+            <a 
+              href="#contacto" 
+              onClick={() => setMobileNavOpen(false)}
+              className="block text-xs font-bold text-slate-300 hover:text-[#20CDFE] py-1.5"
+            >
+              Contacto
+            </a>
+          </div>
+        )}
       </header>
 
       {/* ── 2. Hero Section con Imágenes & Animaciones ── */}
