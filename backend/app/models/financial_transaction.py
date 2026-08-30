@@ -16,7 +16,8 @@ class FinancialTransaction(Base):
     category = Column(String(100), nullable=False)
     payment_method = Column(String(50), nullable=True, default="transferencia")
     payment_reference = Column(String(100), nullable=True)
-    receipt_url = Column(Text, nullable=True)
+    receipt_url = Column(Text, nullable=True)          # Imagen/PDF subida (Cloudinary o local)
+    receipt_drive_url = Column(Text, nullable=True)     # Link externo (Google Drive, Dropbox, etc.)
     transaction_date = Column(Date, nullable=False, default=date.today, index=True)
 
     company_id = Column(Integer, ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)

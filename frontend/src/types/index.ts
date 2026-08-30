@@ -454,6 +454,7 @@ export interface FinancialTransaction {
   payment_method?: string | null;
   payment_reference?: string | null;
   receipt_url?: string | null;
+  receipt_drive_url?: string | null;
   transaction_date: string;
   company_id?: number | null;
   project_id?: number | null;

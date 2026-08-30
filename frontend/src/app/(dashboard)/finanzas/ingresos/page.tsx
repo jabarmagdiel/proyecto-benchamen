@@ -55,6 +55,7 @@ export default function IngresosPage() {
     payment_method: "transferencia",
     payment_reference: "",
     receipt_url: "",
+    receipt_drive_url: "",
     transaction_date: new Date().toISOString().slice(0, 10),
     company_id: "",
     project_id: "",
@@ -107,6 +108,7 @@ export default function IngresosPage() {
       payment_method: "transferencia",
       payment_reference: "",
       receipt_url: "",
+      receipt_drive_url: "",
       transaction_date: new Date().toISOString().slice(0, 10),
       company_id: "",
       project_id: "",
@@ -126,6 +128,7 @@ export default function IngresosPage() {
       payment_method: t.payment_method || "transferencia",
       payment_reference: t.payment_reference || "",
       receipt_url: t.receipt_url || "",
+      receipt_drive_url: t.receipt_drive_url || "",
       transaction_date: t.transaction_date,
       company_id: t.company_id ? String(t.company_id) : "",
       project_id: t.project_id ? String(t.project_id) : "",
@@ -153,6 +156,7 @@ export default function IngresosPage() {
         payment_method: form.payment_method,
         payment_reference: form.payment_reference || null,
         receipt_url: form.receipt_url || null,
+        receipt_drive_url: form.receipt_drive_url || null,
         transaction_date: form.transaction_date,
         description: form.description || null,
         company_id: form.company_id ? Number(form.company_id) : null,
@@ -420,16 +424,29 @@ export default function IngresosPage() {
                         <div className="text-[11px] text-slate-400 font-mono">Ref: {t.payment_reference || "N/A"}</div>
                       </td>
                       <td className="px-5 py-4">
-                        {t.receipt_url ? (
-                          <button
-                            onClick={() => setPreviewReceiptUrl(t.receipt_url || null)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all font-bold text-xs"
-                          >
-                            <ImageIcon size={14} /> Ver Adjunto
-                          </button>
-                        ) : (
-                          <span className="text-xs text-slate-500 italic">Sin comprobante</span>
-                        )}
+                        <div className="flex flex-col gap-1.5">
+                          {t.receipt_url && (
+                            <button
+                              onClick={() => setPreviewReceiptUrl(t.receipt_url || null)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all font-bold text-xs"
+                            >
+                              <ImageIcon size={13} /> Ver Adjunto
+                            </button>
+                          )}
+                          {t.receipt_drive_url && (
+                            <a
+                              href={t.receipt_drive_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500/20 transition-all font-bold text-xs"
+                            >
+                              <ExternalLink size={13} /> Ver Drive
+                            </a>
+                          )}
+                          {!t.receipt_url && !t.receipt_drive_url && (
+                            <span className="text-xs text-slate-500 italic">Sin comprobante</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-5 py-4 text-xs text-slate-400">{formatDate(t.transaction_date)}</td>
                       <td className="px-5 py-4 text-xs text-slate-300">
@@ -597,29 +614,37 @@ export default function IngresosPage() {
                     </div>
                   )}
 
-                  {/* Separador y opción Drive */}
+                  {/* Link externo — campo INDEPENDIENTE, puede coexistir con el archivo */}
                   <div className="flex items-center gap-3 pt-1">
                     <div className="flex-1 h-px bg-slate-800" />
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">o pegar link</span>
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">+ también link externo</span>
                     <div className="flex-1 h-px bg-slate-800" />
                   </div>
                   <div className="relative">
                     <ExternalLink size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                     <input
                       type="url"
-                      value={localFilePreview ? "" : form.receipt_url}
-                      onChange={(e) => {
-                        setForm({ ...form, receipt_url: e.target.value });
-                        if (e.target.value) {
-                          setLocalFilePreview(null);
-                          setLocalFileName("");
-                        }
-                      }}
+                      value={form.receipt_drive_url}
+                      onChange={(e) => setForm({ ...form, receipt_drive_url: e.target.value })}
                       placeholder="Link de Google Drive, Dropbox u otro..."
                       disabled={uploadingReceipt}
                       className="w-full pl-9 pr-3.5 py-2 bg-[#15233D]/60 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 disabled:opacity-50"
                     />
                   </div>
+                  {form.receipt_drive_url && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                      <ExternalLink size={12} className="text-blue-400 shrink-0" />
+                      <span className="text-[11px] text-blue-300 truncate flex-1">Link guardado</span>
+                      <a
+                        href={form.receipt_drive_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-blue-400 font-bold hover:underline shrink-0"
+                      >
+                        Abrir
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
 

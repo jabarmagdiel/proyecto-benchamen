@@ -205,6 +205,10 @@ def run_migrations():
             CREATE INDEX IF NOT EXISTS idx_fin_trans_project ON financial_transactions(project_id);
             """,
         ),
+        (
+            "financial_transactions.receipt_drive_url",
+            "ALTER TABLE financial_transactions ADD COLUMN IF NOT EXISTS receipt_drive_url TEXT;",
+        ),
     ]
 
     for name, sql in migrations:

@@ -15,6 +15,7 @@ class FinancialTransactionBase(BaseModel):
     payment_method: Optional[str] = "transferencia"
     payment_reference: Optional[str] = None
     receipt_url: Optional[str] = None
+    receipt_drive_url: Optional[str] = None
     transaction_date: date
     company_id: Optional[int] = None
     project_id: Optional[int] = None
@@ -33,6 +34,7 @@ class FinancialTransactionUpdate(BaseModel):
     payment_method: Optional[str] = None
     payment_reference: Optional[str] = None
     receipt_url: Optional[str] = None
+    receipt_drive_url: Optional[str] = None
     transaction_date: Optional[date] = None
     company_id: Optional[int] = None
     project_id: Optional[int] = None
