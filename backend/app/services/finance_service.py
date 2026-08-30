@@ -208,102 +208,120 @@ def export_finances_excel(
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from fastapi.responses import StreamingResponse
 
-    transactions = list_transactions(
-        db, type=type, company_id=company_id, project_id=project_id,
-        start_date=start_date, end_date=end_date, limit=1000
-    )
+    try:
+        transactions = list_transactions(
+            db, type=type, company_id=company_id, project_id=project_id,
+            start_date=start_date, end_date=end_date, limit=2000
+        )
 
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Reporte Financiero"
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Reporte Financiero"
 
-    # Título Principal
-    ws.merge_cells("A1:K1")
-    title_cell = ws["A1"]
-    title_cell.value = "BENCHAMEN - REPORTE DE MOVIMIENTOS FINANCIEROS"
-    title_cell.font = Font(bold=True, color="FFFFFF", size=14)
-    title_cell.fill = PatternFill(start_color="1E293B", end_color="1E293B", fill_type="solid")
-    title_cell.alignment = Alignment(horizontal="center", vertical="center")
+        # Título Principal
+        ws.merge_cells("A1:K1")
+        title_cell = ws["A1"]
+        title_cell.value = "BENCHAMEN - REPORTE DE MOVIMIENTOS FINANCIEROS"
+        title_cell.font = Font(bold=True, color="FFFFFF", size=14)
+        title_cell.fill = PatternFill(start_color="1E293B", end_color="1E293B", fill_type="solid")
+        title_cell.alignment = Alignment(horizontal="center", vertical="center")
 
-    # Cabeceras de Tabla
-    headers = [
-        "ID", "Tipo", "Concepto / Título", "Monto (Bs.)", "Categoría",
-        "Método de Pago", "Nro. Referencia", "Fecha", "Empresa", "Proyecto", "Registrado Por"
-    ]
-    header_fill = PatternFill(start_color="0EA5E9", end_color="0EA5E9", fill_type="solid")
-
-    for col_idx, h in enumerate(headers, 1):
-        cell = ws.cell(row=3, column=col_idx, value=h)
-        cell.font = Font(bold=True, color="FFFFFF")
-        cell.fill = header_fill
-        cell.alignment = Alignment(horizontal="center", vertical="center")
-        ws.column_dimensions[cell.column_letter].width = 20
-
-    ws.column_dimensions["C"].width = 35  # Título más ancho
-
-    total_ingresos = 0.0
-    total_egresos = 0.0
-
-    for r_idx, t in enumerate(transactions, 4):
-        amt = float(t.amount or 0.0)
-        t_type = "INGRESO" if t.type == "ingreso" else "EGRESO"
-        if t.type == "ingreso":
-            total_ingresos += amt
-        else:
-            total_egresos += amt
-
-        row_data = [
-            t.id,
-            t_type,
-            t.title,
-            amt,
-            t.category,
-            t.payment_method or "-",
-            t.payment_reference or "-",
-            str(t.transaction_date),
-            t.company.name if t.company else "General",
-            t.project.name if t.project else "General",
-            t.created_by.name if t.created_by else "-"
+        # Cabeceras de Tabla
+        headers = [
+            "ID", "Tipo", "Concepto / Título", "Monto (Bs.)", "Categoría",
+            "Método de Pago", "Nro. Referencia", "Fecha", "Empresa", "Proyecto", "Registrado Por"
         ]
+        header_fill = PatternFill(start_color="0EA5E9", end_color="0EA5E9", fill_type="solid")
 
-        for c_idx, val in enumerate(row_data, 1):
-            cell = ws.cell(row=r_idx, column=c_idx, value=val)
-            if c_idx == 2:  # Tipo
-                if t.type == "ingreso":
-                    cell.fill = PatternFill(start_color="DCFCE7", end_color="DCFCE7", fill_type="solid")
-                    cell.font = Font(color="15803D", bold=True)
-                else:
-                    cell.fill = PatternFill(start_color="FEE2E2", end_color="FEE2E2", fill_type="solid")
-                    cell.font = Font(color="B91C1C", bold=True)
-            elif c_idx == 4:  # Monto
-                cell.number_format = "#,##0.00"
-                if t.type == "ingreso":
-                    cell.font = Font(color="15803D", bold=True)
-                else:
-                    cell.font = Font(color="B91C1C", bold=True)
+        for col_idx, h in enumerate(headers, 1):
+            cell = ws.cell(row=3, column=col_idx, value=h)
+            cell.font = Font(bold=True, color="FFFFFF")
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            ws.column_dimensions[cell.column_letter].width = 20
 
-    # Fila de Totales
-    summary_row = len(transactions) + 5
-    ws.cell(row=summary_row, column=3, value="TOTAL INGRESOS:").font = Font(bold=True)
-    c_ing = ws.cell(row=summary_row, column=4, value=total_ingresos)
-    c_ing.font = Font(bold=True, color="15803D")
-    c_ing.number_format = "#,##0.00"
+        ws.column_dimensions["C"].width = 38  # Título más ancho
 
-    ws.cell(row=summary_row + 1, column=3, value="TOTAL EGRESOS:").font = Font(bold=True)
-    c_eg = ws.cell(row=summary_row + 1, column=4, value=total_egresos)
-    c_eg.font = Font(bold=True, color="B91C1C")
-    c_eg.number_format = "#,##0.00"
+        total_ingresos = 0.0
+        total_egresos = 0.0
 
-    ws.cell(row=summary_row + 2, column=3, value="BALANCE NETO:").font = Font(bold=True, size=11)
-    c_bal = ws.cell(row=summary_row + 2, column=4, value=total_ingresos - total_egresos)
-    c_bal.font = Font(bold=True, color="0EA5E9" if total_ingresos >= total_egresos else "B91C1C", size=11)
-    c_bal.number_format = "#,##0.00"
+        thin_border = Border(
+            left=Side(style='thin', color='E2E8F0'),
+            right=Side(style='thin', color='E2E8F0'),
+            top=Side(style='thin', color='E2E8F0'),
+            bottom=Side(style='thin', color='E2E8F0')
+        )
 
-    buffer = io.BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
-    return StreamingResponse(
-        buffer,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename=reporte_financiero_{date.today()}.xlsx"},
-    )
+        for r_idx, t in enumerate(transactions, 4):
+            amt = float(t.amount or 0.0)
+            t_type = "INGRESO" if t.type == "ingreso" else "EGRESO"
+            if t.type == "ingreso":
+                total_ingresos += amt
+            else:
+                total_egresos += amt
+
+            company_name = t.company.name if getattr(t, "company", None) else "General / Agencia"
+            project_name = t.project.name if getattr(t, "project", None) else "General"
+            creator_name = t.created_by.name if getattr(t, "created_by", None) else "-"
+
+            row_data = [
+                t.id,
+                t_type,
+                t.title,
+                amt,
+                t.category,
+                t.payment_method or "-",
+                t.payment_reference or "-",
+                str(t.transaction_date),
+                company_name,
+                project_name,
+                creator_name
+            ]
+
+            for c_idx, val in enumerate(row_data, 1):
+                cell = ws.cell(row=r_idx, column=c_idx, value=val)
+                cell.border = thin_border
+                if c_idx == 2:  # Tipo
+                    if t.type == "ingreso":
+                        cell.fill = PatternFill(start_color="DCFCE7", end_color="DCFCE7", fill_type="solid")
+                        cell.font = Font(color="15803D", bold=True)
+                    else:
+                        cell.fill = PatternFill(start_color="FEE2E2", end_color="FEE2E2", fill_type="solid")
+                        cell.font = Font(color="B91C1C", bold=True)
+                elif c_idx == 4:  # Monto
+                    cell.number_format = "#,##0.00"
+                    if t.type == "ingreso":
+                        cell.font = Font(color="15803D", bold=True)
+                    else:
+                        cell.font = Font(color="B91C1C", bold=True)
+
+        # Fila de Totales
+        summary_row = len(transactions) + 5
+        ws.cell(row=summary_row, column=3, value="TOTAL INGRESOS:").font = Font(bold=True)
+        c_ing = ws.cell(row=summary_row, column=4, value=total_ingresos)
+        c_ing.font = Font(bold=True, color="15803D")
+        c_ing.number_format = "#,##0.00"
+
+        ws.cell(row=summary_row + 1, column=3, value="TOTAL EGRESOS:").font = Font(bold=True)
+        c_eg = ws.cell(row=summary_row + 1, column=4, value=total_egresos)
+        c_eg.font = Font(bold=True, color="B91C1C")
+        c_eg.number_format = "#,##0.00"
+
+        ws.cell(row=summary_row + 2, column=3, value="BALANCE NETO:").font = Font(bold=True, size=11)
+        c_bal = ws.cell(row=summary_row + 2, column=4, value=total_ingresos - total_egresos)
+        c_bal.font = Font(bold=True, color="0EA5E9" if total_ingresos >= total_egresos else "B91C1C", size=11)
+        c_bal.number_format = "#,##0.00"
+
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+
+        filename = f"reporte_financiero_{date.today()}.xlsx"
+        return StreamingResponse(
+            buffer,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    except Exception as e:
+        print(f"❌ Error al exportar Excel financiero: {e}")
+        raise HTTPException(status_code=500, detail=f"Error al generar reporte Excel: {str(e)}")

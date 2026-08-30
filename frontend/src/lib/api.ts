@@ -268,6 +268,15 @@ export const financesApi = {
         params,
         responseType: "blob",
       });
+
+      // Si la respuesta es JSON (error devuelto como blob)
+      if (response.data.type && response.data.type.includes("application/json")) {
+        const text = await response.data.text();
+        const json = JSON.parse(text);
+        alert(`❌ Error al exportar Excel: ${json.detail || "No se pudo generar el archivo"}`);
+        return;
+      }
+
       const blob = new Blob([response.data], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
@@ -279,8 +288,9 @@ export const financesApi = {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al exportar Excel financiero:", error);
+      alert(error?.response?.data?.detail || "Error de conexión al exportar Excel");
     }
   },
 };
