@@ -290,7 +290,17 @@ export const financesApi = {
       window.URL.revokeObjectURL(url);
     } catch (error: any) {
       console.error("Error al exportar Excel financiero:", error);
-      alert(error?.response?.data?.detail || "Error de conexión al exportar Excel");
+      let msg = "Error al exportar Excel";
+      if (error?.response?.data instanceof Blob) {
+        try {
+          const txt = await error.response.data.text();
+          const parsed = JSON.parse(txt);
+          msg = parsed.detail || msg;
+        } catch (_) {}
+      } else if (error?.response?.data?.detail) {
+        msg = error.response.data.detail;
+      }
+      alert(`❌ ${msg}`);
     }
   },
 };

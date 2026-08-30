@@ -202,11 +202,11 @@ def export_finances_excel(
     project_id: Optional[int] = None,
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
-) -> StreamingResponse:
+):
     import io
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-    from fastapi.responses import StreamingResponse
+    from fastapi.responses import Response
 
     try:
         transactions = list_transactions(
@@ -314,11 +314,11 @@ def export_finances_excel(
 
         buffer = io.BytesIO()
         wb.save(buffer)
-        buffer.seek(0)
+        excel_bytes = buffer.getvalue()
 
         filename = f"reporte_financiero_{date.today()}.xlsx"
-        return StreamingResponse(
-            buffer,
+        return Response(
+            content=excel_bytes,
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             headers={"Content-Disposition": f"attachment; filename={filename}"},
         )
