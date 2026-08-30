@@ -62,9 +62,18 @@ export default function IngresosPage() {
     setLoading(true);
     try {
       const [transRes, compRes, projRes] = await Promise.all([
-        financesApi.list({ type: "ingreso" }),
-        companiesApi.list(),
-        projectsApi.list(),
+        financesApi.list({ type: "ingreso" }).catch((e) => {
+          console.error("Error cargando transacciones:", e);
+          return { data: [] };
+        }),
+        companiesApi.list().catch((e) => {
+          console.error("Error cargando empresas:", e);
+          return { data: [] };
+        }),
+        projectsApi.list().catch((e) => {
+          console.error("Error cargando proyectos:", e);
+          return { data: [] };
+        }),
       ]);
       setTransactions(transRes.data || []);
       setCompanies(compRes.data || []);
@@ -491,7 +500,10 @@ export default function IngresosPage() {
                   <label className="block text-xs font-bold text-slate-300 mb-1">Empresa (Opcional)</label>
                   <select
                     value={form.company_id}
-                    onChange={(e) => setForm({ ...form, company_id: e.target.value })}
+                    onChange={(e) => {
+                      const newCompId = e.target.value;
+                      setForm(prev => ({ ...prev, company_id: newCompId }));
+                    }}
                     className="w-full px-3.5 py-2.5 bg-[#15233D]/60 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500"
                   >
                     <option value="">Sin empresa vinculada</option>
@@ -505,12 +517,12 @@ export default function IngresosPage() {
                   <label className="block text-xs font-bold text-slate-300 mb-1">Proyecto (Opcional)</label>
                   <select
                     value={form.project_id}
-                    onChange={(e) => setForm({ ...form, project_id: e.target.value })}
+                    onChange={(e) => setForm(prev => ({ ...prev, project_id: e.target.value }))}
                     className="w-full px-3.5 py-2.5 bg-[#15233D]/60 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-emerald-500"
                   >
                     <option value="">Sin proyecto vinculado</option>
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
+                    {(form.company_id ? projects.filter(p => p.company_id === Number(form.company_id)) : projects).map((p) => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.company?.name || "Cliente Externo"})</option>
                     ))}
                   </select>
                 </div>
