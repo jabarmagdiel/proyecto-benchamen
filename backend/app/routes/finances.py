@@ -67,18 +67,53 @@ async def upload_receipt(
     import os, uuid
     from app.core.config import settings
 
-    upload_dir = os.path.join(settings.UPLOAD_DIR, "finances")
-    os.makedirs(upload_dir, exist_ok=True)
+    ALLOWED_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".avif", ".heic", ".pdf"}
+    MAX_BYTES = settings.MAX_FILE_SIZE_MB * 1024 * 1024
 
-    ext = os.path.splitext(file.filename)[1]
-    unique_name = f"{uuid.uuid4().hex}{ext}"
-    file_path = os.path.join(upload_dir, unique_name)
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if ext not in ALLOWED_EXTS:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail=f"Tipo de archivo no permitido: {ext}. Usa PNG, JPG, WEBP, GIF o PDF.")
 
     content = await file.read()
+    if len(content) > MAX_BYTES:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail=f"El archivo supera el límite de {settings.MAX_FILE_SIZE_MB}MB.")
+
+    # ── Cloudinary (producción) ─────────────────────────────────────────────────
+    if settings.CLOUDINARY_CLOUD_NAME and settings.CLOUDINARY_API_KEY and settings.CLOUDINARY_API_SECRET:
+        try:
+            import cloudinary, cloudinary.uploader
+            cloudinary.config(
+                cloud_name=settings.CLOUDINARY_CLOUD_NAME,
+                api_key=settings.CLOUDINARY_API_KEY,
+                api_secret=settings.CLOUDINARY_API_SECRET,
+                secure=True,
+            )
+            public_id = f"benchamen/finanzas/{uuid.uuid4().hex}"
+            is_image = ext in {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".avif", ".heic"}
+            resource_type = "image" if is_image else "raw"
+            result = cloudinary.uploader.upload(
+                content,
+                public_id=public_id,
+                resource_type=resource_type,
+                use_filename=False,
+                overwrite=False,
+            )
+            return {"url": result.get("secure_url"), "storage": "cloudinary"}
+        except Exception as e:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=500, detail=f"Error al subir a Cloudinary: {str(e)}")
+
+    # ── Almacenamiento local (desarrollo) ───────────────────────────────────────
+    upload_dir = os.path.join(settings.UPLOAD_DIR, "finances")
+    os.makedirs(upload_dir, exist_ok=True)
+    unique_name = f"{uuid.uuid4().hex}{ext}"
+    file_path = os.path.join(upload_dir, unique_name)
     with open(file_path, "wb") as f:
         f.write(content)
 
-    return {"url": f"/uploads/finances/{unique_name}"}
+    return {"url": f"/uploads/finances/{unique_name}", "storage": "local"}
 
 
 @router.post("", response_model=FinancialTransactionResponse, status_code=201)

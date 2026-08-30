@@ -43,6 +43,10 @@ export default function IngresosPage() {
   // Visor comprobante
   const [previewReceiptUrl, setPreviewReceiptUrl] = useState<string | null>(null);
 
+  // Preview local del archivo seleccionado (antes de subir)
+  const [localFilePreview, setLocalFilePreview] = useState<string | null>(null);
+  const [localFileName, setLocalFileName] = useState<string>("");
+
   // Form State
   const [form, setForm] = useState({
     title: "",
@@ -108,6 +112,8 @@ export default function IngresosPage() {
       project_id: "",
       description: "",
     });
+    setLocalFilePreview(null);
+    setLocalFileName("");
     setModalOpen(true);
   };
 
@@ -125,6 +131,8 @@ export default function IngresosPage() {
       project_id: t.project_id ? String(t.project_id) : "",
       description: t.description || "",
     });
+    setLocalFilePreview(null);
+    setLocalFileName("");
     setModalOpen(true);
   };
 
@@ -215,18 +223,51 @@ export default function IngresosPage() {
   // File Upload State
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
 
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  // Construir URL completa para visualizar comprobante
+  const buildReceiptUrl = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith("/uploads/")) return `${API_BASE}${url}`;
+    return url; // Cloudinary o externo → ya es URL completa
+  };
+
+  // Detectar si es una imagen que podemos mostrar inline
+  const isImageUrl = (url: string) => {
+    const clean = url.split("?")[0].split("#")[0].toLowerCase();
+    return /\.(png|jpg|jpeg|webp|gif|bmp|avif|heic)$/.test(clean)
+      || clean.includes("res.cloudinary.com"); // Cloudinary siempre imagen
+  };
+
+  // Detectar PDF
+  const isPdfUrl = (url: string) => /\.pdf($|\?)/i.test(url);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Preview local inmediato
+    setLocalFileName(file.name);
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setLocalFilePreview(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setLocalFilePreview(null);
+    }
+
     setUploadingReceipt(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
       const res = await financesApi.uploadReceipt(formData);
       setForm((prev) => ({ ...prev, receipt_url: res.data.url }));
-      showToast("✅ Comprobante subido correctamente");
-    } catch (err) {
-      showToast("Error al subir archivo de comprobante", "error");
+      showToast("✅ Comprobante subido y listo para guardar");
+    } catch (err: any) {
+      const msg = err?.response?.data?.detail || "Error al subir archivo de comprobante";
+      showToast(`❌ ${msg}`, "error");
+      setLocalFilePreview(null);
+      setLocalFileName("");
     } finally {
       setUploadingReceipt(false);
     }
@@ -514,28 +555,47 @@ export default function IngresosPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
-                  <span>Comprobante / Recibo Adjunto</span>
-                  <span className="text-[11px] text-emerald-400 font-normal">Subir archivo o pegar enlace</span>
+                <label className="block text-xs font-bold text-slate-300 mb-1">
+                  Comprobante / Recibo Adjunto
                 </label>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="file"
-                      accept="image/*,.pdf"
-                      onChange={handleFileUpload}
-                      disabled={uploadingReceipt}
-                      className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-500/20 file:text-emerald-400 hover:file:bg-emerald-500/30 cursor-pointer bg-[#15233D]/60 border border-slate-800 rounded-xl"
-                    />
-                  </div>
-                  {uploadingReceipt && <p className="text-xs text-emerald-400 font-semibold animate-pulse">Subiendo archivo...</p>}
                   <input
-                    type="url"
-                    value={form.receipt_url}
-                    onChange={(e) => setForm({ ...form, receipt_url: e.target.value })}
-                    placeholder="O pega una URL/Link de Drive o archivo..."
-                    className="w-full px-3.5 py-2 bg-[#15233D]/60 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/gif,image/bmp,.pdf"
+                    onChange={handleFileUpload}
+                    disabled={uploadingReceipt}
+                    className="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-500/20 file:text-emerald-400 hover:file:bg-emerald-500/30 cursor-pointer bg-[#15233D]/60 border border-slate-800 rounded-xl py-2 px-3"
                   />
+                  {uploadingReceipt && (
+                    <div className="flex items-center gap-2 text-xs text-emerald-400 font-semibold">
+                      <div className="w-3 h-3 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin" />
+                      Subiendo imagen...
+                    </div>
+                  )}
+                  {/* Preview de imagen local */}
+                  {localFilePreview && !uploadingReceipt && (
+                    <div className="relative rounded-xl overflow-hidden border border-emerald-500/30 bg-black/20">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={localFilePreview} alt="Preview" className="w-full max-h-40 object-contain" />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-3 py-1.5 text-[11px] text-emerald-400 font-bold truncate">
+                        ✅ {localFileName}
+                      </div>
+                    </div>
+                  )}
+                  {/* Si ya tiene URL guardada (edición) y no hay preview local */}
+                  {form.receipt_url && !localFilePreview && (
+                    <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                      <ImageIcon size={14} className="text-emerald-400 shrink-0" />
+                      <span className="text-[11px] text-emerald-300 truncate flex-1">Adjunto guardado</span>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewReceiptUrl(form.receipt_url)}
+                        className="text-[11px] text-emerald-400 font-bold hover:underline shrink-0"
+                      >
+                        Ver
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -594,55 +654,78 @@ export default function IngresosPage() {
       )}
 
       {/* VISOR INTELIGENTE DE COMPROBANTE */}
-      {previewReceiptUrl && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#0A101D] border border-emerald-500/40 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-              <h4 className="font-extrabold text-white text-sm flex items-center gap-2">
-                <ImageIcon className="text-emerald-400" size={18} /> Comprobante de Ingreso
-              </h4>
-              <button onClick={() => setPreviewReceiptUrl(null)} className="p-2 text-slate-300 hover:text-white">✕</button>
-            </div>
-            <div className="p-6 overflow-auto flex-1 flex items-center justify-center bg-[#07060B]">
-              {(() => {
-                const url = previewReceiptUrl;
-                const fullUrl = url.startsWith("/uploads/") ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${url}` : url;
-                const isImage = /\.(jpeg|jpg|gif|png|webp)($|\?)/i.test(url) || url.startsWith("/uploads/");
-                const isPdf = /\.pdf($|\?)/i.test(url);
+      {previewReceiptUrl && (() => {
+        const rawUrl = previewReceiptUrl;
+        const API_BASE_VIEWER = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        const fullUrl = rawUrl.startsWith("/uploads/") ? `${API_BASE_VIEWER}${rawUrl}` : rawUrl;
+        // Detección: imagen si tiene extensión imagen O es de Cloudinary
+        const cleanPath = rawUrl.split("?")[0].split("#")[0].toLowerCase();
+        const isImg = /\.(png|jpg|jpeg|webp|gif|bmp|avif|heic)$/.test(cleanPath)
+          || cleanPath.includes("res.cloudinary.com");
+        const isPDF = /\.pdf$/.test(cleanPath);
 
-                if (isImage) {
-                  return (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={fullUrl} alt="Comprobante" className="max-h-[70vh] w-auto object-contain rounded-xl shadow-2xl border border-slate-800" />
-                  );
-                }
-
-                if (isPdf) {
-                  return (
-                    <iframe src={fullUrl} className="w-full h-[70vh] rounded-xl border border-slate-800" title="Comprobante PDF" />
-                  );
-                }
-
-                return (
-                  <div className="text-center py-10 space-y-4">
-                    <FileText size={48} className="mx-auto text-emerald-400 opacity-80" />
-                    <p className="text-sm font-bold text-white">Enlace Externo o Documento Adjunto</p>
-                    <p className="text-xs text-slate-400 max-w-md mx-auto truncate font-mono">{url}</p>
+        return (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={() => setPreviewReceiptUrl(null)}>
+            <div className="bg-[#0A101D] border border-emerald-500/40 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h4 className="font-extrabold text-white text-sm flex items-center gap-2">
+                  <ImageIcon className="text-emerald-400" size={18} /> Comprobante de Ingreso
+                </h4>
+                <div className="flex items-center gap-3">
+                  <a href={fullUrl} target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 transition-all">
+                    <ExternalLink size={13} /> Abrir original
+                  </a>
+                  <button onClick={() => setPreviewReceiptUrl(null)} className="p-2 text-slate-400 hover:text-white">✕</button>
+                </div>
+              </div>
+              <div className="p-6 overflow-auto flex-1 flex items-center justify-center bg-[#07060B] min-h-[300px]">
+                {isImg ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={fullUrl}
+                    alt="Comprobante"
+                    className="max-h-[68vh] w-auto object-contain rounded-xl shadow-2xl border border-slate-700"
+                    onError={(e) => {
+                      // Si falla la imagen, mostrar botón de apertura
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                      target.parentElement!.innerHTML = `
+                        <div class="text-center space-y-4">
+                          <p class="text-white font-bold text-sm">No se pudo cargar la imagen</p>
+                          <a href="${fullUrl}" target="_blank" rel="noopener noreferrer"
+                            class="inline-flex items-center gap-2 bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl">
+                            Abrir en nueva pestaña
+                          </a>
+                        </div>`;
+                    }}
+                  />
+                ) : isPDF ? (
+                  <iframe src={fullUrl} className="w-full h-[68vh] rounded-xl border border-slate-700" title="Comprobante PDF" />
+                ) : (
+                  <div className="text-center py-10 space-y-5">
+                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto">
+                      <FileText size={32} className="text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white mb-1">Enlace Externo</p>
+                      <p className="text-xs text-slate-400 max-w-sm mx-auto break-all font-mono">{rawUrl}</p>
+                    </div>
                     <a
-                      href={url}
+                      href={fullUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-500/20 hover:opacity-90 transition-all"
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-lg hover:opacity-90 transition-all"
                     >
-                      <ExternalLink size={16} /> Abrir Enlace en Pestaña Nueva
+                      <ExternalLink size={16} /> Abrir en Pestaña Nueva
                     </a>
                   </div>
-                );
-              })()}
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </>
   );
 }
