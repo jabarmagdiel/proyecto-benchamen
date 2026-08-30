@@ -56,21 +56,14 @@ export default function LandingPage() {
             <a href="#clientes" className="hover:text-[#20CDFE] transition-colors">Portal Clientes</a>
           </nav>
 
-          {/* CTA Buttons */}
+          {/* CTA Button único */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 bg-[#0A101D] transition-all"
-            >
-              <Lock size={13} className="text-[#20CDFE]" />
-              Iniciar Sesión
-            </Link>
             <Link
               href="/login"
               className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-5 py-2.5 rounded-xl text-xs font-black shadow-lg shadow-[#20CDFE]/25 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
-              <span>Acceder al Sistema</span>
-              <ArrowRight size={14} />
+              <Lock size={14} />
+              <span>Iniciar Sesión</span>
             </Link>
           </div>
         </div>
@@ -98,23 +91,15 @@ export default function LandingPage() {
           Supervisa proyectos, coordina departamentos por niveles de jerarquía, programa citas con clientes y valida evidencias con total transparencia auditada.
         </p>
 
-        {/* Botones de Acción Principal */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto mb-16">
+        {/* Botón de Acción Principal */}
+        <div className="flex justify-center max-w-md mx-auto mb-16">
           <Link
             href="/login"
-            className="w-full sm:w-auto flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#20CDFE] via-[#1ED1B4] to-indigo-500 text-[#07060B] px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-[#20CDFE]/30 hover:scale-105 transition-all"
+            className="flex items-center justify-center gap-2.5 bg-gradient-to-r from-[#20CDFE] via-[#1ED1B4] to-indigo-500 text-[#07060B] px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-[#20CDFE]/30 hover:scale-105 transition-all"
           >
-            <Zap size={18} />
-            Ingresar al Panel Administrativo
+            <Lock size={18} />
+            Ingresar al Sistema
           </Link>
-
-          <a
-            href="#caracteristicas"
-            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#0A101D] text-slate-300 hover:text-white px-7 py-4 rounded-2xl font-bold text-sm border border-slate-800 hover:border-slate-700 transition-all"
-          >
-            Conocer Más
-            <ChevronRight size={16} />
-          </a>
         </div>
 
         {/* Banner de Métricas / Confianza */}
