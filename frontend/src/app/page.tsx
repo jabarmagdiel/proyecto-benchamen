@@ -39,7 +39,7 @@ export default function LandingPage() {
             </div>
             <div>
               <span className="font-black text-xl tracking-tight text-white flex items-center gap-1.5">
-                ADD ONS
+                ADDONS
                 <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#20CDFE]/20 text-[#20CDFE] border border-[#20CDFE]/40">
                   Official
                 </span>
@@ -245,11 +245,11 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#20CDFE] to-[#1ED1B4] flex items-center justify-center text-[#07060B] font-black text-sm">
               A
             </div>
-            <span className="font-black text-base text-white">ADD ONS</span>
+            <span className="font-black text-base text-white">ADDONS</span>
           </div>
           
           <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} ADD ONS Official. Todos los derechos reservados.
+            © {new Date().getFullYear()} ADDONS Official. Todos los derechos reservados.
           </p>
 
           <div className="flex items-center gap-6 text-xs text-slate-400 font-medium">
