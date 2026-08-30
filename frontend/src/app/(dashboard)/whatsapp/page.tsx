@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { whatsappApi, companiesApi } from "@/lib/api";
-import { WhatsAppChatSummary, WhatsAppMessage, WhatsAppTemplate, Company } from "@/types";
+import { WhatsAppChatSummary, WhatsAppMessage, WhatsAppTemplate, Company, WhatsAppConfig } from "@/types";
 import {
   MessageSquare,
   Send,
@@ -22,7 +22,11 @@ import {
   CheckCircle2,
   X,
   FileText,
-  MessageCircle
+  MessageCircle,
+  Settings,
+  Copy,
+  Check,
+  Radio
 } from "lucide-react";
 import Link from "next/link";
 
@@ -33,7 +37,8 @@ export default function WhatsAppChatPage() {
   const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
   const [templates, setTemplates] = useState<WhatsAppTemplate[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
-  
+  const [config, setConfig] = useState<WhatsAppConfig | null>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [messageInput, setMessageInput] = useState("");
   const [loadingChats, setLoadingChats] = useState(true);
@@ -43,7 +48,16 @@ export default function WhatsAppChatPage() {
   // Modales
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [showSimulateModal, setShowSimulateModal] = useState(false);
-  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [copiedWebhook, setCopiedWebhook] = useState(false);
+
+  // Formulario configuración Meta
+  const [cfgPhone, setCfgPhone] = useState("");
+  const [cfgPhoneId, setCfgPhoneId] = useState("");
+  const [cfgWabaId, setCfgWabaId] = useState("");
+  const [cfgToken, setCfgToken] = useState("");
+  const [cfgVerifyToken, setCfgVerifyToken] = useState("addons_secret_token");
+  const [savingCfg, setSavingCfg] = useState(false);
 
   // Formulario nuevo chat
   const [newPhone, setNewPhone] = useState("");
@@ -61,6 +75,7 @@ export default function WhatsAppChatPage() {
 
   useEffect(() => {
     if (isAdmin) {
+      fetchConfig();
       fetchChats();
       fetchTemplates();
       fetchCompanies();
@@ -76,6 +91,22 @@ export default function WhatsAppChatPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const fetchConfig = async () => {
+    try {
+      const res = await whatsappApi.getConfig();
+      if (res.data) {
+        setConfig(res.data);
+        setCfgPhone(res.data.company_phone || "");
+        setCfgPhoneId(res.data.phone_number_id || "");
+        setCfgWabaId(res.data.waba_id || "");
+        setCfgToken(res.data.access_token || "");
+        setCfgVerifyToken(res.data.verify_token || "addons_secret_token");
+      }
+    } catch (err) {
+      console.error("Error al cargar configuración de WhatsApp:", err);
+    }
+  };
 
   const fetchChats = async () => {
     setLoadingChats(true);
@@ -122,6 +153,35 @@ export default function WhatsAppChatPage() {
     }
   };
 
+  const handleSaveConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cfgPhone.trim()) {
+      alert("Por favor ingresa el número telefónico oficial de la empresa.");
+      return;
+    }
+
+    setSavingCfg(true);
+    try {
+      const res = await whatsappApi.saveConfig({
+        company_phone: cfgPhone,
+        phone_number_id: cfgPhoneId,
+        waba_id: cfgWabaId,
+        access_token: cfgToken,
+        verify_token: cfgVerifyToken,
+        is_active: true,
+      });
+
+      setConfig(res.data);
+      setShowConfigModal(false);
+      alert("✅ Configuración de WhatsApp de la empresa guardada correctamente.");
+    } catch (err) {
+      console.error("Error al guardar configuración:", err);
+      alert("❌ Error al guardar la configuración.");
+    } finally {
+      setSavingCfg(false);
+    }
+  };
+
   const handleSendMessage = async (openExternal = false) => {
     if (!messageInput.trim() || !selectedChat) return;
 
@@ -144,7 +204,7 @@ export default function WhatsAppChatPage() {
       }
     } catch (err) {
       console.error("Error al enviar mensaje:", err);
-      alert("❌ Error al registrar mensaje de WhatsApp.");
+      alert("❌ Error al enviar mensaje por WhatsApp.");
     } finally {
       setSending(false);
     }
@@ -215,7 +275,13 @@ export default function WhatsAppChatPage() {
 
   const applyTemplate = (content: string) => {
     setMessageInput(content);
-    setShowTemplatesModal(false);
+  };
+
+  const copyWebhookUrl = () => {
+    const webhookUrl = `${window.location.origin.replace("3000", "8000")}/api/whatsapp/webhook`;
+    navigator.clipboard.writeText(webhookUrl);
+    setCopiedWebhook(true);
+    setTimeout(() => setCopiedWebhook(false), 2000);
   };
 
   const filteredChats = chats.filter(
@@ -235,7 +301,7 @@ export default function WhatsAppChatPage() {
           </div>
           <h2 className="text-2xl font-black text-white">Acceso Restringido</h2>
           <p className="text-slate-300 text-xs leading-relaxed">
-            El módulo de **WhatsApp Chat** está reservado exclusivamente para los **Administradores** de ADDONS para gestionar la comunicación corporativa con los clientes.
+            El módulo de **WhatsApp Chat Corporativo** está reservado exclusivamente para los **Administradores** de ADDONS.
           </p>
           <div className="pt-2">
             <Link
@@ -261,18 +327,35 @@ export default function WhatsAppChatPage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-black text-white">WhatsApp Chat Corporativo</h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-wider">
-                Exclusivo Admin
-              </span>
+              <h1 className="text-2xl font-black text-white">WhatsApp Corporativo de la Empresa</h1>
+              {config?.access_token ? (
+                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  Conectado Meta Cloud API
+                </span>
+              ) : (
+                <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                  <Radio size={12} />
+                  Número: {config?.company_phone || "No configurado"}
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Centraliza la atención telefónica y comunicación directa de WhatsApp con todos los clientes de ADDONS.
+              Bandeja centralizada multimanager. Todos los mensajes enviados por prospectos/clientes de Meta Ads al número oficial de la agencia se gestionan aquí.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowConfigModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800/80 text-slate-200 hover:text-white border border-slate-700 hover:border-slate-600 transition-colors text-xs font-bold"
+            title="Configurar número oficial y token de Meta"
+          >
+            <Settings size={15} className="text-[#20CDFE]" />
+            <span>Configuración Número</span>
+          </button>
+
           <button
             onClick={() => fetchChats()}
             className="p-3 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white border border-slate-700 hover:border-slate-600 transition-colors"
@@ -283,7 +366,7 @@ export default function WhatsAppChatPage() {
           
           <button
             onClick={() => setShowNewChatModal(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black px-5 py-3 rounded-xl text-xs shadow-lg shadow-emerald-500/20 hover:opacity-95 transition-opacity"
+            className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black px-5 py-2.5 rounded-xl text-xs shadow-lg shadow-emerald-500/20 hover:opacity-95 transition-opacity"
           >
             <Plus size={16} />
             <span>Nuevo Chat</span>
@@ -314,11 +397,11 @@ export default function WhatsAppChatPage() {
           {/* Lista de Conversaciones */}
           <div className="flex-1 overflow-y-auto divide-y divide-slate-800/40">
             {loadingChats ? (
-              <div className="p-8 text-center text-xs text-slate-500">Cargando conversaciones de WhatsApp...</div>
+              <div className="p-8 text-center text-xs text-slate-500">Cargando conversaciones del WhatsApp oficial...</div>
             ) : filteredChats.length === 0 ? (
               <div className="p-8 text-center space-y-2">
-                <p className="text-xs text-slate-400 font-bold">No se encontraron chats</p>
-                <p className="text-[11px] text-slate-500">Inicia una nueva conversación con el botón &quot;Nuevo Chat&quot;.</p>
+                <p className="text-xs text-slate-400 font-bold">No hay conversaciones</p>
+                <p className="text-[11px] text-slate-500">Inicia una nueva conversación con &quot;Nuevo Chat&quot; o conecta Meta WhatsApp API.</p>
               </div>
             ) : (
               filteredChats.map((chat) => {
@@ -396,10 +479,10 @@ export default function WhatsAppChatPage() {
                   <button
                     onClick={() => setShowSimulateModal(true)}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold hover:bg-purple-500/20 transition-colors"
-                    title="Simular mensaje entrante de prueba"
+                    title="Simular mensaje de prospecto entrante"
                   >
                     <Bot size={14} />
-                    <span className="hidden sm:inline">Simular Respuesta</span>
+                    <span className="hidden sm:inline">Simular Entrada</span>
                   </button>
 
                   <a
@@ -409,7 +492,7 @@ export default function WhatsAppChatPage() {
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 text-[#07060B] text-xs font-black hover:opacity-90 transition-opacity shadow-lg shadow-emerald-500/20"
                   >
                     <ExternalLink size={14} />
-                    <span>Abrir WhatsApp Web</span>
+                    <span>Abrir en WhatsApp</span>
                   </a>
                 </div>
               </div>
@@ -481,7 +564,7 @@ export default function WhatsAppChatPage() {
                       handleSendMessage();
                     }
                   }}
-                  placeholder="Escribe un mensaje de WhatsApp para el cliente..."
+                  placeholder="Escribe la respuesta del Administrador para el cliente..."
                   className="flex-1 p-3 rounded-2xl bg-[#0A101D] border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 resize-none"
                 />
 
@@ -490,7 +573,7 @@ export default function WhatsAppChatPage() {
                     onClick={() => handleSendMessage(false)}
                     disabled={sending || !messageInput.trim()}
                     className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold hover:opacity-90 transition-opacity disabled:opacity-50 shadow-lg shadow-emerald-500/20"
-                    title="Enviar y guardar en sistema"
+                    title="Enviar respuesta al WhatsApp del cliente"
                   >
                     <Send size={18} />
                   </button>
@@ -504,7 +587,7 @@ export default function WhatsAppChatPage() {
               </div>
               <h3 className="text-xl font-bold text-white">Selecciona una conversación</h3>
               <p className="text-xs text-slate-400 max-w-sm">
-                Elige un cliente de la lista de la izquierda o inicia un nuevo chat para enviar mensajes de WhatsApp.
+                Elige un chat de la izquierda para responder al cliente o configura el número de teléfono oficial de la empresa.
               </p>
             </div>
           )}
@@ -512,6 +595,115 @@ export default function WhatsAppChatPage() {
         </div>
 
       </div>
+
+      {/* ── MODAL: Configuración de WhatsApp Corporativo ── */}
+      {showConfigModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-[#0A101D] border border-slate-800 rounded-3xl p-6 w-full max-w-xl space-y-6 shadow-2xl animate-fade-in max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Settings className="text-[#20CDFE]" size={18} /> Configurar Número Oficial de la Empresa
+              </h3>
+              <button onClick={() => setShowConfigModal(false)} className="text-slate-400 hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveConfig} className="space-y-4">
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Ingresa los datos del número de WhatsApp Business de tu empresa y la API oficial de Meta para sincronizar los mensajes entrantes de los clientes en tiempo real.
+              </p>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Teléfono Oficial de la Empresa *</label>
+                <input
+                  type="text"
+                  value={cfgPhone}
+                  onChange={(e) => setCfgPhone(e.target.value)}
+                  placeholder="Ej: +18095550199"
+                  className="w-full p-3 rounded-xl bg-[#15233D] border border-slate-800 text-xs text-white outline-none focus:border-[#20CDFE]"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Meta Phone Number ID</label>
+                  <input
+                    type="text"
+                    value={cfgPhoneId}
+                    onChange={(e) => setCfgPhoneId(e.target.value)}
+                    placeholder="Ej: 1083928192830"
+                    className="w-full p-3 rounded-xl bg-[#15233D] border border-slate-800 text-xs text-white outline-none focus:border-[#20CDFE]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">WhatsApp Business Account ID</label>
+                  <input
+                    type="text"
+                    value={cfgWabaId}
+                    onChange={(e) => setCfgWabaId(e.target.value)}
+                    placeholder="Ej: 9283719283"
+                    className="w-full p-3 rounded-xl bg-[#15233D] border border-slate-800 text-xs text-white outline-none focus:border-[#20CDFE]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Meta System Access Token (Permanente)</label>
+                <textarea
+                  rows={3}
+                  value={cfgToken}
+                  onChange={(e) => setCfgToken(e.target.value)}
+                  placeholder="EAAG..."
+                  className="w-full p-3 rounded-xl bg-[#15233D] border border-slate-800 text-xs text-white outline-none focus:border-[#20CDFE] resize-none font-mono"
+                />
+              </div>
+
+              {/* URL Webhook de Meta para Copiar */}
+              <div className="p-4 rounded-2xl bg-[#15233D]/60 border border-slate-800 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <ExternalLink size={14} className="text-emerald-400" /> URL del Webhook para Meta Developers:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={copyWebhookUrl}
+                    className="flex items-center gap-1 text-[11px] font-bold text-[#20CDFE] hover:underline"
+                  >
+                    {copiedWebhook ? <Check size={13} /> : <Copy size={13} />}
+                    <span>{copiedWebhook ? "¡Copiado!" : "Copiar URL"}</span>
+                  </button>
+                </div>
+                <p className="text-[11px] font-mono text-slate-400 bg-[#0A101D] p-2.5 rounded-xl border border-slate-800 break-all select-all">
+                  {typeof window !== "undefined" ? `${window.location.origin.replace("3000", "8000")}/api/whatsapp/webhook` : "/api/whatsapp/webhook"}
+                </p>
+                <p className="text-[10px] text-slate-500">
+                  Token de verificación Webhook: <code className="text-amber-400 font-mono">{cfgVerifyToken}</code>
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-800 text-xs font-bold text-slate-400 hover:text-white"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingCfg}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] font-bold text-xs shadow-lg shadow-[#20CDFE]/20"
+                >
+                  {savingCfg ? "Guardando..." : "Guardar Configuración"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ── MODAL: Nuevo Chat ── */}
       {showNewChatModal && (
@@ -612,7 +804,7 @@ export default function WhatsAppChatPage() {
 
             <form onSubmit={handleSimulateInbound} className="space-y-4">
               <p className="text-xs text-slate-400">
-                Usa este simulador para probar cómo se reciben y notifican los mensajes entrantes de clientes.
+                Usa este simulador para probar cómo entran los mensajes de clientes recibidos por el Webhook de Meta.
               </p>
 
               <div>
@@ -621,7 +813,7 @@ export default function WhatsAppChatPage() {
                   rows={3}
                   value={simText}
                   onChange={(e) => setSimText(e.target.value)}
-                  placeholder="Ej: ¡Excelente, muchas gracias por el reporte de pauta!"
+                  placeholder="Ej: ¡Hola! Vi su anuncio de Meta Ads y quisiera una cotización de pauta."
                   className="w-full p-3 rounded-xl bg-[#15233D] border border-slate-800 text-xs text-white outline-none focus:border-purple-500 resize-none"
                   required
                 />
@@ -639,7 +831,7 @@ export default function WhatsAppChatPage() {
                   type="submit"
                   className="px-5 py-2.5 rounded-xl bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-500/20"
                 >
-                  Simular Mensaje
+                  Simular Entrada
                 </button>
               </div>
             </form>

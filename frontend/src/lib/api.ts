@@ -323,5 +323,7 @@ export const whatsappApi = {
     message_text: string;
   }) => api.post("/api/whatsapp/simulate-receive", data),
   getTemplates: () => api.get("/api/whatsapp/templates"),
+  getConfig: () => api.get("/api/whatsapp/config"),
+  saveConfig: (data: object) => api.post("/api/whatsapp/config", data),
 };
 

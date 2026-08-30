@@ -227,6 +227,21 @@ def run_migrations():
             CREATE INDEX IF NOT EXISTS idx_wa_messages_phone ON whatsapp_messages(phone_number);
             """,
         ),
+        (
+            "create_whatsapp_config_table",
+            """
+            CREATE TABLE IF NOT EXISTS whatsapp_config (
+                id SERIAL PRIMARY KEY,
+                company_phone VARCHAR(50) NOT NULL,
+                phone_number_id VARCHAR(100),
+                waba_id VARCHAR(100),
+                access_token TEXT,
+                verify_token VARCHAR(100) DEFAULT 'addons_secret_token',
+                is_active BOOLEAN DEFAULT TRUE,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+            );
+            """,
+        ),
     ]
 
     for name, sql in migrations:

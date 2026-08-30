@@ -527,3 +527,14 @@ export interface WhatsAppTemplate {
   content: string;
 }
 
+export interface WhatsAppConfig {
+  id?: number;
+  company_phone: string;
+  phone_number_id?: string | null;
+  waba_id?: string | null;
+  access_token?: string | null;
+  verify_token?: string | null;
+  is_active: boolean;
+  updated_at?: string;
+}
+

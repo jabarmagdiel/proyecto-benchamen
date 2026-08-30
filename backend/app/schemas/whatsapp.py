@@ -50,3 +50,26 @@ class WhatsAppTemplate(BaseModel):
     title: str
     category: str
     content: str
+
+
+class WhatsAppConfigCreate(BaseModel):
+    company_phone: str = Field(..., description="Número telefónico oficial de la empresa")
+    phone_number_id: str | None = None
+    waba_id: str | None = None
+    access_token: str | None = None
+    verify_token: str | None = "addons_secret_token"
+    is_active: bool = True
+
+
+class WhatsAppConfigSchema(BaseModel):
+    id: int
+    company_phone: str
+    phone_number_id: str | None = None
+    waba_id: str | None = None
+    access_token: str | None = None
+    verify_token: str | None = "addons_secret_token"
+    is_active: bool
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
