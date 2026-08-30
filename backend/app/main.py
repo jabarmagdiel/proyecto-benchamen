@@ -231,6 +231,8 @@ app.add_middleware(
         settings.FRONTEND_URL,
         "http://localhost:3000",
         "https://proyecto-benchamen.vercel.app",
+        "https://addonsoficial.com",
+        "https://www.addonsoficial.com",
     ],
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$",
     allow_credentials=True,
