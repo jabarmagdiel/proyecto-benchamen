@@ -7,13 +7,14 @@ import {
   LayoutDashboard, Building2, FolderKanban, ClipboardList,
   CheckSquare, Users, BarChart3, LogOut, ChevronLeft,
   ChevronRight, Menu, X, User, Calendar, GitMerge, Package, DollarSign, ShieldCheck, Sparkles,
-  ArrowUpRight, ArrowDownRight
+  ArrowUpRight, ArrowDownRight, MessageSquare
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
 const adminLinks = [
   { href: "/dashboard",              icon: LayoutDashboard, label: "Dashboard" },
+  { href: "/whatsapp",               icon: MessageSquare,   label: "WhatsApp Chat" },
   { href: "/finanzas",               icon: DollarSign,      label: "Finanzas General" },
   { href: "/finanzas/ingresos",      icon: ArrowUpRight,    label: "Ingresos" },
   { href: "/finanzas/egresos",       icon: ArrowDownRight,  label: "Egresos" },

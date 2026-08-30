@@ -494,3 +494,36 @@ export interface FinancialSummary {
   monthly_flow: MonthlyFlow[];
 }
 
+// ─── WhatsApp Chat ─────────────────────────────────────────────────────────────
+export interface WhatsAppMessage {
+  id: number;
+  phone_number: string;
+  client_name: string;
+  company_id?: number | null;
+  admin_id?: number | null;
+  direction: "outbound" | "inbound";
+  message_text: string;
+  media_url?: string | null;
+  status: "sent" | "delivered" | "read";
+  created_at: string;
+  whatsapp_url?: string | null;
+}
+
+export interface WhatsAppChatSummary {
+  phone_number: string;
+  client_name: string;
+  company_name?: string | null;
+  company_id?: number | null;
+  last_message: string;
+  last_message_time: string;
+  unread_count: number;
+  unread: boolean;
+}
+
+export interface WhatsAppTemplate {
+  id: string;
+  title: string;
+  category: string;
+  content: string;
+}
+
