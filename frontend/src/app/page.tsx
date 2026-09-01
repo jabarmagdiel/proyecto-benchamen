@@ -165,7 +165,7 @@ const FAQS = [
   },
   {
     q: "¿Cómo accedo a reportes y avances de mi proyecto?",
-    a: "Clientes y gerentes tienen acceso al Portal Privado de ADDONS (botón Iniciar Sesión) donde revisan informes en tiempo real, descargan archivos y pueden agendar reuniones.",
+    a: "Nuestros clientes y gerentes cuentan con asesoría estratégica constante y reportes en tiempo real del rendimiento de sus campañas y proyectos.",
   },
   {
     q: "¿Trabajan con empresas fuera del país?",
@@ -244,13 +244,6 @@ export default function LandingPage() {
 
           {/* Right side */}
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/10 hover:border-[#20CDFE]/40 hover:bg-[#20CDFE]/8 text-white px-4 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200"
-            >
-              <Lock size={14} className="text-[#20CDFE]" />
-              <span>Iniciar Sesión</span>
-            </Link>
             <a
               href="#contacto"
               className="btn-shimmer text-[#050509] px-5 py-2 rounded-xl text-[13px] font-bold shadow-lg hover:scale-[1.03] active:scale-[0.97] transition-transform duration-150"
@@ -287,11 +280,6 @@ export default function LandingPage() {
                 {item.label}
               </a>
             ))}
-            <div className="pt-3 border-t border-white/6 flex flex-col gap-2">
-              <Link href="/login" onClick={() => setMobileNavOpen(false)} className="flex items-center justify-center gap-2 py-3 rounded-xl border border-white/10 text-[14px] font-semibold text-white hover:bg-white/6 transition-all">
-                <Lock size={14} className="text-[#20CDFE]" /> Iniciar Sesión
-              </Link>
-            </div>
           </div>
         )}
       </header>
@@ -705,13 +693,6 @@ export default function LandingPage() {
                 <HeartHandshake size={19} />
                 Hablar con un Estratega
               </a>
-              <Link
-                href="/login"
-                className="glass-bright border border-white/10 hover:border-[#20CDFE]/30 text-white px-8 py-4 rounded-2xl font-semibold text-[15px] transition-all hover:bg-white/6 flex items-center gap-2.5 w-full sm:w-auto justify-center"
-              >
-                <Lock size={16} className="text-[#20CDFE]" />
-                Portal de Clientes
-              </Link>
             </div>
 
             {/* mini trust badges */}
@@ -747,9 +728,6 @@ export default function LandingPage() {
             <div className="flex items-center justify-end gap-6 text-[12px] text-slate-500 font-medium">
               <Link href="/terminos" className="hover:text-white transition-colors">Términos</Link>
               <Link href="/privacidad" className="hover:text-white transition-colors">Privacidad</Link>
-              <Link href="/login" className="hover:text-[#20CDFE] transition-colors flex items-center gap-1">
-                <Lock size={11} /> Acceso
-              </Link>
             </div>
           </div>
         </div>
