@@ -7,12 +7,18 @@ import { WebSocketProvider } from "@/context/WebSocketContext";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "ADDONS",
-  description: "Sistema de gestión de proyectos y actividades para agencias de marketing y software",
+  metadataBase: new URL("https://www.addonsoficial.com"),
+  title: "ADDONS | Agencia Digital de Marketing, Branding & Estrategia",
+  description: "Diseñamos estrategias de Meta Ads de alto ROAS, identidades de marca premium, contenido audiovisual viral y sitios web que convierten visitas en clientes.",
   icons: {
-    icon: "/logo.png",
+    icon: [
+      { url: "/logo.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon.ico" }
+    ],
     shortcut: "/logo.png",
-    apple: "/logo.png",
+    apple: [
+      { url: "/logo.png", sizes: "180x180", type: "image/png" }
+    ],
   },
 };
 
