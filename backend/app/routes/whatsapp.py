@@ -29,7 +29,7 @@ router = APIRouter(prefix="/api/whatsapp", tags=["whatsapp"])
 
 
 def check_admin(user: User):
-    if user.role != UserRole.ADMINISTRATOR:
+    if user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acceso restringido únicamente para Administradores de ADDONS.",
