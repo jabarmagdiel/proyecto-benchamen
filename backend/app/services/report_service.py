@@ -113,7 +113,7 @@ def get_analytics_report(
     today = date.today()
 
     # Query base de actividades
-    act_q = db.query(Activity).join(Project, Project.id == Activity.project_id).join(Company, Company.id == Project.company_id)
+    act_q = db.query(Activity).outerjoin(Project, Project.id == Activity.project_id).outerjoin(Company, Company.id == Project.company_id)
     role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
 
     if role_str == "gerencia":
@@ -224,9 +224,10 @@ def get_analytics_report(
         fin_q = fin_q.filter(FinancialTransaction.transaction_date <= date_to)
 
     fin_txs = fin_q.all()
-    total_income = sum(t.amount for t in fin_txs if t.type == "income" and t.status in ["verified", "paid", "completed"])
-    total_expenses = sum(t.amount for t in fin_txs if t.type == "expense" and t.status in ["verified", "paid", "completed"])
+    total_income = sum(float(t.amount or 0) for t in fin_txs if t.type == "ingreso")
+    total_expenses = sum(float(t.amount or 0) for t in fin_txs if t.type == "egreso")
     net_profit = total_income - total_expenses
+
 
     # Lista formateada de actividades para la tabla del reporte (Top 100)
     activity_list = []
@@ -243,7 +244,7 @@ def get_analytics_report(
             "status_label": ACTIVITY_STATUS_LABELS.get(st_val, st_val),
             "assigned_user": a.assigned_user.name if a.assigned_user else "Sin asignar",
             "project_name": a.project.name if a.project else "Sin Proyecto",
-            "company_name": a.project.company.name if a.project and a.project.company else "Sin Empresa",
+            "company_name": (a.project.company.name if a.project.company else "Sin Empresa") if a.project else "Sin Empresa",
             "deadline": str(a.deadline) if a.deadline else None,
             "time_spent_seconds": a.time_spent_seconds or 0,
             "created_at": str(a.created_at.date()) if a.created_at else None,
