@@ -1,15 +1,16 @@
 from datetime import datetime, date
 from typing import Optional, Any
 from pydantic import BaseModel, field_validator
+from app.utils.enums import ActivityStatus, ActivityType, Priority
 from app.schemas.user import UserListResponse
 
 
 class WorkflowStageResponse(BaseModel):
-
     id: int
     name: str
     node_type: str = "task"
     model_config = {"from_attributes": True}
+
 
 
 class ActivityCreate(BaseModel):
