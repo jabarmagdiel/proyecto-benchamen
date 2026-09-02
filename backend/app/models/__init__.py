@@ -13,8 +13,6 @@ from app.models.package import Package, CompanyPackage
 from app.models.package_request import PackageRequest
 from app.models.operative_availability import OperativeAvailability
 from app.models.financial_transaction import FinancialTransaction
-from app.models.whatsapp_message import WhatsAppMessage
-from app.models.whatsapp_config import WhatsAppConfig
 
 __all__ = [
     "User",
@@ -36,6 +34,4 @@ __all__ = [
     "PackageRequest",
     "OperativeAvailability",
     "FinancialTransaction",
-    "WhatsAppMessage",
-    "WhatsAppConfig",
 ]

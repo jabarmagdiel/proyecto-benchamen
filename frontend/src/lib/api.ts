@@ -315,25 +315,3 @@ export const financesApi = {
   },
 };
 
-/* ── WhatsApp Chat API ── */
-export const whatsappApi = {
-  getChats: () => api.get("/api/whatsapp/chats"),
-  getMessages: (phone: string) => api.get(`/api/whatsapp/messages/${encodeURIComponent(phone)}`),
-  sendMessage: (data: {
-    phone_number: string;
-    client_name: string;
-    company_id?: number | null;
-    message_text: string;
-    media_url?: string | null;
-  }) => api.post("/api/whatsapp/send", data),
-  simulateInbound: (data: {
-    phone_number: string;
-    client_name: string;
-    company_id?: number | null;
-    message_text: string;
-  }) => api.post("/api/whatsapp/simulate-receive", data),
-  getTemplates: () => api.get("/api/whatsapp/templates"),
-  getConfig: () => api.get("/api/whatsapp/config"),
-  saveConfig: (data: object) => api.post("/api/whatsapp/config", data),
-};
-

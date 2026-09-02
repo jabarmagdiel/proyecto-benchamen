@@ -209,39 +209,6 @@ def run_migrations():
             "financial_transactions.receipt_drive_url",
             "ALTER TABLE financial_transactions ADD COLUMN IF NOT EXISTS receipt_drive_url TEXT;",
         ),
-        (
-            "create_whatsapp_messages_table",
-            """
-            CREATE TABLE IF NOT EXISTS whatsapp_messages (
-                id SERIAL PRIMARY KEY,
-                phone_number VARCHAR(50) NOT NULL,
-                client_name VARCHAR(150) NOT NULL,
-                company_id INT REFERENCES companies(id) ON DELETE SET NULL,
-                admin_id INT REFERENCES users(id) ON DELETE SET NULL,
-                direction VARCHAR(20) NOT NULL DEFAULT 'outbound',
-                message_text TEXT NOT NULL,
-                media_url TEXT,
-                status VARCHAR(20) NOT NULL DEFAULT 'sent',
-                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-            );
-            CREATE INDEX IF NOT EXISTS idx_wa_messages_phone ON whatsapp_messages(phone_number);
-            """,
-        ),
-        (
-            "create_whatsapp_config_table",
-            """
-            CREATE TABLE IF NOT EXISTS whatsapp_config (
-                id SERIAL PRIMARY KEY,
-                company_phone VARCHAR(50) NOT NULL,
-                phone_number_id VARCHAR(100),
-                waba_id VARCHAR(100),
-                access_token TEXT,
-                verify_token VARCHAR(100) DEFAULT 'addons_secret_token',
-                is_active BOOLEAN DEFAULT TRUE,
-                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-            );
-            """,
-        ),
     ]
 
     for name, sql in migrations:
@@ -299,7 +266,6 @@ from app.routes import (
     google_calendar,
     websocket,
     finances,
-    whatsapp,
 )
 
 app.include_router(auth.router)
@@ -322,7 +288,6 @@ app.include_router(subscriptions.router)
 app.include_router(google_calendar.router)
 app.include_router(websocket.router)
 app.include_router(finances.router)
-app.include_router(whatsapp.router)
 
 
 @app.get("/", tags=["Root"])
