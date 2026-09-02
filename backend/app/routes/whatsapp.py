@@ -54,29 +54,42 @@ def save_whatsapp_config(
     current_user: User = Depends(get_current_user),
 ):
     check_admin(current_user)
-    config = db.query(WhatsAppConfig).order_by(WhatsAppConfig.id.desc()).first()
-    if config:
-        config.company_phone = payload.company_phone
-        config.phone_number_id = payload.phone_number_id
-        config.waba_id = payload.waba_id
-        config.access_token = payload.access_token
-        if payload.verify_token:
-            config.verify_token = payload.verify_token
-        config.is_active = payload.is_active
-    else:
-        config = WhatsAppConfig(
-            company_phone=payload.company_phone,
-            phone_number_id=payload.phone_number_id,
-            waba_id=payload.waba_id,
-            access_token=payload.access_token,
-            verify_token=payload.verify_token or "addons_secret_token",
-            is_active=payload.is_active,
-        )
-        db.add(config)
+    try:
+        clean_phone = payload.company_phone.strip() if payload.company_phone else ""
+        clean_phone_id = payload.phone_number_id.strip() if payload.phone_number_id else None
+        clean_waba_id = payload.waba_id.strip() if payload.waba_id else None
+        clean_token = payload.access_token.strip() if payload.access_token else None
+        clean_verify = payload.verify_token.strip() if payload.verify_token else "addons_secret_token"
 
-    db.commit()
-    db.refresh(config)
-    return config
+        config = db.query(WhatsAppConfig).order_by(WhatsAppConfig.id.desc()).first()
+        if config:
+            config.company_phone = clean_phone
+            config.phone_number_id = clean_phone_id
+            config.waba_id = clean_waba_id
+            config.access_token = clean_token
+            config.verify_token = clean_verify
+            config.is_active = payload.is_active
+        else:
+            config = WhatsAppConfig(
+                company_phone=clean_phone,
+                phone_number_id=clean_phone_id,
+                waba_id=clean_waba_id,
+                access_token=clean_token,
+                verify_token=clean_verify,
+                is_active=payload.is_active,
+            )
+            db.add(config)
+
+        db.commit()
+        db.refresh(config)
+        return config
+    except Exception as err:
+        db.rollback()
+        logger.error(f"❌ Error al guardar configuración de WhatsApp: {err}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error interno al guardar: {str(err)}",
+        )
 
 
 # ─── Webhook de Meta WhatsApp Cloud API ───────────────────────────────────────

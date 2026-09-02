@@ -174,9 +174,10 @@ export default function WhatsAppChatPage() {
       setConfig(res.data);
       setShowConfigModal(false);
       alert("✅ Configuración de WhatsApp de la empresa guardada correctamente.");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error al guardar configuración:", err);
-      alert("❌ Error al guardar la configuración.");
+      const detail = err?.response?.data?.detail || err?.message || "Error al guardar la configuración.";
+      alert(`❌ ${detail}`);
     } finally {
       setSavingCfg(false);
     }
