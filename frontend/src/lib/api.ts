@@ -1,20 +1,26 @@
 import axios from "axios";
 import type { OperativeAvailability, OperativeAvailabilitySummary } from "@/types";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  (typeof window !== "undefined" && window.location.hostname !== "localhost"
-    ? "https://proyecto-benchamen.onrender.com"
-    : "http://localhost:8000");
+function getApiUrl(): string {
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    return "https://proyecto-benchamen.onrender.com";
+  }
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+}
+
+const API_URL = getApiUrl();
 
 const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
 });
 
-// ─── Request interceptor: adjuntar token ──────────────────────────────────────
+// ─── Request interceptor: adjuntar token y asegurar baseURL ─────────────────
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
+    if (window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      config.baseURL = "https://proyecto-benchamen.onrender.com";
+    }
     const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
