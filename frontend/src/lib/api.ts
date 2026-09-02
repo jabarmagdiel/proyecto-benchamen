@@ -183,7 +183,9 @@ export const departmentsApi = {
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
 export const reportsApi = {
+  getAnalytics: (params?: object) => api.get("/api/reports/analytics", { params }),
   exportExcel: async (params?: object) => {
+
     try {
       const response = await api.get("/api/reports/activities/excel", {
         params,
