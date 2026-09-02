@@ -20,7 +20,7 @@ from app.schemas.whatsapp import (
     WhatsAppConfigCreate,
     WhatsAppConfigSchema,
 )
-from app.utils.deps import get_current_user
+from app.core.security import get_current_user
 from app.utils.enums import UserRole
 
 logger = logging.getLogger(__name__)
