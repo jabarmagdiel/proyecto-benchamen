@@ -7,9 +7,9 @@ import {
   Clock, XCircle, ClipboardList, LayoutList, LayoutGrid,
   User as UserIcon, Calendar as CalendarIcon, Trash2, Play, Send, Pencil
 } from "lucide-react";
-import { activitiesApi, projectsApi, companiesApi, usersApi, workflowsApi, departmentsApi } from "@/lib/api";
+import { activitiesApi, projectsApi, companiesApi, usersApi, departmentsApi } from "@/lib/api";
 import { getGoogleCalendarUrl, downloadIcsFile } from "@/lib/calendarUtils";
-import type { Activity, ActivityStatus, Company, Project, User, Workflow, WorkflowStage } from "@/types";
+import type { Activity, ActivityStatus, Company, Project, User } from "@/types";
 import { ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_LABELS, PRIORITY_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { formatDate, isOverdue } from "@/lib/utils";
@@ -46,7 +46,6 @@ export default function ActividadesPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterCompany, setFilterCompany] = useState("");
@@ -74,7 +73,6 @@ export default function ActividadesPage() {
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   const [isIndependent, setIsIndependent] = useState(false);
-  const [creationMode, setCreationMode] = useState<"workflow" | "custom">("workflow");
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
   const [departments, setDepartments] = useState<any[]>([]);
 
@@ -89,12 +87,11 @@ export default function ActividadesPage() {
       if (filterCompany) params.company_id = filterCompany;
       if (filterProject) params.project_id = filterProject;
       if (filterUser) params.assigned_user_id = filterUser;
-      const [actRes, projRes, compRes, usrRes, wfRes, depRes] = await Promise.all([
+      const [actRes, projRes, compRes, usrRes, depRes] = await Promise.all([
         activitiesApi.list(params),
         projectsApi.list(),
         companiesApi.list(),
         usersApi.list(),
-        workflowsApi.list(),
         departmentsApi.getAll(),
       ]);
       let loadedActs = actRes.data;
@@ -105,7 +102,6 @@ export default function ActividadesPage() {
       setProjects(projRes.data);
       setCompanies(compRes.data);
       setUsers(usrRes.data);
-      setWorkflows(wfRes.data);
       setDepartments(depRes.data);
     } finally { setLoading(false); }
   };

@@ -22,7 +22,6 @@ const PAGE_TITLES: Record<string, string> = {
   "/proyectos":      "Gestión de Proyectos",
   "/actividades":    "Gestión de Actividades",
   "/mis-actividades":"Mis Actividades",
-  "/workflows":      "Flujos de Trabajo",
   "/departamentos":  "Roles Operativos",
   "/paquetes":       "Gestión de Paquetes",
   "/mis-paquetes":   "Catálogo de Paquetes",

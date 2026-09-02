@@ -7,8 +7,8 @@ import {
   ArrowLeft, Plus, Search, Eye, ClipboardList, Calendar,
   User as UserIcon, Building2, AlertTriangle, Clock
 } from "lucide-react";
-import { projectsApi, activitiesApi, usersApi, departmentsApi, workflowsApi } from "@/lib/api";
-import type { Project, Activity, User as UserType, Workflow } from "@/types";
+import { projectsApi, activitiesApi, usersApi, departmentsApi } from "@/lib/api";
+import type { Project, Activity, User as UserType } from "@/types";
 import { ACTIVITY_STATUS_LABELS, ACTIVITY_TYPE_LABELS } from "@/types";
 import { StatusBadge, PriorityBadge } from "@/components/ui/StatusBadge";
 import { formatDate } from "@/lib/utils";
@@ -41,11 +41,9 @@ export default function ProjectDetailPage() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [creationMode, setCreationMode] = useState<"workflow" | "custom">("workflow");
   const [submitting, setSubmitting] = useState(false);
   
   // Kanban DND states
@@ -61,18 +59,16 @@ export default function ProjectDetailPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [projRes, actRes, usrRes, depRes, wfRes] = await Promise.all([
+      const [projRes, actRes, usrRes, depRes] = await Promise.all([
         projectsApi.get(projectId),
         activitiesApi.list({ project_id: projectId }),
         usersApi.list(),
-        departmentsApi.getAll(),
-        workflowsApi.list()
+        departmentsApi.getAll()
       ]);
       setProject(projRes.data);
       setActivities(actRes.data);
       setUsers(usrRes.data);
       setDepartments(depRes.data);
-      setWorkflows(wfRes.data);
     } catch (err) {
       console.error("Error loading project details:", err);
     } finally {
@@ -401,60 +397,16 @@ export default function ProjectDetailPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 
-                {/* Selector de Modo de Creación */}
-                <div className="flex bg-[#0A101D] border border-slate-800 rounded-xl p-1 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCreationMode("workflow");
-                      setValue("workflow_id", workflows.length > 0 ? workflows[0].id : null);
-                    }}
-                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-                      creationMode === "workflow" 
-                        ? "bg-[#20CDFE]/20 text-[#20CDFE]" 
-                        : "text-slate-400 hover:text-slate-300"
-                    }`}
-                  >
-                    Usar Flujo de Trabajo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCreationMode("custom");
-                      setValue("workflow_id", null);
-                    }}
-                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-                      creationMode === "custom" 
-                        ? "bg-violet-500/20 text-violet-400" 
-                        : "text-slate-400 hover:text-slate-300"
-                    }`}
-                  >
-                    Actividad Personalizada
-                  </button>
-                </div>
-
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">Título de la Actividad *</label>
                   <input {...register("title")} placeholder="Ej. Campaña de Verano 2026" className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200" />
                   {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
                 </div>
 
-                {creationMode === "custom" && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Descripción</label>
-                    <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
-                  </div>
-                )}
-
-                {creationMode === "workflow" && (
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Plantilla de Flujo</label>
-                    <select {...register("workflow_id")} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE]">
-                      {workflows.length === 0 && <option value="">No hay flujos disponibles</option>}
-                      {workflows.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                    </select>
-                  </div>
-                )}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">Descripción</label>
+                  <textarea {...register("description")} rows={2} className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 resize-none" />
+                </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>

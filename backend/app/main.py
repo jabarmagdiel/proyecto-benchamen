@@ -257,7 +257,6 @@ from app.routes import (
     reports,
     notifications,
     departments,
-    workflows,
     appointments,
     packages,
     package_requests,
@@ -279,7 +278,6 @@ app.include_router(dashboard.router)
 app.include_router(reports.router)
 app.include_router(notifications.router)
 app.include_router(departments.router)
-app.include_router(workflows.router)
 app.include_router(appointments.router)
 app.include_router(packages.router)
 app.include_router(package_requests.router)

@@ -172,20 +172,6 @@ export const packageRequestsApi = {
   updateStatus: (id: number, data: object) => api.patch(`/api/package-requests/${id}`, data),
 };
 
-// ─── Workflows ────────────────────────────────────────────────────────────────
-export const workflowsApi = {
-  list: (params?: object) => api.get("/api/workflows", { params }),
-  get: (id: number) => api.get(`/api/workflows/${id}`),
-  create: (data: object) => api.post("/api/workflows", data),
-  update: (id: number, data: object) => api.put(`/api/workflows/${id}`, data),
-  delete: (id: number) => api.delete(`/api/workflows/${id}`),
-  addStage: (workflowId: number, data: object) => api.post(`/api/workflows/${workflowId}/stages`, data),
-  updateStage: (stageId: number, data: object) => api.put(`/api/workflows/stages/${stageId}`, data),
-  deleteStage: (stageId: number) => api.delete(`/api/workflows/stages/${stageId}`),
-  addEdge: (workflowId: number, data: object) => api.post(`/api/workflows/${workflowId}/edges`, data),
-  updateEdge: (edgeId: number, data: object) => api.put(`/api/workflows/edges/${edgeId}`, data),
-  deleteEdge: (edgeId: number) => api.delete(`/api/workflows/edges/${edgeId}`),
-};
 
 export const departmentsApi = {
   getAll: () => api.get("/api/departments/"),
