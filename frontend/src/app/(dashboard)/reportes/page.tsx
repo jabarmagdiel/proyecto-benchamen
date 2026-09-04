@@ -11,6 +11,7 @@ import {
   PieChart, Pie, Cell, Legend
 } from "recharts";
 import { reportsApi, companiesApi, projectsApi, usersApi } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import type { Company, Project, User } from "@/types";
 import { ACTIVITY_STATUS_LABELS } from "@/types";
 import { format, subDays, startOfMonth, endOfMonth, subMonths, startOfYear } from "date-fns";
@@ -26,6 +27,9 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function ReportesPage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "administrador";
+
   // Datos principales
   const [data, setData] = useState<any>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -161,7 +165,9 @@ export default function ReportesPage() {
             Reportes & Analíticas Dinámicas
           </h2>
           <p className="text-slate-400 text-sm mt-1">
-            Visualiza métricas en tiempo real, productividad de equipo, tiempos e indicadores financieros.
+            {isAdmin 
+              ? "Visualiza métricas en tiempo real, productividad de equipo, tiempos e indicadores financieros." 
+              : "Visualiza métricas en tiempo real, productividad de equipo y tiempos de entrega."}
           </p>
         </div>
 
@@ -391,36 +397,38 @@ export default function ReportesPage() {
             </div>
           </div>
 
-          {/* Tarjeta de Resumen Financiero en el Período */}
-          <div className="bg-gradient-to-r from-[#0F192E] to-[#0A101D] p-5 rounded-2xl border border-[#20CDFE]/20 shadow-md">
-            <div className="flex items-center justify-between mb-3 border-b border-slate-800/50 pb-3">
-              <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                <DollarSign size={18} className="text-[#1ED1B4]" />
-                Balance Financiero del Período Filtrado
-              </h3>
-              <span className="text-xs text-slate-400">Ingresos vs Egresos del rango</span>
+          {/* Tarjeta de Resumen Financiero en el Período - Solo Administradores */}
+          {isAdmin && (
+            <div className="bg-gradient-to-r from-[#0F192E] to-[#0A101D] p-5 rounded-2xl border border-[#20CDFE]/20 shadow-md">
+              <div className="flex items-center justify-between mb-3 border-b border-slate-800/50 pb-3">
+                <h3 className="font-bold text-white text-sm flex items-center gap-2">
+                  <DollarSign size={18} className="text-[#1ED1B4]" />
+                  Balance Financiero del Período Filtrado
+                </h3>
+                <span className="text-xs text-slate-400">Ingresos vs Egresos del rango</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/20">
+                  <p className="text-xs text-emerald-400 font-semibold">Ingresos Totales</p>
+                  <p className="text-2xl font-black text-white mt-1">
+                    ${(kpis.total_income || 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/20">
+                  <p className="text-xs text-rose-400 font-semibold">Egresos Totales</p>
+                  <p className="text-2xl font-black text-white mt-1">
+                    ${(kpis.total_expenses || 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="p-3.5 rounded-xl bg-[#20CDFE]/10 border border-[#20CDFE]/30">
+                  <p className="text-xs text-[#20CDFE] font-semibold">Utilidad Neta del Período</p>
+                  <p className={`text-2xl font-black mt-1 ${(kpis.net_profit ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                    ${(kpis.net_profit || 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/20">
-                <p className="text-xs text-emerald-400 font-semibold">Ingresos Totales</p>
-                <p className="text-2xl font-black text-white mt-1">
-                  ${(kpis.total_income || 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="p-3.5 rounded-xl bg-rose-950/30 border border-rose-500/20">
-                <p className="text-xs text-rose-400 font-semibold">Egresos Totales</p>
-                <p className="text-2xl font-black text-white mt-1">
-                  ${(kpis.total_expenses || 0).toLocaleString()}
-                </p>
-              </div>
-              <div className="p-3.5 rounded-xl bg-[#20CDFE]/10 border border-[#20CDFE]/30">
-                <p className="text-xs text-[#20CDFE] font-semibold">Utilidad Neta del Período</p>
-                <p className={`text-2xl font-black mt-1 ${kpis.net_profit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                  ${(kpis.net_profit || 0).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Gráficos Estadísticos */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -212,21 +212,26 @@ def get_analytics_report(
         })
     user_performance.sort(key=lambda x: x["completed"], reverse=True)
 
-    # Finanzas en el período
-    fin_q = db.query(FinancialTransaction)
-    if company_id:
-        fin_q = fin_q.filter(FinancialTransaction.company_id == company_id)
-    if project_id:
-        fin_q = fin_q.filter(FinancialTransaction.project_id == project_id)
-    if date_from:
-        fin_q = fin_q.filter(FinancialTransaction.transaction_date >= date_from)
-    if date_to:
-        fin_q = fin_q.filter(FinancialTransaction.transaction_date <= date_to)
+    # Finanzas en el período (Estricto: Solo visible y accesible para Administradores)
+    total_income = 0.0
+    total_expenses = 0.0
+    net_profit = 0.0
 
-    fin_txs = fin_q.all()
-    total_income = sum(float(t.amount or 0) for t in fin_txs if t.type == "ingreso")
-    total_expenses = sum(float(t.amount or 0) for t in fin_txs if t.type == "egreso")
-    net_profit = total_income - total_expenses
+    if role_str == "administrador":
+        fin_q = db.query(FinancialTransaction)
+        if company_id:
+            fin_q = fin_q.filter(FinancialTransaction.company_id == company_id)
+        if project_id:
+            fin_q = fin_q.filter(FinancialTransaction.project_id == project_id)
+        if date_from:
+            fin_q = fin_q.filter(FinancialTransaction.transaction_date >= date_from)
+        if date_to:
+            fin_q = fin_q.filter(FinancialTransaction.transaction_date <= date_to)
+
+        fin_txs = fin_q.all()
+        total_income = sum(float(t.amount or 0) for t in fin_txs if t.type == "ingreso")
+        total_expenses = sum(float(t.amount or 0) for t in fin_txs if t.type == "egreso")
+        net_profit = total_income - total_expenses
 
 
     # Lista formateada de actividades para la tabla del reporte (Top 100)
@@ -262,9 +267,9 @@ def get_analytics_report(
             "late_activities": late_activities,
             "total_time_seconds": total_time_seconds,
             "completion_rate": completion_rate,
-            "total_income": round(total_income, 2),
-            "total_expenses": round(total_expenses, 2),
-            "net_profit": round(net_profit, 2),
+            "total_income": round(total_income, 2) if role_str == "administrador" else None,
+            "total_expenses": round(total_expenses, 2) if role_str == "administrador" else None,
+            "net_profit": round(net_profit, 2) if role_str == "administrador" else None,
         },
         "activity_by_status": activity_by_status,
         "activity_by_type": activity_by_type,
