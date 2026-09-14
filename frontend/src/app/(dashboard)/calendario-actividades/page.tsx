@@ -83,9 +83,9 @@ export default function CalendarioActividadesPage() {
     try {
       let actRes;
       if (isOperative) {
-        actRes = await activitiesApi.myActivities();
+        actRes = await activitiesApi.myActivities({ limit: 10000 });
       } else {
-        const params: any = {};
+        const params: any = { limit: 10000 };
         if (isClient && profile?.company_id) {
           params.company_id = profile.company_id;
         }

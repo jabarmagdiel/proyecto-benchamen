@@ -128,9 +128,11 @@ def get_all(
     activity_type: Optional[str] = None,
     search: Optional[str] = None,
     skip: int = 0,
-    limit: int = 100,
+    limit: Optional[int] = None,
     for_client: Optional[bool] = None,
     current_user: Optional[User] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> List[Activity]:
     from app.models.workflow import WorkflowStage
     q = db.query(Activity).options(*_load_options())
@@ -148,6 +150,10 @@ def get_all(
         q = q.filter(Activity.title.ilike(f"%{search}%"))
     if company_id:
         q = q.join(Project).filter(Project.company_id == company_id)
+    if date_from:
+        q = q.filter(Activity.deadline >= date_from)
+    if date_to:
+        q = q.filter(Activity.deadline <= date_to)
 
     if current_user and current_user.role == UserRole.GERENCIA:
         user_dept_ids = [d.id for d in current_user.departments]
@@ -172,7 +178,12 @@ def get_all(
             q = q.outerjoin(WorkflowStage).filter(
                 (Activity.current_stage_id == None) | (WorkflowStage.node_type != 'end')
             )
-    activities = q.order_by(Activity.deadline.asc().nullslast(), Activity.created_at.desc()).offset(skip).limit(limit).all()
+    q = q.order_by(Activity.deadline.asc().nullslast(), Activity.created_at.desc())
+    if skip:
+        q = q.offset(skip)
+    if limit is not None and limit > 0:
+        q = q.limit(limit)
+    activities = q.all()
     return _enrich_batch(db, activities)
 
 
@@ -181,12 +192,23 @@ def get_my_activities(
     user_id: int,
     status: Optional[str] = None,
     skip: int = 0,
-    limit: int = 100,
+    limit: Optional[int] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
 ) -> List[Activity]:
     q = db.query(Activity).options(*_load_options()).filter(Activity.assigned_user_id == user_id)
     if status:
         q = q.filter(Activity.status == status)
-    activities = q.order_by(Activity.deadline.asc().nullslast()).offset(skip).limit(limit).all()
+    if date_from:
+        q = q.filter(Activity.deadline >= date_from)
+    if date_to:
+        q = q.filter(Activity.deadline <= date_to)
+    q = q.order_by(Activity.deadline.asc().nullslast())
+    if skip:
+        q = q.offset(skip)
+    if limit is not None and limit > 0:
+        q = q.limit(limit)
+    activities = q.all()
     return _enrich_batch(db, activities)
 
 

@@ -81,7 +81,7 @@ export default function ActividadesPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const params: any = {};
+      const params: any = { limit: 10000 };
       if (search) params.search = search;
       if (filterStatus && filterStatus !== "atrasada") params.status = filterStatus;
       if (filterCompany) params.company_id = filterCompany;

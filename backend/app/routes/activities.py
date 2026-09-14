@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List, Optional
 from fastapi import APIRouter, Depends, Query, BackgroundTasks
 from sqlalchemy.orm import Session
@@ -22,7 +23,9 @@ def list_activities(
     activity_type: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     skip: int = 0,
-    limit: int = 100,
+    limit: Optional[int] = Query(None),
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -43,7 +46,8 @@ def list_activities(
     return activity_svc.get_all(
         db, company_id=company_id, project_id=project_id, assigned_user_id=assigned_user_id,
         status=status, priority=priority, activity_type=activity_type, search=search, 
-        skip=skip, limit=limit, for_client=for_client, current_user=current_user
+        skip=skip, limit=limit, for_client=for_client, current_user=current_user,
+        date_from=date_from, date_to=date_to
     )
 
 
@@ -51,11 +55,16 @@ def list_activities(
 def my_activities(
     status: Optional[str] = Query(None),
     skip: int = 0,
-    limit: int = 100,
+    limit: Optional[int] = Query(None),
+    date_from: Optional[date] = Query(None),
+    date_to: Optional[date] = Query(None),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return activity_svc.get_my_activities(db, current_user.id, status=status, skip=skip, limit=limit)
+    return activity_svc.get_my_activities(
+        db, current_user.id, status=status, skip=skip, limit=limit,
+        date_from=date_from, date_to=date_to
+    )
 
 
 @router.post("", response_model=ActivityResponse, status_code=201)
