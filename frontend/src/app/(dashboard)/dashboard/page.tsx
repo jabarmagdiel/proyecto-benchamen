@@ -534,9 +534,6 @@ export default function DashboardPage() {
             <StatCard title="Actividades Demoradas" value={stats.late_activities} icon={AlertTriangle} color="red" />
           </div>
 
-          {/* Disponibilidad del Personal (Bloqueos Freelance y Actividades) */}
-          <TeamAvailabilityWidget />
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             {/* Gráfico Donut: Distribución de Actividades */}
@@ -803,6 +800,9 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+
+          {/* Disponibilidad del Personal (Bloqueos Freelance y Actividades de Hoy) */}
+          <TeamAvailabilityWidget />
         </>
       )}
 
