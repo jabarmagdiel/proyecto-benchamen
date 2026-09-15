@@ -11,7 +11,8 @@ import {
   Calendar as CalendarIcon, Clock, User, Plus, Trash2,
   CalendarCheck, HelpCircle, X, CheckCircle2, XCircle, ChevronLeft, ChevronRight,
   Building2, FileText, Bell, Users, ShieldAlert, ShieldCheck, Briefcase, Lock,
-  AlertTriangle, RefreshCw, Link2, LinkIcon, Unlink, Video, MapPin
+  AlertTriangle, RefreshCw, Link2, LinkIcon, Unlink, Video, MapPin,
+  Sun, Sunset, Moon, Sparkles, Check, Filter, Search, CalendarDays
 } from "lucide-react";
 
 import { useWebSocket } from "@/context/WebSocketContext";
@@ -90,11 +91,13 @@ export default function AgendaPage() {
   };
 
   /* Pestaña Principal: 'reuniones' | 'citas' | 'disponibilidad' */
-  const [mainTab, setMainTab] = useState<"reuniones" | "citas" | "disponibilidad">("reuniones");
+  const [mainTab, setMainTab] = useState<"reuniones" | "citas" | "disponibilidad">(
+    user?.role === "operativo" ? "disponibilidad" : "reuniones"
+  );
 
   useEffect(() => {
     if (user?.role === "operativo") {
-      setMainTab("reuniones");
+      setMainTab("disponibilidad");
     }
   }, [user?.role]);
 
@@ -146,6 +149,7 @@ export default function AgendaPage() {
   const [opDate, setOpDate] = useState<string>(todayStr);
   const [teamMatrix, setTeamMatrix] = useState<OperativeAvailabilitySummary[]>([]);
   const [myBusyBlocks, setMyBusyBlocks] = useState<OperativeAvailability[]>([]);
+  const [allMyBusyBlocks, setAllMyBusyBlocks] = useState<OperativeAvailability[]>([]);
   const [loadingTeam, setLoadingTeam] = useState(false);
 
   /* Formulario Bloqueo Freelance */
@@ -154,6 +158,10 @@ export default function AgendaPage() {
   const [isFullDay, setIsFullDay]   = useState(false);
   const [blockReason, setBlockReason] = useState("");
   const [submittingBlock, setSubmittingBlock] = useState(false);
+  const [timePreset, setTimePreset] = useState<"morning" | "afternoon" | "night" | "full" | "custom">("afternoon");
+  const [myBlocksTab, setMyBlocksTab] = useState<"date" | "upcoming">("date");
+  const [matrixFilter, setMatrixFilter] = useState<"all" | "libre" | "en_trabajo" | "ocupado">("all");
+  const [matrixSearch, setMatrixSearch] = useState<string>("");
 
   /* Toast */
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -184,12 +192,14 @@ export default function AgendaPage() {
     const target = dateParam || opDate || todayStr;
     setLoadingTeam(true);
     try {
-      const [matrixRes, myRes] = await Promise.all([
+      const [matrixRes, myRes, allMyRes] = await Promise.all([
         operativeAvailabilityApi.team(target),
-        operativeAvailabilityApi.my(target)
+        operativeAvailabilityApi.my(target),
+        operativeAvailabilityApi.my()
       ]);
-      setTeamMatrix(matrixRes.data);
-      setMyBusyBlocks(myRes.data);
+      setTeamMatrix(matrixRes.data || []);
+      setMyBusyBlocks(myRes.data || []);
+      setAllMyBusyBlocks(allMyRes.data || []);
     } catch (err) {
       console.error("Error cargando disponibilidad del equipo:", err);
     } finally {
@@ -399,6 +409,74 @@ export default function AgendaPage() {
   const presencialesCount = meetingsList.filter(m => m.meeting_type === "presencial" || (m.location && m.meeting_type !== "virtual")).length;
   const virtualesCount    = meetingsList.filter(m => m.meeting_type === "virtual" || (m.meeting_link && m.meeting_type !== "presencial")).length;
 
+  /* ── Helpers Disponibilidad ── */
+  const getRelativeDateStr = (days: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    return toDateStr(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+
+  const getFriendlyDateLabel = (dateStr: string) => {
+    if (!dateStr) return "";
+    try {
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const target = new Date(y, m - 1, d);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+      let prefix = "";
+      if (diffDays === 0) prefix = "Hoy, ";
+      else if (diffDays === 1) prefix = "Mañana, ";
+      else if (diffDays === 2) prefix = "Pasado Mañana, ";
+      else if (diffDays === -1) prefix = "Ayer, ";
+
+      return prefix + target.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+    } catch {
+      return formatDate(dateStr);
+    }
+  };
+
+  const applyTimePreset = (preset: "morning" | "afternoon" | "night" | "full" | "custom") => {
+    setTimePreset(preset);
+    if (preset === "morning") {
+      setIsFullDay(false);
+      setBlockStart("08:00");
+      setBlockEnd("13:00");
+    } else if (preset === "afternoon") {
+      setIsFullDay(false);
+      setBlockStart("14:00");
+      setBlockEnd("19:00");
+    } else if (preset === "night") {
+      setIsFullDay(false);
+      setBlockStart("19:00");
+      setBlockEnd("23:00");
+    } else if (preset === "full") {
+      setIsFullDay(true);
+      setBlockStart("00:00");
+      setBlockEnd("23:59");
+    } else {
+      setIsFullDay(false);
+    }
+  };
+
+  const filteredTeamMatrix = teamMatrix.filter(worker => {
+    if (matrixSearch.trim()) {
+      const q = matrixSearch.toLowerCase();
+      const matchName = worker.user_name.toLowerCase().includes(q);
+      const matchPos = (worker.user_position || "").toLowerCase().includes(q);
+      if (!matchName && !matchPos) return false;
+    }
+    if (matrixFilter === "libre") return worker.overall_status === "libre";
+    if (matrixFilter === "ocupado") return worker.overall_status === "ocupado";
+    if (matrixFilter === "en_trabajo") return worker.overall_status === "en_trabajo";
+    return true;
+  });
+
+  const matrixLibresCount = teamMatrix.filter(w => w.overall_status === "libre").length;
+  const matrixOcupadosCount = teamMatrix.filter(w => w.overall_status === "ocupado").length;
+  const matrixEnTrabajoCount = teamMatrix.filter(w => w.overall_status === "en_trabajo").length;
+
   /* ─────────────────────────────────────────── RENDER ─── */
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -461,12 +539,12 @@ export default function AgendaPage() {
                     onClick={() => setMainTab("disponibilidad")}
                     className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 ${
                       mainTab === "disponibilidad"
-                        ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/10 text-emerald-300 border border-emerald-500/30 shadow-md"
+                        ? "bg-gradient-to-r from-emerald-500/25 to-teal-500/15 text-emerald-300 border border-emerald-500/40 shadow-lg shadow-emerald-500/15"
                         : "text-slate-400 hover:text-white bg-[#0A101D]/60 border border-slate-800/40"
                     }`}
                   >
-                    <Users size={16} />
-                    Disponibilidad Freelance
+                    <Users size={16} className="text-emerald-400" />
+                    {user?.role === "operativo" ? "Mi Disponibilidad / Horarios" : "Disponibilidad del Personal"}
                   </button>
                 )}
               </div>
@@ -1355,287 +1433,654 @@ export default function AgendaPage() {
       {mainTab === "disponibilidad" && (
         <div className="space-y-6">
 
-          {/* Selector de Fecha de la Matriz */}
-          <div className="bg-[#0A101D]/60 border border-slate-800/80 p-4 rounded-2xl backdrop-blur-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                <Users size={20} />
+          {/* Barra Superior: Título y Selector Rápido de Fecha */}
+          <div className="bg-[#0A101D]/70 border border-slate-800/80 p-5 rounded-2xl backdrop-blur-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-xl">
+            <div className="flex items-center gap-3.5">
+              <div className="p-3 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 text-emerald-400 shadow-md">
+                <Users size={22} />
               </div>
               <div>
-                <h3 className="text-base font-extrabold text-white">Matriz de Disponibilidad del Equipo</h3>
-                <p className="text-xs text-slate-400">Identifica trabajadores libres u ocupados para la asignación eficiente de trabajo.</p>
+                <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+                  {canManageMeetings ? "Matriz de Disponibilidad del Personal" : "Mi Disponibilidad y Horarios"}
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                    En Tiempo Real
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {canManageMeetings
+                    ? "Supervisa quién está libre, ocupado o con actividades para coordinar asignaciones eficientes."
+                    : "Registra tus horarios ocupados por proyectos externos o compromisos para evitar conflictos de asignación."}
+                </p>
               </div>
             </div>
 
-            {/* Fecha Selector */}
-            <div className="flex items-center gap-2 bg-[#15233D]/60 border border-slate-800 rounded-xl p-1.5">
-              <span className="text-xs font-bold text-slate-400 pl-2">Fecha:</span>
-              <input
-                type="date"
-                value={opDate}
-                onChange={e => setOpDate(e.target.value)}
-                className="bg-[#0A101D] border border-slate-800 text-white text-xs font-bold px-3 py-1.5 rounded-lg focus:ring-2 focus:ring-[#20CDFE] outline-none"
-              />
-              <button
-                onClick={() => loadTeamMatrix(opDate)}
-                className="p-1.5 bg-[#20CDFE]/10 hover:bg-[#20CDFE]/20 text-[#20CDFE] rounded-lg transition-colors"
-                title="Actualizar"
-              >
-                <RefreshCw size={14} className={loadingTeam ? "animate-spin" : ""} />
-              </button>
+            {/* Selector de Fecha Inteligente */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Accesos rápidos de fecha */}
+              <div className="flex items-center bg-[#15233D]/60 border border-slate-800 rounded-xl p-1 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setOpDate(getRelativeDateStr(0))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    opDate === getRelativeDateStr(0)
+                      ? "bg-[#20CDFE] text-[#07060B] shadow-md shadow-[#20CDFE]/20"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Hoy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpDate(getRelativeDateStr(1))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    opDate === getRelativeDateStr(1)
+                      ? "bg-[#20CDFE] text-[#07060B] shadow-md shadow-[#20CDFE]/20"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Mañana
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpDate(getRelativeDateStr(2))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    opDate === getRelativeDateStr(2)
+                      ? "bg-[#20CDFE] text-[#07060B] shadow-md shadow-[#20CDFE]/20"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  Pasado Mañana
+                </button>
+              </div>
+
+              {/* Selector de fecha nativo */}
+              <div className="flex items-center gap-2 bg-[#15233D]/60 border border-slate-800 rounded-xl px-2.5 py-1.5">
+                <CalendarIcon size={14} className="text-[#20CDFE]" />
+                <input
+                  type="date"
+                  value={opDate}
+                  onChange={e => setOpDate(e.target.value)}
+                  className="bg-[#0A101D] border border-slate-700/60 text-white text-xs font-bold px-2.5 py-1 rounded-lg focus:ring-2 focus:ring-[#20CDFE] outline-none"
+                />
+                <button
+                  onClick={() => loadTeamMatrix(opDate)}
+                  className="p-1.5 bg-[#20CDFE]/10 hover:bg-[#20CDFE]/20 text-[#20CDFE] rounded-lg transition-colors"
+                  title="Actualizar datos"
+                >
+                  <RefreshCw size={13} className={loadingTeam ? "animate-spin" : ""} />
+                </button>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Banner con Fecha Amigable Seleccionada */}
+          <div className="flex items-center justify-between bg-gradient-to-r from-[#15233D]/40 via-[#0A101D]/60 to-[#15233D]/40 border border-slate-800/60 px-4 py-2.5 rounded-xl text-xs text-slate-300">
+            <div className="flex items-center gap-2">
+              <Sparkles size={14} className="text-amber-400" />
+              <span>Viendo disponibilidad para: <strong className="text-white capitalize">{getFriendlyDateLabel(opDate)}</strong></span>
+            </div>
+            <span className="text-[11px] text-slate-500 hidden sm:inline">
+              Formato: {formatDate(opDate)}
+            </span>
+          </div>
 
-            {/* Columna Izquierda / Principal: Formulario Marcar Ocupado (Para Operativos / Freelancers) */}
-            <div className={canManageMeetings ? "xl:col-span-1 space-y-4" : "xl:col-span-3 max-w-2xl mx-auto w-full space-y-4"}>
-              <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-5 space-y-4 shadow-xl">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+            {/* ════════ COLUMNA 1: FORMULARIO RÁPIDO DE REGISTRO DE BLOQUEO ════════ */}
+            <div className={canManageMeetings ? "xl:col-span-4 space-y-6" : "xl:col-span-5 space-y-6"}>
+              <div className="bg-[#0A101D]/70 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 space-y-5 shadow-xl">
                 <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-                  <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                    <Lock size={16} className="text-amber-400" />
-                    Registrar Mi Horario Ocupado
-                  </h3>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                    Freelance / Híbrido
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      <Lock size={16} />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-white text-sm">Marcar Horario Ocupado</h3>
+                      <p className="text-[11px] text-slate-400">Registra horas en que no podrás trabajar</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                    Freelance
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  ¿Tienes otro rodaje, evento o compromiso externo? Registra tus horas ocupadas para que el administrador pueda coordinar la asignación.
-                </p>
-
-                <form onSubmit={handleCreateBlock} className="space-y-3.5">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Fecha a bloquear</label>
-                    <div className="px-3.5 py-2 rounded-xl border border-slate-800 bg-[#15233D]/60 text-white text-xs font-bold flex items-center gap-2">
-                      <CalendarIcon size={14} className="text-[#20CDFE]" />
-                      {formatDate(opDate)}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 py-1">
-                    <input
-                      type="checkbox"
-                      id="fullDay"
-                      checked={isFullDay}
-                      onChange={e => setIsFullDay(e.target.checked)}
-                      className="rounded bg-[#15233D] border-slate-800 text-[#20CDFE] focus:ring-0 w-4 h-4 cursor-pointer"
-                    />
-                    <label htmlFor="fullDay" className="text-xs font-bold text-slate-200 cursor-pointer">
-                      Ocupado todo el día
+                <form onSubmit={handleCreateBlock} className="space-y-4">
+                  
+                  {/* PASO 1: Fecha */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                      <span>1. Fecha a bloquear</span>
+                      <span className="text-[11px] text-[#20CDFE] font-medium">{formatDate(opDate)}</span>
                     </label>
+                    <div className="flex items-center gap-2 bg-[#15233D]/50 border border-slate-800 rounded-xl p-2">
+                      <CalendarDays size={16} className="text-[#20CDFE] shrink-0 ml-1" />
+                      <input
+                        type="date"
+                        value={opDate}
+                        onChange={e => setOpDate(e.target.value)}
+                        className="bg-transparent border-0 text-white text-xs font-bold w-full outline-none"
+                      />
+                    </div>
                   </div>
 
-                  {!isFullDay && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Hora Inicio</label>
-                        <select
-                          value={blockStart}
-                          onChange={e => setBlockStart(e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-800/80 rounded-xl text-xs font-bold bg-[#15233D]/60 text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
-                        >
-                          {HOURS.map(h => <option key={`bs-${h}`} value={h}>{h}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">Hora Fin</label>
-                        <select
-                          value={blockEnd}
-                          onChange={e => setBlockEnd(e.target.value)}
-                          className="w-full px-3 py-2 border border-slate-800/80 rounded-xl text-xs font-bold bg-[#15233D]/60 text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
-                        >
-                          {HOURS.map(h => <option key={`be-${h}`} value={h}>{h}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                  )}
+                  {/* PASO 2: Horario y Presets */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-300 block">
+                      2. Selecciona el horario no disponible
+                    </label>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">Motivo (Opcional)</label>
+                    {/* Presets Grid */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => applyTimePreset("morning")}
+                        className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                          timePreset === "morning"
+                            ? "bg-amber-500/20 border-amber-500/60 text-amber-200 shadow-md shadow-amber-500/10"
+                            : "bg-[#15233D]/40 border-slate-800/80 text-slate-400 hover:text-white hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <Sun size={15} className="text-amber-400" />
+                          {timePreset === "morning" && <Check size={12} className="text-amber-400" />}
+                        </div>
+                        <span className="text-xs font-extrabold text-white">Mañana</span>
+                        <span className="text-[10px] text-slate-400">08:00 - 13:00</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => applyTimePreset("afternoon")}
+                        className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                          timePreset === "afternoon"
+                            ? "bg-amber-500/20 border-amber-500/60 text-amber-200 shadow-md shadow-amber-500/10"
+                            : "bg-[#15233D]/40 border-slate-800/80 text-slate-400 hover:text-white hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <Sunset size={15} className="text-orange-400" />
+                          {timePreset === "afternoon" && <Check size={12} className="text-amber-400" />}
+                        </div>
+                        <span className="text-xs font-extrabold text-white">Tarde</span>
+                        <span className="text-[10px] text-slate-400">14:00 - 19:00</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => applyTimePreset("night")}
+                        className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                          timePreset === "night"
+                            ? "bg-amber-500/20 border-amber-500/60 text-amber-200 shadow-md shadow-amber-500/10"
+                            : "bg-[#15233D]/40 border-slate-800/80 text-slate-400 hover:text-white hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <Moon size={15} className="text-indigo-400" />
+                          {timePreset === "night" && <Check size={12} className="text-amber-400" />}
+                        </div>
+                        <span className="text-xs font-extrabold text-white">Noche</span>
+                        <span className="text-[10px] text-slate-400">19:00 - 23:00</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => applyTimePreset("full")}
+                        className={`p-2.5 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                          timePreset === "full"
+                            ? "bg-rose-500/20 border-rose-500/60 text-rose-200 shadow-md shadow-rose-500/10"
+                            : "bg-[#15233D]/40 border-slate-800/80 text-slate-400 hover:text-white hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <Lock size={15} className="text-rose-400" />
+                          {timePreset === "full" && <Check size={12} className="text-rose-400" />}
+                        </div>
+                        <span className="text-xs font-extrabold text-white">Todo el Día</span>
+                        <span className="text-[10px] text-slate-400">00:00 - 23:59</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => applyTimePreset("custom")}
+                        className={`col-span-2 sm:col-span-2 p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+                          timePreset === "custom"
+                            ? "bg-[#20CDFE]/15 border-[#20CDFE]/60 text-[#20CDFE] shadow-md shadow-[#20CDFE]/10"
+                            : "bg-[#15233D]/40 border-slate-800/80 text-slate-400 hover:text-white hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <Clock size={16} className="text-[#20CDFE]" />
+                          <div>
+                            <span className="text-xs font-extrabold text-white block">Horario Personalizado</span>
+                            <span className="text-[10px] text-slate-400">Elegir horas exactas</span>
+                          </div>
+                        </div>
+                        {timePreset === "custom" && <Check size={14} className="text-[#20CDFE]" />}
+                      </button>
+                    </div>
+
+                    {/* Selectores de Horas Personalizadas */}
+                    {timePreset === "custom" && !isFullDay && (
+                      <div className="grid grid-cols-2 gap-3 pt-2 animate-fade-in">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">Hora Inicio</label>
+                          <select
+                            value={blockStart}
+                            onChange={e => { setBlockStart(e.target.value); setTimePreset("custom"); }}
+                            className="w-full px-3 py-2 border border-slate-800 rounded-xl text-xs font-bold bg-[#15233D] text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
+                          >
+                            {HOURS.map(h => <option key={`bs-${h}`} value={h}>{h}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-400 mb-1">Hora Fin</label>
+                          <select
+                            value={blockEnd}
+                            onChange={e => { setBlockEnd(e.target.value); setTimePreset("custom"); }}
+                            className="w-full px-3 py-2 border border-slate-800 rounded-xl text-xs font-bold bg-[#15233D] text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
+                          >
+                            {HOURS.map(h => <option key={`be-${h}`} value={h}>{h}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PASO 3: Motivo con Sugerencias Rápidas */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-300 block">
+                      3. Motivo del bloqueo <span className="text-slate-500 font-normal">(Opcional)</span>
+                    </label>
+
+                    {/* Chips de Sugerencia Rápida */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { label: "🎬 Rodaje Externo", val: "Rodaje / Producción externa" },
+                        { label: "💼 Freelance", val: "Trabajo freelance externo" },
+                        { label: "🏥 Cita Médica", val: "Cita médica / Salud" },
+                        { label: "📚 Clases / Examen", val: "Clases / Examen académico" },
+                        { label: "✈️ Permiso", val: "Permiso / Trámite personal" },
+                      ].map((item, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setBlockReason(item.val)}
+                          className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
+                            blockReason === item.val
+                              ? "bg-amber-500/20 text-amber-300 border-amber-500/50 font-bold"
+                              : "bg-[#15233D]/60 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700"
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+
                     <input
                       type="text"
-                      placeholder="Ej. Rodaje externo / Evento freelance"
+                      placeholder="Ej. Rodaje en locación exterior..."
                       value={blockReason}
                       onChange={e => setBlockReason(e.target.value)}
-                      className="w-full px-3.5 py-2 border border-slate-800/80 rounded-xl text-xs bg-[#15233D]/60 text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
+                      className="w-full px-3.5 py-2 border border-slate-800 rounded-xl text-xs bg-[#15233D]/60 text-white focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-slate-500"
                     />
                   </div>
 
+                  {/* Botón Guardar */}
                   <button
                     type="submit"
                     disabled={submittingBlock}
-                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-black py-2.5 rounded-xl text-xs font-extrabold hover:opacity-90 transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-black py-3 rounded-xl text-xs font-black hover:opacity-90 transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    <Lock size={14} />
-                    {submittingBlock ? "Guardando..." : "Marcar como Ocupado"}
+                    <Lock size={15} />
+                    {submittingBlock ? "Guardando Horario Ocupado..." : "Guardar Horario Ocupado"}
                   </button>
                 </form>
 
-                {/* Mis Bloqueos en esta fecha */}
-                <div className="pt-3 border-t border-slate-800/80 space-y-2">
-                  <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <Clock size={13} className="text-amber-400" /> Mis Bloqueos Registrados ({formatDate(opDate)})
-                  </h4>
+                {/* Resumen o instrucciones */}
+                <p className="text-[11px] text-slate-400 text-center leading-relaxed">
+                  💡 Este bloqueo notificará a la administración y gerencia que no estás disponible en esas horas.
+                </p>
+              </div>
 
-                  {myBusyBlocks.length === 0 ? (
-                    <p className="text-[11px] text-slate-500 italic">No tienes bloqueos registrados para este día (Estás marcado disponible por defecto).</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {myBusyBlocks.map(block => (
-                        <div key={block.id} className="bg-[#15233D]/50 border border-slate-800/80 rounded-xl p-2.5 flex items-center justify-between text-xs">
-                          <div>
-                            <span className="font-extrabold text-amber-300 block">
-                              {block.is_full_day ? "Día completo ocupado" : `${block.start_time} - ${block.end_time}`}
-                            </span>
-                            {block.reason && <span className="text-[11px] text-slate-400">{block.reason}</span>}
+              {/* Si es Operativo y está en móvil o layout único, 'Mis Bloqueos' también se renderiza abajo si es necesario */}
+            </div>
+
+            {/* ════════ COLUMNA 2: MIS BLOQUEOS (PARA OPERATIVOS) O MATRIZ DE EQUIPO (GERENCIA/ADMIN) ════════ */}
+            {!canManageMeetings ? (
+              /* Vista Ampliada para Operativos: Historial y Bloqueos Próximos */
+              <div className="xl:col-span-7 space-y-6">
+                <div className="bg-[#0A101D]/70 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 space-y-4 shadow-xl">
+                  
+                  {/* Selector de Pestaña de Bloqueos */}
+                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Clock size={16} className="text-amber-400" />
+                      <h3 className="font-extrabold text-white text-sm">Mis Horarios Registrados</h3>
+                    </div>
+
+                    <div className="flex items-center gap-1 bg-[#15233D]/60 border border-slate-800 rounded-xl p-1">
+                      <button
+                        type="button"
+                        onClick={() => setMyBlocksTab("date")}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                          myBlocksTab === "date"
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        En esta fecha ({myBusyBlocks.length})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMyBlocksTab("upcoming")}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                          myBlocksTab === "upcoming"
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        Todos los Próximos ({allMyBusyBlocks.length})
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Contenido: En esta fecha */}
+                  {myBlocksTab === "date" && (
+                    <div className="space-y-3">
+                      <div className="text-xs text-slate-400 font-medium">
+                        Estado para el <strong className="text-white capitalize">{getFriendlyDateLabel(opDate)}</strong>:
+                      </div>
+
+                      {myBusyBlocks.length === 0 ? (
+                        <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 text-center space-y-2">
+                          <div className="w-12 h-12 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                            <ShieldCheck size={24} />
                           </div>
-                          <button
-                            onClick={() => handleDeleteBlock(block.id)}
-                            className="p-1 text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
-                            title="Eliminar bloqueo"
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                          <h4 className="text-sm font-extrabold text-white">¡Estás 100% Disponible!</h4>
+                          <p className="text-xs text-slate-400 max-w-md mx-auto">
+                            No tienes bloqueos registrados para este día. Gerencia y coordinación sabrán que puedes recibir actividades y rodajes.
+                          </p>
                         </div>
-                      ))}
+                      ) : (
+                        <div className="space-y-2.5">
+                          {myBusyBlocks.map(block => (
+                            <div
+                              key={block.id}
+                              className="bg-[#15233D]/60 border border-amber-500/30 rounded-2xl p-3.5 flex items-center justify-between text-xs hover:border-amber-500/60 transition-all shadow-sm"
+                            >
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-black text-xs border border-amber-500/30">
+                                    {block.is_full_day ? "🔒 Todo el Día Ocupado" : `⏰ ${block.start_time} - ${block.end_time}`}
+                                  </span>
+                                  <span className="text-[11px] text-slate-400 font-medium">{formatDate(block.date)}</span>
+                                </div>
+                                {block.reason && (
+                                  <p className="text-xs text-slate-300 font-semibold">{block.reason}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleDeleteBlock(block.id)}
+                                className="p-2 text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors"
+                                title="Eliminar bloqueo"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Contenido: Próximos Bloqueos */}
+                  {myBlocksTab === "upcoming" && (
+                    <div className="space-y-3">
+                      <div className="text-xs text-slate-400 font-medium">
+                        Tus bloqueos futuros registrados a partir de hoy:
+                      </div>
+
+                      {allMyBusyBlocks.length === 0 ? (
+                        <div className="p-6 rounded-2xl bg-[#15233D]/40 border border-slate-800 text-center space-y-2">
+                          <Clock size={28} className="mx-auto text-slate-600" />
+                          <h4 className="text-xs font-bold text-slate-300">Sin bloqueos futuros</h4>
+                          <p className="text-[11px] text-slate-500">No has registrado ningún bloqueo futuro. Tu agenda está libre.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
+                          {allMyBusyBlocks.map(block => (
+                            <div
+                              key={block.id}
+                              className="bg-[#15233D]/60 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-3.5 flex items-center justify-between text-xs transition-all"
+                            >
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-extrabold text-white text-xs">
+                                    {formatDate(block.date)}
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 font-bold text-[11px] border border-amber-500/25">
+                                    {block.is_full_day ? "Día Completo" : `${block.start_time} - ${block.end_time}`}
+                                  </span>
+                                </div>
+                                {block.reason && (
+                                  <p className="text-xs text-slate-300">{block.reason}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleDeleteBlock(block.id)}
+                                className="p-2 text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors"
+                                title="Eliminar bloqueo"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
-            </div>
+            ) : (
+              /* Vista para Gerencia / Admin: Matriz de Disponibilidad del Equipo */
+              <div className="xl:col-span-8 space-y-4">
+                <div className="bg-[#0A101D]/70 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 space-y-4 shadow-xl">
+                  
+                  {/* Encabezado con Filtros y Buscador */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Users size={18} className="text-[#20CDFE]" />
+                      <h3 className="font-extrabold text-white text-sm">
+                        Personal del Equipo para el {formatDate(opDate)}
+                      </h3>
+                      <span className="text-xs text-slate-500 font-bold">
+                        ({filteredTeamMatrix.length} de {teamMatrix.length})
+                      </span>
+                    </div>
 
-            {/* Columna Derecha: Matriz del Equipo */}
-            {canManageMeetings && (
-              <div className="xl:col-span-2 space-y-4">
-              <div className="bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 p-5 space-y-4 shadow-xl">
-                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-                  <h3 className="font-bold text-white text-sm flex items-center gap-2">
-                    <Users size={16} className="text-[#20CDFE]" />
-                    Disponibilidad del Personal para {formatDate(opDate)}
-                  </h3>
-                  <span className="text-xs text-slate-400 font-medium">
-                    Total: {teamMatrix.length} trabajadores
-                  </span>
-                </div>
+                    {/* Buscador de Trabajadores */}
+                    <div className="flex items-center gap-2 bg-[#15233D]/60 border border-slate-800 rounded-xl px-3 py-1.5 w-full md:w-64">
+                      <Search size={14} className="text-slate-400 shrink-0" />
+                      <input
+                        type="text"
+                        placeholder="Buscar por nombre o cargo..."
+                        value={matrixSearch}
+                        onChange={e => setMatrixSearch(e.target.value)}
+                        className="bg-transparent border-0 text-white text-xs outline-none w-full placeholder-slate-500"
+                      />
+                      {matrixSearch && (
+                        <button onClick={() => setMatrixSearch("")} className="text-slate-500 hover:text-white">
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
-                {/* Leyenda de Estados */}
-                <div className="flex flex-wrap items-center gap-4 text-xs font-bold bg-[#15233D]/30 border border-slate-800/60 p-3 rounded-xl">
-                  <div className="flex items-center gap-1.5 text-emerald-400">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" /> 🟢 LIBRE (Disponible)
+                  {/* Filtros por Estado */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMatrixFilter("all")}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                        matrixFilter === "all"
+                          ? "bg-slate-700 text-white border border-slate-600 shadow-md"
+                          : "bg-[#15233D]/60 text-slate-400 hover:text-white border border-slate-800"
+                      }`}
+                    >
+                      Todos ({teamMatrix.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMatrixFilter("libre")}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        matrixFilter === "libre"
+                          ? "bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 shadow-md shadow-emerald-500/10"
+                          : "bg-[#15233D]/60 text-slate-400 hover:text-emerald-300 border border-slate-800"
+                      }`}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      Libres ({matrixLibresCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMatrixFilter("en_trabajo")}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        matrixFilter === "en_trabajo"
+                          ? "bg-[#20CDFE]/25 text-[#20CDFE] border border-[#20CDFE]/50 shadow-md shadow-[#20CDFE]/10"
+                          : "bg-[#15233D]/60 text-slate-400 hover:text-[#20CDFE] border border-slate-800"
+                      }`}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-[#20CDFE]" />
+                      En Trabajo ({matrixEnTrabajoCount})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMatrixFilter("ocupado")}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                        matrixFilter === "ocupado"
+                          ? "bg-amber-500/25 text-amber-300 border border-amber-500/50 shadow-md shadow-amber-500/10"
+                          : "bg-[#15233D]/60 text-slate-400 hover:text-amber-300 border border-slate-800"
+                      }`}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-amber-400" />
+                      Ocupados ({matrixOcupadosCount})
+                    </button>
                   </div>
-                  <div className="flex items-center gap-1.5 text-amber-400">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> 🔴 OCUPADO (Bloqueo Freelance)
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[#20CDFE]">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#20CDFE]" /> 🟡 EN TRABAJO (Con Actividades)
-                  </div>
-                </div>
 
-                {loadingTeam ? (
-                  <div className="flex justify-center py-16">
-                    <div className="w-8 h-8 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" />
-                  </div>
-                ) : teamMatrix.length === 0 ? (
-                  <div className="text-center py-12 text-slate-400 text-xs">
-                    <Users size={36} className="mx-auto mb-2 opacity-20" />
-                    <p>No se encontraron trabajadores en el equipo.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {teamMatrix.map((worker) => {
-                      const isLibre = worker.overall_status === "libre";
-                      const isOcupado = worker.overall_status === "ocupado";
-                      const isEnTrabajo = worker.overall_status === "en_trabajo";
+                  {/* Grid de Trabajadores */}
+                  {loadingTeam ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                      <div className="w-9 h-9 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin mb-2" />
+                      <p className="text-xs text-slate-400">Cargando matriz de disponibilidad...</p>
+                    </div>
+                  ) : filteredTeamMatrix.length === 0 ? (
+                    <div className="text-center py-16 text-slate-400 text-xs bg-[#15233D]/30 rounded-2xl border border-slate-800/60">
+                      <Users size={36} className="mx-auto mb-2 opacity-20" />
+                      <p className="font-semibold text-slate-300">No se encontraron trabajadores con los filtros actuales.</p>
+                      <p className="text-[11px] text-slate-500 mt-1">Prueba cambiando el filtro o la fecha seleccionada.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {filteredTeamMatrix.map((worker) => {
+                        const isLibre = worker.overall_status === "libre";
+                        const isOcupado = worker.overall_status === "ocupado";
+                        const isEnTrabajo = worker.overall_status === "en_trabajo";
 
-                      return (
-                        <div
-                          key={worker.user_id}
-                          className={`bg-[#15233D]/50 border rounded-2xl p-4 transition-all flex flex-col justify-between ${
-                            isLibre
-                              ? "border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-950/10"
-                              : isOcupado
-                              ? "border-amber-500/30 hover:border-amber-500/60 bg-amber-950/10"
-                              : "border-[#20CDFE]/30 hover:border-[#20CDFE]/60 bg-[#20CDFE]/5"
-                          }`}
-                        >
-                          <div>
-                            {/* Header Tarjeta Trabajador */}
-                            <div className="flex items-start justify-between gap-3 mb-3">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#20CDFE] to-[#1ED1B4] text-[#07060B] font-black text-sm flex items-center justify-center shadow-md">
-                                  {worker.user_name.charAt(0).toUpperCase()}
+                        return (
+                          <div
+                            key={worker.user_id}
+                            className={`rounded-2xl p-4 transition-all flex flex-col justify-between border ${
+                              isLibre
+                                ? "bg-emerald-950/15 border-emerald-500/30 hover:border-emerald-500/60 shadow-lg shadow-emerald-950/20"
+                                : isOcupado
+                                ? "bg-amber-950/15 border-amber-500/30 hover:border-amber-500/60 shadow-lg shadow-amber-950/20"
+                                : "bg-[#20CDFE]/10 border-[#20CDFE]/30 hover:border-[#20CDFE]/60 shadow-lg shadow-[#20CDFE]/5"
+                            }`}
+                          >
+                            <div className="space-y-3">
+                              {/* Header Trabajador */}
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-10 h-10 rounded-xl font-black text-sm flex items-center justify-center shadow-md ${
+                                    isLibre
+                                      ? "bg-gradient-to-br from-emerald-400 to-teal-500 text-black"
+                                      : isOcupado
+                                      ? "bg-gradient-to-br from-amber-400 to-orange-500 text-black"
+                                      : "bg-gradient-to-br from-[#20CDFE] to-[#1ED1B4] text-[#07060B]"
+                                  }`}>
+                                    {worker.user_name.charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <h4 className="font-extrabold text-white text-sm leading-snug">{worker.user_name}</h4>
+                                    <p className="text-[11px] text-slate-400 font-medium">
+                                      {worker.user_position || (worker.user_role === "administrador" ? "Administrador" : "Operativo")}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <h4 className="font-extrabold text-white text-sm leading-snug">{worker.user_name}</h4>
-                                  <p className="text-[11px] text-slate-400 font-medium">
-                                    {worker.user_position || (worker.user_role === "administrador" ? "Administrador" : "Operativo")}
-                                  </p>
-                                </div>
+
+                                {/* Badge Estado */}
+                                {isLibre && (
+                                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                    LIBRE
+                                  </span>
+                                )}
+                                {isOcupado && (
+                                  <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
+                                    <Lock size={11} /> OCUPADO
+                                  </span>
+                                )}
+                                {isEnTrabajo && (
+                                  <span className="px-2.5 py-1 rounded-full bg-[#20CDFE]/20 text-[#20CDFE] border border-[#20CDFE]/40 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
+                                    <Briefcase size={11} /> TRABAJANDO ({worker.assigned_activities_count})
+                                  </span>
+                                )}
                               </div>
 
-                              {/* Badge Estado */}
+                              {/* Detalle de Bloqueos Ocupados */}
+                              {isOcupado && worker.busy_blocks.length > 0 && (
+                                <div className="space-y-1.5 border-t border-slate-800/80 pt-2.5">
+                                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-400">Horarios Ocupados:</span>
+                                  {worker.busy_blocks.map(b => (
+                                    <div key={b.id} className="text-xs text-slate-300 bg-[#0A101D]/70 px-2.5 py-1.5 rounded-xl border border-amber-500/20 flex items-center justify-between">
+                                      <span className="font-extrabold text-amber-300">
+                                        {b.is_full_day ? "🔒 Día Completo" : `⏰ ${b.start_time} - ${b.end_time}`}
+                                      </span>
+                                      {b.reason && <span className="text-[11px] text-slate-400 italic truncate max-w-[140px]">{b.reason}</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Detalle de Actividades Asignadas */}
+                              {isEnTrabajo && worker.assigned_activities_titles.length > 0 && (
+                                <div className="space-y-1.5 border-t border-slate-800/80 pt-2.5">
+                                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#20CDFE]">Actividades Asignadas hoy:</span>
+                                  <ul className="space-y-1">
+                                    {worker.assigned_activities_titles.map((title, idx) => (
+                                      <li key={idx} className="text-xs text-slate-300 bg-[#0A101D]/70 px-2.5 py-1.5 rounded-xl border border-[#20CDFE]/20 truncate flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-[#20CDFE] shrink-0" />
+                                        <span className="truncate">{title}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
                               {isLibre && (
-                                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-black uppercase flex items-center gap-1">
-                                  <ShieldCheck size={12} /> LIBRE
-                                </span>
-                              )}
-                              {isOcupado && (
-                                <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase flex items-center gap-1">
-                                  <Lock size={12} /> OCUPADO
-                                </span>
-                              )}
-                              {isEnTrabajo && (
-                                <span className="px-2.5 py-1 rounded-full bg-[#20CDFE]/20 text-[#20CDFE] border border-[#20CDFE]/30 text-[10px] font-black uppercase flex items-center gap-1">
-                                  <Briefcase size={12} /> EN TRABAJO ({worker.assigned_activities_count})
-                                </span>
+                                <div className="border-t border-slate-800/80 pt-2 text-xs text-emerald-400/90 font-medium flex items-center gap-1.5">
+                                  <Sparkles size={13} />
+                                  <span>Disponible para asignación inmediata en esta fecha.</span>
+                                </div>
                               )}
                             </div>
-
-                            {/* Detalle de Bloqueos Ocupados */}
-                            {isOcupado && worker.busy_blocks.length > 0 && (
-                              <div className="space-y-1.5 border-t border-slate-800/80 pt-2.5 mt-2">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">Horarios Ocupados:</span>
-                                {worker.busy_blocks.map(b => (
-                                  <div key={b.id} className="text-xs text-slate-300 bg-[#0A101D]/70 px-2.5 py-1.5 rounded-lg border border-slate-800/60 flex items-center justify-between">
-                                    <span className="font-bold text-amber-300">
-                                      {b.is_full_day ? "Día Completo" : `${b.start_time} - ${b.end_time}`}
-                                    </span>
-                                    {b.reason && <span className="text-[11px] text-slate-400 italic truncate max-w-[140px]">{b.reason}</span>}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Detalle de Actividades Asignadas */}
-                            {isEnTrabajo && worker.assigned_activities_titles.length > 0 && (
-                              <div className="space-y-1.5 border-t border-slate-800/80 pt-2.5 mt-2">
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-[#20CDFE]">Actividades Asignadas hoy:</span>
-                                <ul className="space-y-1">
-                                  {worker.assigned_activities_titles.map((title, idx) => (
-                                    <li key={idx} className="text-xs text-slate-300 bg-[#0A101D]/70 px-2.5 py-1.5 rounded-lg border border-slate-800/60 truncate flex items-center gap-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-[#20CDFE]" />
-                                      {title}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            )}
-
-                            {isLibre && (
-                              <div className="border-t border-slate-800/80 pt-2.5 mt-2 text-xs text-emerald-400/80 italic font-medium">
-                                Sin bloqueos freelance ni actividades asignadas en esta fecha.
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
             )}
           </div>
         </div>
