@@ -20,6 +20,7 @@ import {
   activitiesApi, 
   evidencesApi 
 } from "@/lib/api";
+import { TeamAvailabilityWidget } from "@/components/dashboard/TeamAvailabilityWidget";
 import { StatCard } from "@/components/ui/StatCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { 
@@ -532,6 +533,9 @@ export default function DashboardPage() {
             <StatCard title="Proyectos Activos" value={stats.active_projects} icon={TrendingUp} color="green" />
             <StatCard title="Actividades Demoradas" value={stats.late_activities} icon={AlertTriangle} color="red" />
           </div>
+
+          {/* Disponibilidad del Personal (Bloqueos Freelance y Actividades) */}
+          <TeamAvailabilityWidget />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
