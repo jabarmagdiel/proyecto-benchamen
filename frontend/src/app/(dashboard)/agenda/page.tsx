@@ -91,12 +91,10 @@ export default function AgendaPage() {
   };
 
   /* Pestaña Principal: 'reuniones' | 'citas' | 'disponibilidad' */
-  const [mainTab, setMainTab] = useState<"reuniones" | "citas" | "disponibilidad">(
-    user?.role === "operativo" ? "disponibilidad" : "reuniones"
-  );
+  const [mainTab, setMainTab] = useState<"reuniones" | "citas" | "disponibilidad">("disponibilidad");
 
   useEffect(() => {
-    if (user?.role === "operativo") {
+    if (user?.role === "operativo" || user?.role === "administrador" || user?.role === "gerencia") {
       setMainTab("disponibilidad");
     }
   }, [user?.role]);
@@ -162,6 +160,7 @@ export default function AgendaPage() {
   const [myBlocksTab, setMyBlocksTab] = useState<"date" | "upcoming">("date");
   const [matrixFilter, setMatrixFilter] = useState<"all" | "libre" | "en_trabajo" | "ocupado">("all");
   const [matrixSearch, setMatrixSearch] = useState<string>("");
+  const [targetWorkerId, setTargetWorkerId] = useState<number | null>(null);
 
   /* Toast */
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
@@ -343,10 +342,16 @@ export default function AgendaPage() {
         end_time: isFullDay ? "23:59" : blockEnd,
         is_full_day: isFullDay,
         status: "busy",
-        reason: blockReason || "Trabajo externo / Personal"
+        reason: blockReason || "Trabajo externo / Personal",
+        ...(isAdmin && targetWorkerId ? { user_id: targetWorkerId } : {})
       });
-      showToast("✅ Horario ocupado registrado correctamente");
+      showToast(
+        isAdmin && targetWorkerId
+          ? "✅ Bloqueo asignado al trabajador exitosamente"
+          : "✅ Horario ocupado registrado correctamente"
+      );
       setBlockReason("");
+      setTargetWorkerId(null);
       loadTeamMatrix(opDate);
     } catch (err: any) {
       showToast(err?.response?.data?.detail || "Error al guardar el bloqueo", "error");
@@ -476,6 +481,139 @@ export default function AgendaPage() {
   const matrixLibresCount = teamMatrix.filter(w => w.overall_status === "libre").length;
   const matrixOcupadosCount = teamMatrix.filter(w => w.overall_status === "ocupado").length;
   const matrixEnTrabajoCount = teamMatrix.filter(w => w.overall_status === "en_trabajo").length;
+
+  const renderMyBlocksCard = (isCompact: boolean = false) => (
+    <div className="bg-[#0A101D]/70 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 space-y-4 shadow-xl">
+      {/* Selector de Pestaña de Bloqueos */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+        <div className="flex items-center gap-2">
+          <Clock size={16} className="text-amber-400" />
+          <h3 className="font-extrabold text-white text-sm">Mis Horarios Registrados</h3>
+        </div>
+
+        <div className="flex items-center gap-1 bg-[#15233D]/60 border border-slate-800 rounded-xl p-1">
+          <button
+            type="button"
+            onClick={() => setMyBlocksTab("date")}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+              myBlocksTab === "date"
+                ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            En esta fecha ({myBusyBlocks.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setMyBlocksTab("upcoming")}
+            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+              myBlocksTab === "upcoming"
+                ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            Próximos ({allMyBusyBlocks.length})
+          </button>
+        </div>
+      </div>
+
+      {/* Contenido: En esta fecha */}
+      {myBlocksTab === "date" && (
+        <div className="space-y-3">
+          <div className="text-xs text-slate-400 font-medium">
+            Estado para el <strong className="text-white capitalize">{getFriendlyDateLabel(opDate)}</strong>:
+          </div>
+
+          {myBusyBlocks.length === 0 ? (
+            <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 text-center space-y-2">
+              <div className="w-10 h-10 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <ShieldCheck size={20} />
+              </div>
+              <h4 className="text-sm font-extrabold text-white">¡Estás 100% Disponible!</h4>
+              <p className="text-xs text-slate-400 max-w-md mx-auto">
+                No tienes bloqueos registrados para este día.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {myBusyBlocks.map(block => (
+                <div
+                  key={block.id}
+                  className="bg-[#15233D]/60 border border-amber-500/30 rounded-2xl p-3 flex items-center justify-between text-xs hover:border-amber-500/60 transition-all shadow-sm"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-black text-xs border border-amber-500/30">
+                        {block.is_full_day ? "🔒 Todo el Día Ocupado" : `⏰ ${block.start_time} - ${block.end_time}`}
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-medium">{formatDate(block.date)}</span>
+                    </div>
+                    {block.reason && (
+                      <p className="text-xs text-slate-300 font-semibold">{block.reason}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleDeleteBlock(block.id)}
+                    className="p-1.5 text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors"
+                    title="Eliminar bloqueo"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Contenido: Próximos Bloqueos */}
+      {myBlocksTab === "upcoming" && (
+        <div className="space-y-3">
+          <div className="text-xs text-slate-400 font-medium">
+            Tus bloqueos futuros registrados a partir de hoy:
+          </div>
+
+          {allMyBusyBlocks.length === 0 ? (
+            <div className="p-5 rounded-2xl bg-[#15233D]/40 border border-slate-800 text-center space-y-2">
+              <Clock size={24} className="mx-auto text-slate-600" />
+              <h4 className="text-xs font-bold text-slate-300">Sin bloqueos futuros</h4>
+              <p className="text-[11px] text-slate-500">No has registrado ningún bloqueo futuro. Tu agenda está libre.</p>
+            </div>
+          ) : (
+            <div className={`space-y-2.5 overflow-y-auto pr-1 ${isCompact ? "max-h-[300px]" : "max-h-[500px]"}`}>
+              {allMyBusyBlocks.map(block => (
+                <div
+                  key={block.id}
+                  className="bg-[#15233D]/60 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-3 flex items-center justify-between text-xs transition-all"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-white text-xs">
+                        {formatDate(block.date)}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 font-bold text-[11px] border border-amber-500/25">
+                        {block.is_full_day ? "Día Completo" : `${block.start_time} - ${block.end_time}`}
+                      </span>
+                    </div>
+                    {block.reason && (
+                      <p className="text-xs text-slate-300">{block.reason}</p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleDeleteBlock(block.id)}
+                    className="p-1.5 text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors"
+                    title="Eliminar bloqueo"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   /* ─────────────────────────────────────────── RENDER ─── */
   return (
@@ -1544,8 +1682,48 @@ export default function AgendaPage() {
                   </span>
                 </div>
 
-                <form onSubmit={handleCreateBlock} className="space-y-4">
+                <form id="availability-block-form" onSubmit={handleCreateBlock} className="space-y-4">
                   
+                  {/* Selector de Trabajador para Administradores */}
+                  {isAdmin && (
+                    <div className="space-y-1.5 p-3 rounded-xl bg-[#15233D]/70 border border-slate-700/60">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-extrabold text-white flex items-center gap-1.5">
+                          <User size={13} className="text-[#20CDFE]" />
+                          ¿Para quién es este bloqueo?
+                        </label>
+                        {targetWorkerId && (
+                          <button
+                            type="button"
+                            onClick={() => setTargetWorkerId(null)}
+                            className="text-[10px] font-bold text-[#20CDFE] hover:underline"
+                          >
+                            Restablecer a Mí
+                          </button>
+                        )}
+                      </div>
+                      <select
+                        value={targetWorkerId || ""}
+                        onChange={e => setTargetWorkerId(e.target.value ? Number(e.target.value) : null)}
+                        className="w-full px-3 py-2 border border-slate-700/80 rounded-xl text-xs font-bold bg-[#0A101D] text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
+                      >
+                        <option value="">👤 Para Mí ({user?.name || "Administrador"})</option>
+                        <optgroup label="Trabajadores del Equipo">
+                          {teamMatrix.map(w => (
+                            <option key={`tw-${w.user_id}`} value={w.user_id}>
+                              💼 {w.user_name} ({w.user_position || (w.user_role === "administrador" ? "Administrador" : "Operativo")})
+                            </option>
+                          ))}
+                        </optgroup>
+                      </select>
+                      {targetWorkerId && (
+                        <p className="text-[10px] text-amber-300 italic">
+                          ℹ️ Estás registrando un bloqueo para otro miembro del equipo.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {/* PASO 1: Fecha */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
@@ -1732,7 +1910,9 @@ export default function AgendaPage() {
                     className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-black py-3 rounded-xl text-xs font-black hover:opacity-90 transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <Lock size={15} />
-                    {submittingBlock ? "Guardando Horario Ocupado..." : "Guardar Horario Ocupado"}
+                    {submittingBlock
+                      ? "Guardando Horario Ocupado..."
+                      : (isAdmin && targetWorkerId ? "Guardar Bloqueo para Trabajador" : "Guardar Mi Horario Ocupado")}
                   </button>
                 </form>
 
@@ -1742,144 +1922,15 @@ export default function AgendaPage() {
                 </p>
               </div>
 
-              {/* Si es Operativo y está en móvil o layout único, 'Mis Bloqueos' también se renderiza abajo si es necesario */}
+              {/* Para Gerencia/Admin, también renderizamos Mis Horarios Registrados en esta columna */}
+              {canManageMeetings && renderMyBlocksCard(true)}
             </div>
 
             {/* ════════ COLUMNA 2: MIS BLOQUEOS (PARA OPERATIVOS) O MATRIZ DE EQUIPO (GERENCIA/ADMIN) ════════ */}
             {!canManageMeetings ? (
               /* Vista Ampliada para Operativos: Historial y Bloqueos Próximos */
               <div className="xl:col-span-7 space-y-6">
-                <div className="bg-[#0A101D]/70 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 space-y-4 shadow-xl">
-                  
-                  {/* Selector de Pestaña de Bloqueos */}
-                  <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-                    <div className="flex items-center gap-2">
-                      <Clock size={16} className="text-amber-400" />
-                      <h3 className="font-extrabold text-white text-sm">Mis Horarios Registrados</h3>
-                    </div>
-
-                    <div className="flex items-center gap-1 bg-[#15233D]/60 border border-slate-800 rounded-xl p-1">
-                      <button
-                        type="button"
-                        onClick={() => setMyBlocksTab("date")}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                          myBlocksTab === "date"
-                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                            : "text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        En esta fecha ({myBusyBlocks.length})
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setMyBlocksTab("upcoming")}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                          myBlocksTab === "upcoming"
-                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                            : "text-slate-400 hover:text-white"
-                        }`}
-                      >
-                        Todos los Próximos ({allMyBusyBlocks.length})
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Contenido: En esta fecha */}
-                  {myBlocksTab === "date" && (
-                    <div className="space-y-3">
-                      <div className="text-xs text-slate-400 font-medium">
-                        Estado para el <strong className="text-white capitalize">{getFriendlyDateLabel(opDate)}</strong>:
-                      </div>
-
-                      {myBusyBlocks.length === 0 ? (
-                        <div className="p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 text-center space-y-2">
-                          <div className="w-12 h-12 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                            <ShieldCheck size={24} />
-                          </div>
-                          <h4 className="text-sm font-extrabold text-white">¡Estás 100% Disponible!</h4>
-                          <p className="text-xs text-slate-400 max-w-md mx-auto">
-                            No tienes bloqueos registrados para este día. Gerencia y coordinación sabrán que puedes recibir actividades y rodajes.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2.5">
-                          {myBusyBlocks.map(block => (
-                            <div
-                              key={block.id}
-                              className="bg-[#15233D]/60 border border-amber-500/30 rounded-2xl p-3.5 flex items-center justify-between text-xs hover:border-amber-500/60 transition-all shadow-sm"
-                            >
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 font-black text-xs border border-amber-500/30">
-                                    {block.is_full_day ? "🔒 Todo el Día Ocupado" : `⏰ ${block.start_time} - ${block.end_time}`}
-                                  </span>
-                                  <span className="text-[11px] text-slate-400 font-medium">{formatDate(block.date)}</span>
-                                </div>
-                                {block.reason && (
-                                  <p className="text-xs text-slate-300 font-semibold">{block.reason}</p>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => handleDeleteBlock(block.id)}
-                                className="p-2 text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors"
-                                title="Eliminar bloqueo"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Contenido: Próximos Bloqueos */}
-                  {myBlocksTab === "upcoming" && (
-                    <div className="space-y-3">
-                      <div className="text-xs text-slate-400 font-medium">
-                        Tus bloqueos futuros registrados a partir de hoy:
-                      </div>
-
-                      {allMyBusyBlocks.length === 0 ? (
-                        <div className="p-6 rounded-2xl bg-[#15233D]/40 border border-slate-800 text-center space-y-2">
-                          <Clock size={28} className="mx-auto text-slate-600" />
-                          <h4 className="text-xs font-bold text-slate-300">Sin bloqueos futuros</h4>
-                          <p className="text-[11px] text-slate-500">No has registrado ningún bloqueo futuro. Tu agenda está libre.</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
-                          {allMyBusyBlocks.map(block => (
-                            <div
-                              key={block.id}
-                              className="bg-[#15233D]/60 border border-slate-800 hover:border-amber-500/40 rounded-2xl p-3.5 flex items-center justify-between text-xs transition-all"
-                            >
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-extrabold text-white text-xs">
-                                    {formatDate(block.date)}
-                                  </span>
-                                  <span className="px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 font-bold text-[11px] border border-amber-500/25">
-                                    {block.is_full_day ? "Día Completo" : `${block.start_time} - ${block.end_time}`}
-                                  </span>
-                                </div>
-                                {block.reason && (
-                                  <p className="text-xs text-slate-300">{block.reason}</p>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => handleDeleteBlock(block.id)}
-                                className="p-2 text-rose-400 hover:bg-rose-500/15 rounded-xl transition-colors"
-                                title="Eliminar bloqueo"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {renderMyBlocksCard(false)}
               </div>
             ) : (
               /* Vista para Gerencia / Admin: Matriz de Disponibilidad del Equipo */
@@ -2018,23 +2069,41 @@ export default function AgendaPage() {
                                   </div>
                                 </div>
 
-                                {/* Badge Estado */}
-                                {isLibre && (
-                                  <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                    LIBRE
-                                  </span>
-                                )}
-                                {isOcupado && (
-                                  <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
-                                    <Lock size={11} /> OCUPADO
-                                  </span>
-                                )}
-                                {isEnTrabajo && (
-                                  <span className="px-2.5 py-1 rounded-full bg-[#20CDFE]/20 text-[#20CDFE] border border-[#20CDFE]/40 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
-                                    <Briefcase size={11} /> TRABAJANDO ({worker.assigned_activities_count})
-                                  </span>
-                                )}
+                                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                  {/* Badge Estado */}
+                                  {isLibre && (
+                                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                      LIBRE
+                                    </span>
+                                  )}
+                                  {isOcupado && (
+                                    <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
+                                      <Lock size={11} /> OCUPADO
+                                    </span>
+                                  )}
+                                  {isEnTrabajo && (
+                                    <span className="px-2.5 py-1 rounded-full bg-[#20CDFE]/20 text-[#20CDFE] border border-[#20CDFE]/40 text-[10px] font-black uppercase flex items-center gap-1.5 shadow-sm">
+                                      <Briefcase size={11} /> TRABAJANDO ({worker.assigned_activities_count})
+                                    </span>
+                                  )}
+
+                                  {/* Botón Acción para Administrador */}
+                                  {isAdmin && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setTargetWorkerId(worker.user_id);
+                                        const formEl = document.getElementById("availability-block-form");
+                                        if (formEl) formEl.scrollIntoView({ behavior: "smooth" });
+                                      }}
+                                      className="px-2 py-0.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold flex items-center gap-1 transition-all"
+                                      title={`Bloquear horario para ${worker.user_name}`}
+                                    >
+                                      <Plus size={10} /> Bloquear
+                                    </button>
+                                  )}
+                                </div>
                               </div>
 
                               {/* Detalle de Bloqueos Ocupados */}
@@ -2042,11 +2111,23 @@ export default function AgendaPage() {
                                 <div className="space-y-1.5 border-t border-slate-800/80 pt-2.5">
                                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-400">Horarios Ocupados:</span>
                                   {worker.busy_blocks.map(b => (
-                                    <div key={b.id} className="text-xs text-slate-300 bg-[#0A101D]/70 px-2.5 py-1.5 rounded-xl border border-amber-500/20 flex items-center justify-between">
-                                      <span className="font-extrabold text-amber-300">
-                                        {b.is_full_day ? "🔒 Día Completo" : `⏰ ${b.start_time} - ${b.end_time}`}
-                                      </span>
-                                      {b.reason && <span className="text-[11px] text-slate-400 italic truncate max-w-[140px]">{b.reason}</span>}
+                                    <div key={b.id} className="text-xs text-slate-300 bg-[#0A101D]/70 px-2.5 py-1.5 rounded-xl border border-amber-500/20 flex items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <span className="font-extrabold text-amber-300 shrink-0">
+                                          {b.is_full_day ? "🔒 Día Completo" : `⏰ ${b.start_time} - ${b.end_time}`}
+                                        </span>
+                                        {b.reason && <span className="text-[11px] text-slate-400 italic truncate max-w-[140px]">{b.reason}</span>}
+                                      </div>
+                                      {isAdmin && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteBlock(b.id)}
+                                          className="p-1 text-rose-400 hover:bg-rose-500/20 rounded-lg transition-colors shrink-0"
+                                          title="Eliminar este bloqueo de horario (Admin)"
+                                        >
+                                          <Trash2 size={12} />
+                                        </button>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
