@@ -178,8 +178,22 @@ export default function ReportesPage() {
   const statusChartData = data?.activity_by_status || [];
   const typeChartData = data?.activity_by_type || [];
   const userPerformanceData = data?.user_performance || [];
-  const activitiesList = data?.activities || [];
-  const pagination = data?.pagination || { page: 1, page_size: 20, total_items: activitiesList.length, total_pages: 1 };
+  const rawActivities = data?.activities || [];
+  const isServerPaginated = Boolean(data?.pagination);
+
+  const totalItems = data?.pagination?.total_items ?? data?.kpis?.total_activities ?? rawActivities.length;
+  const totalPages = data?.pagination?.total_pages ?? Math.max(1, Math.ceil(totalItems / 20));
+  const currentPage = data?.pagination?.page ?? page;
+
+  // Si el backend no envió paginación directa, segmentar de 20 en 20 en frontend como respaldo
+  const activitiesList = isServerPaginated
+    ? rawActivities
+    : rawActivities.slice((currentPage - 1) * 20, currentPage * 20);
+
+  const maxPagesToShow = 10;
+  const startPage = Math.max(1, Math.min(currentPage - 4, Math.max(1, totalPages - maxPagesToShow + 1)));
+  const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+  const visiblePages = Array.from({ length: Math.max(1, endPage - startPage + 1) }, (_, i) => startPage + i);
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -601,7 +615,7 @@ export default function ReportesPage() {
               <div>
                 <h3 className="font-bold text-white text-base">Detalle de Actividades del Reporte</h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Mostrando {activitiesList.length} de {pagination.total_items} actividades (Página {pagination.page} de {pagination.total_pages})
+                  Mostrando {activitiesList.length} de {totalItems} actividades (Página {currentPage} de {totalPages})
                 </p>
               </div>
 
@@ -664,55 +678,87 @@ export default function ReportesPage() {
               </table>
             </div>
 
-            {/* Paginación estilo Google */}
-            {pagination.total_pages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-800/60 select-none">
-                <p className="text-xs text-slate-400">
-                  Mostrando <span className="font-bold text-white">{(pagination.page - 1) * pagination.page_size + 1}</span> a{" "}
-                  <span className="font-bold text-white">{Math.min(pagination.page * pagination.page_size, pagination.total_items)}</span> de{" "}
-                  <span className="font-bold text-[#20CDFE]">{pagination.total_items}</span> actividades
-                </p>
+            {/* Paginación Goooooooooogle interactiva */}
+            <div className="flex flex-col items-center justify-center pt-8 pb-4 border-t border-slate-800/60 select-none">
+              {/* Goooooooooogle header con colores icónicos */}
+              <div className="flex items-center justify-center text-3xl font-black font-sans tracking-tight mb-2 select-none">
+                <span className="text-[#4285F4]">G</span>
+                {visiblePages.map((pNum, idx) => (
+                  <span
+                    key={pNum}
+                    onClick={() => handlePageChange(pNum)}
+                    className={`cursor-pointer transition-transform duration-150 hover:scale-125 inline-block ${
+                      currentPage === pNum
+                        ? "text-[#EA4335] font-black scale-110 drop-shadow-[0_2px_10px_rgba(234,67,53,0.6)]"
+                        : idx % 3 === 0
+                        ? "text-[#FBBC05]"
+                        : idx % 3 === 1
+                        ? "text-[#4285F4]"
+                        : "text-[#34A853]"
+                    }`}
+                    title={`Ir a página ${pNum}`}
+                  >
+                    o
+                  </span>
+                ))}
+                <span className="text-[#4285F4]">g</span>
+                <span className="text-[#34A853]">l</span>
+                <span className="text-[#EA4335]">e</span>
+                {currentPage < totalPages && (
+                  <span
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className="text-[#8ab4f8] text-2xl font-black ml-2 cursor-pointer hover:translate-x-1 transition-transform"
+                    title="Página siguiente"
+                  >
+                    &gt;
+                  </span>
+                )}
+              </div>
+
+              {/* Fila de números y navegación estilo Google */}
+              <div className="flex items-center justify-center gap-2 text-sm font-semibold">
+                {currentPage > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    className="text-[#8ab4f8] hover:text-[#20CDFE] hover:underline transition-colors flex items-center gap-1 cursor-pointer mr-2 font-medium"
+                  >
+                    &lt; Anterior
+                  </button>
+                )}
 
                 <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page <= 1}
-                    className="px-3 py-1.5 rounded-xl border border-slate-800 bg-[#15233D] text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 cursor-pointer"
-                  >
-                    <ChevronLeft size={14} /> Anterior
-                  </button>
-
-                  {getPageNumbers(pagination.page, pagination.total_pages).map((pNum, idx) => (
-                    pNum === "..." ? (
-                      <span key={idx} className="px-2 py-1 text-slate-500 font-bold text-xs">...</span>
-                    ) : (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handlePageChange(Number(pNum))}
-                        className={`min-w-[32px] h-8 px-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                          pagination.page === pNum
-                            ? "bg-[#20CDFE] text-[#07060B] shadow-md shadow-[#20CDFE]/20"
-                            : "border border-slate-800/80 bg-[#15233D]/60 text-slate-400 hover:text-white hover:bg-[#15233D]"
-                        }`}
-                      >
-                        {pNum}
-                      </button>
-                    )
+                  {visiblePages.map((pNum) => (
+                    <button
+                      key={pNum}
+                      type="button"
+                      onClick={() => handlePageChange(pNum)}
+                      className={`min-w-[28px] h-7 px-1.5 flex items-center justify-center rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        currentPage === pNum
+                          ? "text-white font-black bg-[#20CDFE]/20 border border-[#20CDFE] shadow-sm shadow-[#20CDFE]/30"
+                          : "text-[#8ab4f8] hover:text-white hover:underline"
+                      }`}
+                    >
+                      {pNum}
+                    </button>
                   ))}
+                </div>
 
+                {currentPage < totalPages && (
                   <button
                     type="button"
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page >= pagination.total_pages}
-                    className="px-3 py-1.5 rounded-xl border border-slate-800 bg-[#15233D] text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 cursor-pointer"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    className="text-[#8ab4f8] hover:text-[#20CDFE] hover:underline transition-colors flex items-center gap-1 cursor-pointer ml-2 font-medium"
                   >
-                    Siguiente <ChevronRight size={14} />
+                    Siguiente &gt;
                   </button>
-                </div>
+                )}
               </div>
-            )}
+
+              <p className="text-[11px] text-slate-500 mt-3 font-medium">
+                Mostrando {totalItems > 0 ? ((currentPage - 1) * 20) + 1 : 0} – {Math.min(currentPage * 20, totalItems)} de {totalItems} actividades
+              </p>
+            </div>
           </div>
         </>
       )}
