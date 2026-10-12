@@ -48,7 +48,7 @@ export default function ReportesPage() {
 
   const [tableSearch, setTableSearch] = useState<string>("");
   const [page, setPage] = useState<number>(1);
-  const [archivedFilter, setArchivedFilter] = useState<"exclude" | "include" | "only">("exclude");
+  const [archivedFilter, setArchivedFilter] = useState<"exclude" | "include" | "only">("include");
 
   const getPageNumbers = (current: number, total: number) => {
     if (total <= 7) {
@@ -369,9 +369,9 @@ export default function ReportesPage() {
               onChange={(e) => setArchivedFilter(e.target.value as any)}
               className="w-full bg-[#15233D] border border-slate-800/60 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
             >
-              <option value="exclude">Ocultar archivados</option>
-              <option value="include">Incluir archivados</option>
-              <option value="only">Solo archivados</option>
+              <option value="include">Todos (Activos y Archivados)</option>
+              <option value="exclude">Solo Proyectos Activos</option>
+              <option value="only">Solo Proyectos Archivados</option>
             </select>
           </div>
         </div>
@@ -424,14 +424,16 @@ export default function ReportesPage() {
               </div>
             </div>
 
-            {/* Tiempo Registrado */}
+            {/* Tareas en Curso */}
             <div className="bg-[#0A101D]/70 backdrop-blur-xl p-5 rounded-2xl border border-slate-800/50 shadow-sm flex items-center justify-between">
               <div>
-                <p className="text-slate-400 text-xs font-semibold">Tiempo Registrado</p>
-                <p className="text-2xl font-black text-[#20CDFE] mt-1">
-                  {formatSecondsToHours(kpis.total_time_seconds || 0)}
+                <p className="text-slate-400 text-xs font-semibold">Tareas en Curso</p>
+                <p className="text-3xl font-black text-[#20CDFE] mt-1">
+                  {(kpis.in_progress_activities || 0) + (kpis.in_review_activities || 0)}
                 </p>
-                <p className="text-[11px] text-slate-500 mt-1">Horas dedicadas por el equipo</p>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {kpis.in_progress_activities || 0} en proceso · {kpis.in_review_activities || 0} en revisión
+                </p>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-[#20CDFE]/10 border border-[#20CDFE]/20 flex items-center justify-center text-[#20CDFE]">
                 <Clock size={24} />
@@ -547,7 +549,7 @@ export default function ReportesPage() {
                   Rendimiento y Eficiencia por Persona
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Desglose de tareas completadas, tiempo invertido y nivel de efectividad.
+                  Desglose de tareas asignadas, completadas, atrasadas y nivel de efectividad.
                 </p>
               </div>
             </div>
@@ -560,14 +562,13 @@ export default function ReportesPage() {
                     <th className="py-3 px-4 text-center">Total Asignadas</th>
                     <th className="py-3 px-4 text-center">Completadas</th>
                     <th className="py-3 px-4 text-center">Atrasadas</th>
-                    <th className="py-3 px-4 text-center">Tiempo Registrado</th>
                     <th className="py-3 px-4 text-right">Eficiencia (%)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/40 text-slate-300">
                   {userPerformanceData.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="text-center py-8 text-slate-500">
+                      <td colSpan={5} className="text-center py-8 text-slate-500">
                         No hay datos registrados para las personas con estos filtros.
                       </td>
                     </tr>
@@ -583,9 +584,6 @@ export default function ReportesPage() {
                         <td className="py-3 px-4 text-center font-semibold">{u.total}</td>
                         <td className="py-3 px-4 text-center text-emerald-400 font-bold">{u.completed}</td>
                         <td className="py-3 px-4 text-center text-rose-400 font-bold">{u.late}</td>
-                        <td className="py-3 px-4 text-center font-medium text-slate-400">
-                          {formatSecondsToHours(u.time_seconds)}
-                        </td>
                         <td className="py-3 px-4 text-right font-bold">
                           <div className="flex items-center justify-end gap-2">
                             <span className={u.efficiency >= 80 ? "text-emerald-400" : u.efficiency >= 50 ? "text-amber-400" : "text-slate-400"}>
@@ -642,14 +640,13 @@ export default function ReportesPage() {
                     <th className="py-3 px-4">Tipo</th>
                     <th className="py-3 px-4">Responsable</th>
                     <th className="py-3 px-4">Fecha Límite</th>
-                    <th className="py-3 px-4">Tiempo</th>
                     <th className="py-3 px-4 text-center">Estado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/40 text-slate-300">
                   {activitiesList.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="text-center py-8 text-slate-500">
+                      <td colSpan={7} className="text-center py-8 text-slate-500">
                         No hay actividades registradas que coincidan con el filtro actual.
                       </td>
                     </tr>
@@ -662,7 +659,6 @@ export default function ReportesPage() {
                         <td className="py-3 px-4 text-slate-400">{a.activity_type}</td>
                         <td className="py-3 px-4 font-medium text-slate-200">{a.assigned_user}</td>
                         <td className="py-3 px-4 text-slate-400">{a.deadline || "-"}</td>
-                        <td className="py-3 px-4 text-slate-400">{formatSecondsToHours(a.time_spent_seconds)}</td>
                         <td className="py-3 px-4 text-center">
                           <span
                             className="px-2.5 py-1 rounded-full text-[10px] font-bold text-white"

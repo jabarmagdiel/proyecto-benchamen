@@ -15,7 +15,7 @@ def list_projects(
     company_id: Optional[int] = Query(None),
     status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
-    archived: Optional[bool] = Query(False),
+    archived: Optional[bool] = Query(None),
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),

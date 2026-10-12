@@ -69,8 +69,8 @@ def _get_activities_data(
             Company.name.label("company"),
         )
         .outerjoin(User, User.id == Activity.assigned_user_id)
-        .join(Project, Project.id == Activity.project_id)
-        .join(Company, Company.id == Project.company_id)
+        .outerjoin(Project, Project.id == Activity.project_id)
+        .outerjoin(Company, Company.id == Project.company_id)
     )
     if current_user and (current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)) == "gerencia":
         user_dept_ids = [d.id for d in current_user.departments]
@@ -111,7 +111,7 @@ def get_analytics_report(
     page: int = 1,
     page_size: int = 20,
     search: Optional[str] = None,
-    archived: Optional[str] = "exclude",
+    archived: Optional[str] = "include",
 ):
     from app.models.financial_transaction import FinancialTransaction
     from app.services.project_service import auto_archive_expired_projects

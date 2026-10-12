@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2, Pencil, XCircle, Eye, Image as ImageIcon, Download, Info, Plus } from "lucide-react";
+import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Trash2, Pencil, XCircle, Eye, Image as ImageIcon, Download, Info, Plus } from "lucide-react";
 import { activitiesApi, evidencesApi, commentsApi, projectsApi, usersApi } from "@/lib/api";
 import type { Activity, Evidence, Comment, ActivityHistory as HistEntry, User } from "@/types";
 import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS, PRIORITY_LABELS } from "@/types";
@@ -31,7 +31,6 @@ export default function ActivityDetailPage() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
-  const [currentTimerSeconds, setCurrentTimerSeconds] = useState(0);
 
   /* State de Modal de Edición (Admin) */
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -61,13 +60,6 @@ export default function ActivityDetailPage() {
       setComments(cRes.data);
       setHistory(hRes.data);
       if (uRes?.data) setUsers(uRes.data);
-      
-      // Auto-iniciar cronómetro si es el responsable, está en_proceso y no está corriendo
-      if (act && act.assigned_user_id === user?.user_id && act.status === "en_proceso" && !act.timer_started_at) {
-        activitiesApi.startTimer(actId).then(() => {
-          activitiesApi.get(actId).then(r => setActivity(r.data));
-        }).catch(() => {});
-      }
     } finally { setLoading(false); }
   };
 
@@ -146,28 +138,9 @@ export default function ActivityDetailPage() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (activity?.timer_started_at) {
-      const updateTimer = () => {
-        const start = new Date(activity.timer_started_at!).getTime();
-        const now = new Date().getTime();
-        const elapsed = Math.floor((now - start) / 1000);
-        setCurrentTimerSeconds((activity.time_spent_seconds || 0) + elapsed);
-      };
-      updateTimer();
-      interval = setInterval(updateTimer, 1000);
-    } else {
-      setCurrentTimerSeconds(activity?.time_spent_seconds || 0);
-    }
-    return () => clearInterval(interval);
-  }, [activity]);
-
   const handleStart = async () => {
     try {
       await activitiesApi.start(actId);
-      // Also start the timer automatically when starting the activity
-      await activitiesApi.startTimer(actId).catch(() => {});
       showToast("Actividad iniciada ▶️");
       load();
     }
@@ -176,10 +149,6 @@ export default function ActivityDetailPage() {
 
   const handleSendReview = async () => {
     try {
-      // Stop the timer automatically when sending to review
-      if (activity?.timer_started_at) {
-        await activitiesApi.stopTimer(actId).catch(() => {});
-      }
       await activitiesApi.sendReview(actId);
       showToast("Enviado a revisión");
       load();
@@ -199,16 +168,6 @@ export default function ActivityDetailPage() {
       showToast("Actividad eliminada 🗑️");
       router.push("/actividades");
     } catch (e: any) { showToast(e?.response?.data?.detail || "Error al eliminar", "error"); }
-  };
-
-  const handleStartTimer = async () => {
-    try { await activitiesApi.startTimer(actId); showToast("Cronómetro iniciado ▶️"); load(); }
-    catch (e: any) { showToast(e?.response?.data?.detail || "Error", "error"); }
-  };
-
-  const handleStopTimer = async () => {
-    try { await activitiesApi.stopTimer(actId); showToast("Cronómetro detenido ⏹️"); load(); }
-    catch (e: any) { showToast(e?.response?.data?.detail || "Error", "error"); }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

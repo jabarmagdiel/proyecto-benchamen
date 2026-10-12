@@ -21,7 +21,7 @@ def get_analytics(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     search: Optional[str] = Query(None),
-    archived: Optional[str] = Query("exclude"),
+    archived: Optional[str] = Query("include"),
     db: Session = Depends(get_db),
     current_user=Depends(require_admin_or_gerencia),
 ):
