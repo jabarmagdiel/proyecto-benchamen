@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
   Plus, Search, Filter, Eye, CheckCircle, AlertCircle,
@@ -56,15 +56,48 @@ export default function ActividadesPage() {
 
   const isToday = (dateInput?: string | Date | null) => {
     if (!dateInput) return false;
+    const now = new Date();
+    const todayY = now.getFullYear();
+    const todayM = now.getMonth();
+    const todayD = now.getDate();
+    const todayIso = `${todayY}-${String(todayM + 1).padStart(2, "0")}-${String(todayD).padStart(2, "0")}`;
+
+    if (typeof dateInput === "string") {
+      const clean = dateInput.trim();
+      const datePart = clean.split("T")[0].split(" ")[0];
+      if (datePart === todayIso) return true;
+    }
+
     const d = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
     if (isNaN(d.getTime())) return false;
-    const today = new Date();
     return (
-      d.getFullYear() === today.getFullYear() &&
-      d.getMonth() === today.getMonth() &&
-      d.getDate() === today.getDate()
+      (d.getFullYear() === todayY && d.getMonth() === todayM && d.getDate() === todayD) ||
+      (d.getUTCFullYear() === todayY && d.getUTCMonth() === todayM && d.getUTCDate() === todayD)
     );
   };
+
+  const hiddenCompletedCount = useMemo(() => {
+    return activities.filter(a => a.status === "aprobada" && !isToday(a.approved_at || a.updated_at)).length;
+  }, [activities]);
+
+  const hiddenCancelledCount = useMemo(() => {
+    return activities.filter(a => a.status === "cancelada" && !isToday(a.updated_at)).length;
+  }, [activities]);
+
+  const totalHidden = hiddenCompletedCount + hiddenCancelledCount;
+
+  const displayedActivities = useMemo(() => {
+    if (showHistory || filterStatus) return activities;
+    return activities.filter(a => {
+      if (a.status === "aprobada") {
+        return isToday(a.approved_at || a.updated_at);
+      }
+      if (a.status === "cancelada") {
+        return isToday(a.updated_at);
+      }
+      return true;
+    });
+  }, [activities, showHistory, filterStatus]);
   
   const [modalOpen, setModalOpen] = useState(false);
   const [observeModal, setObserveModal] = useState<{ id: number } | null>(null);
@@ -83,7 +116,7 @@ export default function ActividadesPage() {
     try {
       const params: any = { limit: 10000 };
       if (search) params.search = search;
-      if (filterStatus && filterStatus !== "atrasada") params.status = filterStatus;
+      if (filterStatus && filterStatus !== "atrasada" && filterStatus !== "vence_hoy") params.status = filterStatus;
       if (filterCompany) params.company_id = filterCompany;
       if (filterProject) params.project_id = filterProject;
       if (filterUser) params.assigned_user_id = filterUser;
@@ -97,6 +130,8 @@ export default function ActividadesPage() {
       let loadedActs = actRes.data;
       if (filterStatus === "atrasada") {
         loadedActs = loadedActs.filter((a: Activity) => isOverdue(a.deadline, a.status));
+      } else if (filterStatus === "vence_hoy") {
+        loadedActs = loadedActs.filter((a: Activity) => isToday(a.deadline));
       }
       setActivities(loadedActs);
       setProjects(projRes.data);
@@ -514,7 +549,12 @@ export default function ActividadesPage() {
         <div className="flex items-center justify-between shrink-0">
           <div>
             <h2 className="text-2xl font-black text-white tracking-tight">Actividades</h2>
-            <p className="text-slate-400 text-sm mt-0.5">{activities.length} actividad{activities.length !== 1 ? "es" : ""}</p>
+            <p className="text-slate-400 text-sm mt-0.5">
+              {displayedActivities.length} actividad{displayedActivities.length !== 1 ? "es" : ""}
+              {!showHistory && totalHidden > 0 && !filterStatus ? (
+                <span className="text-[#20CDFE] ml-1.5 font-medium">({totalHidden} en histórico)</span>
+              ) : null}
+            </p>
           </div>
           
           <div className="flex items-center gap-3">
@@ -550,6 +590,7 @@ export default function ActividadesPage() {
           </div>
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2.5 border border-slate-800/50 rounded-xl bg-[#0A101D]/80 text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 font-medium text-slate-300">
             <option value="">Todos los estados</option>
+            <option value="vence_hoy">📅 Vence Hoy</option>
             <option value="atrasada">⚠️ Tareas Atrasadas</option>
             {Object.entries(ACTIVITY_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
@@ -567,19 +608,24 @@ export default function ActividadesPage() {
           </select>
 
           <button
+            type="button"
             onClick={() => setShowHistory(!showHistory)}
-            className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 ${
-              showHistory
-                ? "bg-purple-900/40 text-purple-300 border-purple-500/50 shadow-md shadow-purple-500/10"
-                : "bg-[#0A101D]/80 text-slate-400 border-slate-800/50 hover:text-white"
+            className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              !showHistory
+                ? "bg-[#20CDFE]/15 text-[#20CDFE] border-[#20CDFE]/40 shadow-sm shadow-[#20CDFE]/20 hover:bg-[#20CDFE]/25"
+                : "bg-purple-900/40 text-purple-300 border-purple-500/50 shadow-md shadow-purple-500/10 hover:bg-purple-900/60"
             }`}
-            title={showHistory ? "Mostrando todas las actividades completadas y canceladas" : "Ocultando completadas y canceladas de días anteriores"}
+            title={
+              !showHistory
+                ? "Mostrando tareas activas y las terminadas hoy (ocultando completadas y canceladas de días anteriores)"
+                : "Mostrando histórico completo (todas las actividades)"
+            }
           >
-            <Clock size={15} className={showHistory ? "text-purple-400" : "text-slate-400"} />
-            <span>{showHistory ? "Histórico Completo" : "Actividades de Hoy"}</span>
-            {!showHistory && (
-              <span className="bg-purple-950 text-purple-300 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30">
-                {activities.filter(a => (a.status === "aprobada" && !isToday(a.approved_at || a.updated_at)) || (a.status === "cancelada" && !isToday(a.updated_at))).length} ocultas
+            <Clock size={15} className={!showHistory ? "text-[#20CDFE]" : "text-purple-400"} />
+            <span>{!showHistory ? "Actividades de Hoy" : "Histórico Completo"}</span>
+            {!showHistory && totalHidden > 0 && !filterStatus && (
+              <span className="bg-[#20CDFE]/20 text-[#20CDFE] text-[10px] px-2 py-0.5 rounded-full border border-[#20CDFE]/30 font-semibold">
+                {totalHidden} ocultas
               </span>
             )}
           </button>
@@ -588,68 +634,66 @@ export default function ActividadesPage() {
         {/* Contenido (Loading, Lista o Tablero) */}
         {loading ? (
             <div className="flex-1 flex justify-center items-center"><div className="w-10 h-10 border-4 border-[#2E455C] border-t-[#20CDFE] rounded-full animate-spin" /></div>
-        ) : activities.length === 0 ? (
-          <div className="flex-1 flex flex-col justify-center items-center text-slate-400 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 border-dashed">
+        ) : displayedActivities.length === 0 ? (
+          <div className="flex-1 flex flex-col justify-center items-center text-slate-400 bg-[#0A101D]/50 backdrop-blur-xl rounded-2xl border border-slate-800/50 border-dashed p-8">
             <ClipboardList size={48} className="mb-4 opacity-20" />
-            <p className="font-semibold text-lg text-slate-400">No se encontraron actividades</p>
-            <p className="text-sm mt-1">Intenta ajustando los filtros o creando una nueva.</p>
+            <p className="font-semibold text-lg text-slate-300">No se encontraron actividades</p>
+            <p className="text-sm mt-1 text-slate-400">
+              {totalHidden > 0 && !showHistory && !filterStatus
+                ? `Tienes ${totalHidden} actividades en el histórico completadas o canceladas de días anteriores.`
+                : "Intenta ajustando los filtros o creando una nueva."}
+            </p>
+            {totalHidden > 0 && !showHistory && !filterStatus && (
+              <button
+                type="button"
+                onClick={() => setShowHistory(true)}
+                className="mt-4 px-4 py-2 bg-purple-900/50 hover:bg-purple-900/80 border border-purple-500/50 text-purple-200 text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Ver histórico completo ({totalHidden} actividades)
+              </button>
+            )}
           </div>
         ) : viewMode === "board" ? (
           /* Kanban Board View */
           <div className="flex-1 flex gap-5 overflow-x-auto pb-4 h-full snap-x">
             {(() => {
-                const hiddenCompletedCount = activities.filter(a => a.status === "aprobada" && !isToday(a.approved_at || a.updated_at)).length;
-                const hiddenCancelledCount = activities.filter(a => a.status === "cancelada" && !isToday(a.updated_at)).length;
-
                 return columns.map(col => {
-                  const colActivities = activities.filter(a => {
-                    if (a.status !== col.id) return false;
-                    // Auto-ocultar completadas y canceladas de días anteriores si showHistory es false
-                    if (!showHistory) {
-                      if (col.id === "aprobada") {
-                        return isToday(a.approved_at || a.updated_at);
-                      }
-                      if (col.id === "cancelada") {
-                        return isToday(a.updated_at);
-                      }
-                    }
-                    return true;
-                  });
+                  const colActivities = displayedActivities.filter(a => a.status === col.id);
 
                   return (
                     <div key={col.id} className={`flex flex-col min-w-[320px] w-[320px] max-w-[320px] snap-center shrink-0 h-full rounded-2xl border ${col.border} ${col.bg}`}>
                       <div className={`p-4 font-black text-sm uppercase tracking-wider flex items-center justify-between border-b ${col.border}`}>
                         <div className="flex items-center gap-1.5">
                           <span className={col.color}>{col.title}</span>
-                          {(col.id === "aprobada" || col.id === "cancelada") && !showHistory && (
+                          {(col.id === "aprobada" || col.id === "cancelada") && !showHistory && !filterStatus && (
                             <span className="text-[10px] text-slate-400 font-normal lowercase">(hoy)</span>
                           )}
                         </div>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full bg-[#0A101D]/80 border ${col.border} ${col.color}`}>{colActivities.length}</span>
                       </div>
                       <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-                        {col.id === "aprobada" && hiddenCompletedCount > 0 && !showHistory && (
+                        {col.id === "aprobada" && hiddenCompletedCount > 0 && !showHistory && !filterStatus && (
                           <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-center space-y-1">
                             <p className="text-[11px] text-emerald-300 font-semibold">
                               ✨ {hiddenCompletedCount} {hiddenCompletedCount === 1 ? "actividad completada" : "actividades completadas"} en días anteriores.
                             </p>
                             <button
                               onClick={() => setShowHistory(true)}
-                              className="text-[10px] font-bold text-emerald-400 hover:text-emerald-200 underline"
+                              className="text-[10px] font-bold text-emerald-400 hover:text-emerald-200 underline cursor-pointer"
                             >
                               Ver histórico completo
                             </button>
                           </div>
                         )}
 
-                        {col.id === "cancelada" && hiddenCancelledCount > 0 && !showHistory && (
+                        {col.id === "cancelada" && hiddenCancelledCount > 0 && !showHistory && !filterStatus && (
                           <div className="p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-center space-y-1">
                             <p className="text-[11px] text-red-300 font-semibold">
                               🗑️ {hiddenCancelledCount} {hiddenCancelledCount === 1 ? "actividad cancelada" : "actividades canceladas"} en días anteriores.
                             </p>
                             <button
                               onClick={() => setShowHistory(true)}
-                              className="text-[10px] font-bold text-red-400 hover:text-red-200 underline"
+                              className="text-[10px] font-bold text-red-400 hover:text-red-200 underline cursor-pointer"
                             >
                               Ver histórico completo
                             </button>
@@ -658,7 +702,7 @@ export default function ActividadesPage() {
 
                         {colActivities.length === 0 ? (
                           <div className="text-center py-10 text-slate-500 text-xs font-medium opacity-60">
-                            Sin actividades {col.id === "aprobada" || col.id === "cancelada" ? "de hoy" : ""}
+                            Sin actividades {(col.id === "aprobada" || col.id === "cancelada") && !showHistory ? "de hoy" : ""}
                           </div>
                         ) : (
                           colActivities.map(renderBoardCard)
@@ -681,7 +725,7 @@ export default function ActividadesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {activities.map((a) => {
+                {displayedActivities.map((a) => {
                   const overdue = isOverdue(a.deadline, a.status);
                   return (
                     <tr key={a.id} className={`hover:bg-[#0F192E] transition-colors ${overdue ? "bg-red-50/30" : ""}`}>
@@ -809,6 +853,34 @@ export default function ActividadesPage() {
                     </tr>
                   );
                 })}
+                {totalHidden > 0 && !showHistory && !filterStatus && (
+                  <tr className="bg-purple-950/20 border-t border-purple-900/30">
+                    <td colSpan={8} className="px-4 py-3 text-center text-xs text-purple-300 font-medium">
+                      ✨ Se están ocultando {totalHidden} actividades completadas y canceladas de días anteriores.{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowHistory(true)}
+                        className="text-[#20CDFE] underline hover:text-white font-bold ml-1.5 cursor-pointer"
+                      >
+                        Ver histórico completo
+                      </button>
+                    </td>
+                  </tr>
+                )}
+                {showHistory && totalHidden > 0 && !filterStatus && (
+                  <tr className="bg-purple-950/30 border-t border-purple-900/40">
+                    <td colSpan={8} className="px-4 py-2.5 text-center text-xs text-purple-300 font-medium">
+                      📜 Mostrando histórico completo ({totalHidden} actividades antiguas).{" "}
+                      <button
+                        type="button"
+                        onClick={() => setShowHistory(false)}
+                        className="text-[#20CDFE] underline hover:text-white font-bold ml-1.5 cursor-pointer"
+                      >
+                        Volver a actividades de hoy
+                      </button>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

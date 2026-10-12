@@ -35,13 +35,23 @@ export default function MisActividadesPage() {
 
   const isToday = (dateInput?: string | Date | null) => {
     if (!dateInput) return false;
+    const now = new Date();
+    const todayY = now.getFullYear();
+    const todayM = now.getMonth();
+    const todayD = now.getDate();
+    const todayIso = `${todayY}-${String(todayM + 1).padStart(2, "0")}-${String(todayD).padStart(2, "0")}`;
+
+    if (typeof dateInput === "string") {
+      const clean = dateInput.trim();
+      const datePart = clean.split("T")[0].split(" ")[0];
+      if (datePart === todayIso) return true;
+    }
+
     const d = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
     if (isNaN(d.getTime())) return false;
-    const today = new Date();
     return (
-      d.getFullYear() === today.getFullYear() &&
-      d.getMonth() === today.getMonth() &&
-      d.getDate() === today.getDate()
+      (d.getFullYear() === todayY && d.getMonth() === todayM && d.getDate() === todayD) ||
+      (d.getUTCFullYear() === todayY && d.getUTCMonth() === todayM && d.getUTCDate() === todayD)
     );
   };
   
