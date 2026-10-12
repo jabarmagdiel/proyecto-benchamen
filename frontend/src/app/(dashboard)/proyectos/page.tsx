@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Plus, Search, Pencil, Trash2, FolderKanban, ChevronRight, UserCheck } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, FolderKanban, ChevronRight, UserCheck, Archive, ArchiveRestore } from "lucide-react";
 import { projectsApi, companiesApi, usersApi, departmentsApi } from "@/lib/api";
 import type { Project, Company, User, ProjectStatus, Priority, Department } from "@/types";
 import { formatDate } from "@/lib/utils";
@@ -54,6 +54,28 @@ export default function ProyectosPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [isExternalClient, setIsExternalClient] = useState(false);
+  const [viewMode, setViewMode] = useState<"activos" | "archivados">("activos");
+
+  const handleArchive = async (id: number) => {
+    if (!confirm("¿Deseas archivar este proyecto?")) return;
+    try {
+      await projectsApi.archive(id);
+      showToast("Proyecto archivado 📦");
+      load();
+    } catch (e: any) {
+      showToast(e?.response?.data?.detail || "Error al archivar", "error");
+    }
+  };
+
+  const handleUnarchive = async (id: number) => {
+    try {
+      await projectsApi.unarchive(id);
+      showToast("Proyecto restaurado ✅");
+      load();
+    } catch (e: any) {
+      showToast(e?.response?.data?.detail || "Error al desarchivar", "error");
+    }
+  };
 
   const searchParams = useSearchParams();
   const fromRequest = searchParams.get("from_request");
@@ -81,6 +103,7 @@ export default function ProyectosPage() {
     setLoading(true);
     try {
       const params: any = {};
+      params.archived = viewMode === "archivados";
       if (search) params.search = search;
       if (filterStatus) params.status = filterStatus;
       if (filterCompany) params.company_id = filterCompany;
@@ -99,7 +122,7 @@ export default function ProyectosPage() {
     }
   };
 
-  useEffect(() => { load(); }, [search, filterStatus, filterCompany]);
+  useEffect(() => { load(); }, [search, filterStatus, filterCompany, viewMode]);
 
   useEffect(() => {
     const unsubProjects = subscribe("projects", () => load());
@@ -173,12 +196,32 @@ export default function ProyectosPage() {
 
       <div className="space-y-6 animate-fade-in">
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white">Proyectos</h2>
-          <p className="text-slate-400 text-sm mt-0.5">{projects.length} proyecto{projects.length !== 1 ? "s" : ""}</p>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-white">Proyectos</h2>
+            <div className="flex items-center bg-[#070C18] p-1 rounded-xl border border-slate-800/80">
+              <button
+                type="button"
+                onClick={() => setViewMode("activos")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${viewMode === "activos" ? "bg-[#20CDFE] text-[#07060B] shadow-sm shadow-[#20CDFE]/20" : "text-slate-400 hover:text-white"}`}
+              >
+                Activos
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("archivados")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${viewMode === "archivados" ? "bg-amber-500 text-slate-950 font-black shadow-sm" : "text-slate-400 hover:text-white"}`}
+              >
+                Archivados
+              </button>
+            </div>
+          </div>
+          <p className="text-slate-400 text-sm mt-0.5">
+            {projects.length} proyecto{projects.length !== 1 ? "s" : ""} {viewMode === "archivados" ? "archivados" : "activos"}
+          </p>
         </div>
-        {isAdmin && (
+        {isAdmin && viewMode === "activos" && (
           <button onClick={openCreate} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-lg shadow-[#20CDFE]/20">
             <Plus size={16} /> Nuevo proyecto
           </button>
@@ -229,12 +272,33 @@ export default function ProyectosPage() {
                     )}
                   </p>
                 </div>
-                {isAdmin && (
-                  <div className="flex items-center gap-1 ml-2">
-                    <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors"><Pencil size={13} /></button>
-                    <button onClick={() => setDeleteId(p.id)} className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
-                  </div>
-                )}
+                <div className="flex items-center gap-1 ml-2">
+                  {(isAdmin || user?.role === "gerencia") && (
+                    p.is_archived ? (
+                      <button
+                        onClick={() => handleUnarchive(p.id)}
+                        className="p-1.5 rounded-lg hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-400 transition-colors"
+                        title="Restaurar / Desarchivar proyecto"
+                      >
+                        <ArchiveRestore size={13} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleArchive(p.id)}
+                        className="p-1.5 rounded-lg hover:bg-amber-500/20 text-slate-400 hover:text-amber-400 transition-colors"
+                        title="Archivar proyecto"
+                      >
+                        <Archive size={13} />
+                      </button>
+                    )
+                  )}
+                  {isAdmin && (
+                    <>
+                      <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-[#20CDFE]/20 text-slate-400 hover:text-[#20CDFE] transition-colors"><Pencil size={13} /></button>
+                      <button onClick={() => setDeleteId(p.id)} className="p-1.5 rounded-lg hover:bg-red-100 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
+                    </>
+                  )}
+                </div>
               </div>
               {p.description && <p className="text-slate-400 text-xs line-clamp-2">{p.description}</p>}
               {/* Progreso */}
@@ -247,7 +311,14 @@ export default function ProyectosPage() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[p.status]}`}>{PROJECT_STATUS_LABELS[p.status]}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[p.status]}`}>{PROJECT_STATUS_LABELS[p.status]}</span>
+                  {p.is_archived && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                      Archivado
+                    </span>
+                  )}
+                </div>
                 <span className="text-xs text-slate-400">📅 {formatDate(p.deadline)}</span>
               </div>
               <div className="flex items-center justify-between text-xs text-slate-400">

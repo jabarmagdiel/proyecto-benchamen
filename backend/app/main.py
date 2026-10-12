@@ -82,6 +82,15 @@ def run_migrations():
             "projects.department_id",
             "ALTER TABLE projects ADD COLUMN IF NOT EXISTS department_id INT REFERENCES departments(id) ON DELETE SET NULL;",
         ),
+        # is_archived y archived_at en projects
+        (
+            "projects.is_archived",
+            "ALTER TABLE projects ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE;",
+        ),
+        (
+            "projects.archived_at",
+            "ALTER TABLE projects ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;",
+        ),
         # payment_receipt_url en package_requests
         (
             "package_requests.payment_receipt_url",
@@ -219,6 +228,14 @@ def run_migrations():
         except Exception as e:
             print(f"❌ Error en migración '{name}': {e}")
             db.rollback()
+
+    try:
+        from app.services.project_service import auto_archive_expired_projects
+        archived_count = auto_archive_expired_projects(db)
+        if archived_count > 0:
+            print(f"📦 Auto-archivados {archived_count} proyectos vencidos.")
+    except Exception as e:
+        print(f"⚠️ Error en auto-archivado inicial: {e}")
 
     db.close()
     print("✅ Todas las migraciones automáticas verificadas.")

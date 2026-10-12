@@ -20,15 +20,61 @@ def _with_progress(db: Session, project: Project) -> Project:
     return project
 
 
+def auto_archive_expired_projects(db: Session) -> int:
+    from datetime import date, datetime, timezone
+    today = date.today()
+    expired = db.query(Project).filter(
+        Project.is_archived == False,
+        Project.deadline != None,
+        Project.deadline < today,
+    ).all()
+    count = 0
+    now = datetime.now(timezone.utc)
+    for p in expired:
+        p.is_archived = True
+        p.archived_at = now
+        count += 1
+    if count > 0:
+        db.commit()
+    return count
+
+
+def archive_project(db: Session, project_id: int) -> Project:
+    from datetime import datetime, timezone
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    project.is_archived = True
+    project.archived_at = datetime.now(timezone.utc)
+    db.commit()
+    _emit_project_update(project_id)
+    return get_by_id(db, project_id)
+
+
+def unarchive_project(db: Session, project_id: int) -> Project:
+    project = db.query(Project).filter(Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Proyecto no encontrado")
+    project.is_archived = False
+    project.archived_at = None
+    db.commit()
+    _emit_project_update(project_id)
+    return get_by_id(db, project_id)
+
+
 def get_all(
     db: Session,
     company_id: Optional[int] = None,
     status: Optional[str] = None,
     search: Optional[str] = None,
+    archived: Optional[bool] = False,
     skip: int = 0,
     limit: int = 100,
 ) -> List[Project]:
+    auto_archive_expired_projects(db)
     q = db.query(Project).options(joinedload(Project.company), joinedload(Project.main_responsible))
+    if archived is not None:
+        q = q.filter(Project.is_archived == archived)
     if company_id:
         q = q.filter(Project.company_id == company_id)
     if status:

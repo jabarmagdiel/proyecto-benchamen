@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2, Pencil, XCircle, Eye, Image as ImageIcon, Download } from "lucide-react";
+import { ArrowLeft, Upload, Link as LinkIcon, MessageSquare, History, CheckCircle, AlertCircle, Play, Square, Timer, Trash2, Pencil, XCircle, Eye, Image as ImageIcon, Download, Info, Plus } from "lucide-react";
 import { activitiesApi, evidencesApi, commentsApi, projectsApi, usersApi } from "@/lib/api";
 import type { Activity, Evidence, Comment, ActivityHistory as HistEntry, User } from "@/types";
 import { ACTIVITY_TYPE_LABELS, ACTIVITY_STATUS_LABELS, PRIORITY_LABELS } from "@/types";
@@ -37,7 +37,7 @@ export default function ActivityDetailPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [editReferenceLink, setEditReferenceLink] = useState("");
+  const [editReferenceLinks, setEditReferenceLinks] = useState<string[]>([""]);
   const [editPriority, setEditPriority] = useState("media");
   const [editAssignedUserId, setEditAssignedUserId] = useState("");
   const [editStartDate, setEditStartDate] = useState("");
@@ -77,7 +77,8 @@ export default function ActivityDetailPage() {
     if (!activity) return;
     setEditTitle(activity.title || "");
     setEditDescription(activity.description || "");
-    setEditReferenceLink(activity.reference_link || "");
+    const existingLinks = activity.reference_link ? activity.reference_link.split("\n").map(l => l.trim()).filter(Boolean) : [];
+    setEditReferenceLinks(existingLinks.length > 0 ? existingLinks : [""]);
     setEditPriority(activity.priority || "media");
     setEditAssignedUserId(activity.assigned_user_id ? String(activity.assigned_user_id) : "");
     setEditStartDate(activity.start_date || "");
@@ -92,10 +93,11 @@ export default function ActivityDetailPage() {
     }
     setSubmittingEdit(true);
     try {
+      const combinedLinks = editReferenceLinks.map(l => l.trim()).filter(Boolean).join("\n");
       await activitiesApi.update(actId, {
         title: editTitle,
         description: editDescription,
-        reference_link: editReferenceLink || null,
+        reference_link: combinedLinks || null,
         priority: editPriority as any,
         assigned_user_id: editAssignedUserId ? Number(editAssignedUserId) : null,
         start_date: editStartDate || null,
@@ -296,7 +298,7 @@ export default function ActivityDetailPage() {
   const canUploadEvidence = isOwner || isAdmin || isGerencia;
   const canStart = (isOwner || isAdmin || isGerencia) && activity.status === "asignada";
   const canSendReview = (isOwner || isAdmin || isGerencia) && ["en_proceso", "observada"].includes(activity.status);
-  const canApprove = (isAdmin || isGerencia || (user?.role === 'cliente' && (activity.node_type === 'end' || activity.current_stage?.node_type === 'end'))) && activity.status === "en_revision";
+  const canApprove = (isAdmin || (isGerencia && !isOwner) || (user?.role === 'cliente' && (activity.node_type === 'end' || activity.current_stage?.node_type === 'end'))) && activity.status === "en_revision";
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
@@ -306,17 +308,62 @@ export default function ActivityDetailPage() {
         </div>
       )}
 
-      {/* Header */}
+      {/* Aviso a Gerente asignado: no puede auto-aprobarse */}
+      {isGerencia && isOwner && activity.status === "en_revision" && (
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 flex gap-3 items-start animate-fade-in shadow-[0_4px_20px_rgba(59,130,246,0.1)]">
+          <Info className="text-[#20CDFE] shrink-0 mt-0.5" size={20} />
+          <div>
+            <h4 className="text-[#20CDFE] font-bold text-sm">Actividad en Revisión (Asignada a ti)</h4>
+            <p className="text-slate-300 text-sm mt-1">
+              Esta actividad está asignada a ti. Solo puede ser aprobada o evaluada por quien la designó o por un Administrador.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Header: Observación más reciente + historial de anteriores */}
       {activity.status === "observada" && history.length > 0 && (() => {
-        const obsHistory = [...history].reverse().find(h => h.action.toLowerCase() === "observada" || h.new_status === "observada");
-        if (obsHistory && obsHistory.description) {
+        const allObs = [...history]
+          .filter(h => h.action?.toLowerCase() === "observada" || h.new_status === "observada")
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        const latestObs = allObs[0];
+        if (latestObs && latestObs.description) {
           return (
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex gap-3 items-start animate-fade-in shadow-[0_4px_20px_rgba(245,158,11,0.1)]">
-              <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={20} />
-              <div>
-                <h4 className="text-amber-500 font-bold text-sm">Actividad Observada por {obsHistory.user?.name || "Administrador"}</h4>
-                <p className="text-amber-200/90 text-sm mt-1 whitespace-pre-wrap">{obsHistory.description}</p>
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 space-y-3 animate-fade-in shadow-[0_4px_20px_rgba(245,158,11,0.1)]">
+              <div className="flex gap-3 items-start">
+                <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={20} />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-amber-500 font-bold text-sm">
+                      Actividad Observada por {latestObs.user?.name || "Administrador"}
+                    </h4>
+                    {latestObs.created_at && (
+                      <span className="text-[11px] text-amber-400/70 font-mono">
+                        {formatDate(latestObs.created_at)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-amber-200/90 text-sm mt-1 whitespace-pre-wrap">{latestObs.description}</p>
+                </div>
               </div>
+              {allObs.length > 1 && (
+                <details className="mt-2 text-xs text-amber-300/80 cursor-pointer border-t border-amber-500/20 pt-2">
+                  <summary className="font-semibold hover:text-amber-200 select-none">
+                    Ver historial de observaciones anteriores ({allObs.length - 1})
+                  </summary>
+                  <div className="space-y-2 mt-2 pl-2 border-l-2 border-amber-500/30">
+                    {allObs.slice(1).map((obs, idx) => (
+                      <div key={idx} className="bg-amber-950/30 p-2.5 rounded-lg border border-amber-500/20">
+                        <div className="flex items-center justify-between text-[11px] text-amber-400/80 mb-1">
+                          <span className="font-bold">{obs.user?.name || "Evaluador"}</span>
+                          <span className="font-mono">{obs.created_at ? formatDate(obs.created_at) : ""}</span>
+                        </div>
+                        <p className="text-amber-100/80 whitespace-pre-wrap">{obs.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
             </div>
           );
         }
@@ -414,41 +461,49 @@ export default function ActivityDetailPage() {
               </div>
             )}
 
-            {/* Tarjeta Dedicada de Link Referencial / Materiales */}
-            {activity.reference_link && (
-              <div className="bg-gradient-to-r from-blue-950/60 to-indigo-950/40 border border-blue-500/30 p-4.5 rounded-2xl space-y-2.5 shadow-md max-w-full overflow-hidden">
-                <div className="flex items-center justify-between">
-                  <span className="text-[#20CDFE] text-xs font-black uppercase tracking-wider block flex items-center gap-1.5">
-                    🔗 Link Referencial / Materiales de Trabajo:
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0A101D]/90 border border-blue-500/20 p-3 rounded-xl max-w-full overflow-hidden">
-                  <span className="text-xs font-bold text-slate-200 break-all line-clamp-2 max-w-full">
-                    {activity.reference_link}
-                  </span>
-                  <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(activity.reference_link || "");
-                        showToast("Link copiado al portapapeles 📋");
-                      }}
-                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-all"
-                    >
-                      📋 Copiar
-                    </button>
-                    <a
-                      href={activity.reference_link.startsWith("http") ? activity.reference_link : `https://${activity.reference_link}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] hover:opacity-90 flex items-center gap-1.5 shadow-md shadow-[#20CDFE]/20 transition-all transform hover:scale-[1.02]"
-                    >
-                      <LinkIcon size={14} /> Abrir Link ↗
-                    </a>
+            {/* Tarjeta Dedicada de Links Referenciales / Materiales (Soporta múltiples) */}
+            {activity.reference_link && (() => {
+              const linksList = activity.reference_link.split("\n").map(l => l.trim()).filter(Boolean);
+              if (linksList.length === 0) return null;
+              return (
+                <div className="bg-gradient-to-r from-blue-950/60 to-indigo-950/40 border border-blue-500/30 p-4.5 rounded-2xl space-y-3 shadow-md max-w-full overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#20CDFE] text-xs font-black uppercase tracking-wider block flex items-center gap-1.5">
+                      🔗 {linksList.length > 1 ? `Links Referenciales / Materiales (${linksList.length})` : "Link Referencial / Materiales de Trabajo"}:
+                    </span>
+                  </div>
+                  <div className="space-y-2.5">
+                    {linksList.map((lUrl, idx) => (
+                      <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0A101D]/90 border border-blue-500/20 p-3 rounded-xl max-w-full overflow-hidden">
+                        <span className="text-xs font-bold text-slate-200 break-all line-clamp-2 max-w-full">
+                          {lUrl}
+                        </span>
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(lUrl);
+                              showToast("Link copiado al portapapeles 📋");
+                            }}
+                            className="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 flex items-center gap-1 transition-all"
+                          >
+                            📋 Copiar
+                          </button>
+                          <a
+                            href={lUrl.startsWith("http") ? lUrl : `https://${lUrl}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] hover:opacity-90 flex items-center gap-1.5 shadow-md shadow-[#20CDFE]/20 transition-all transform hover:scale-[1.02]"
+                          >
+                            <LinkIcon size={14} /> Abrir Link ↗
+                          </a>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             <div className="space-y-3 text-sm pt-2">
               {[
@@ -806,16 +861,45 @@ export default function ActivityDetailPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
-                  🔗 Link Referencial / Materiales (Drive, Figma, Canva, etc.)
-                </label>
-                <input
-                  type="url"
-                  value={editReferenceLink}
-                  onChange={e => setEditReferenceLink(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#070C18] text-white font-medium"
-                  placeholder="https://drive.google.com/drive/folders/..."
-                />
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    🔗 Links Referenciales / Materiales (Drive, Figma, Canva, etc.)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setEditReferenceLinks(prev => [...prev, ""])}
+                    className="text-xs font-extrabold text-[#20CDFE] hover:underline flex items-center gap-1"
+                  >
+                    <Plus size={13} /> Agregar otro link
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {editReferenceLinks.map((link, idx) => (
+                    <div key={idx} className="flex items-center gap-2">
+                      <input
+                        type="url"
+                        value={link}
+                        onChange={e => {
+                          const updated = [...editReferenceLinks];
+                          updated[idx] = e.target.value;
+                          setEditReferenceLinks(updated);
+                        }}
+                        className="flex-1 px-3.5 py-2.5 border border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#070C18] text-white font-medium"
+                        placeholder={idx === 0 ? "https://drive.google.com/..." : "https://otro-enlace.com/..."}
+                      />
+                      {editReferenceLinks.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setEditReferenceLinks(prev => prev.filter((_, i) => i !== idx))}
+                          className="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-xl border border-rose-500/20 transition-colors"
+                          title="Quitar enlace"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

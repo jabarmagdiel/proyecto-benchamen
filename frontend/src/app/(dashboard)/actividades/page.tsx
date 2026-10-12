@@ -177,10 +177,12 @@ export default function ActividadesPage() {
   };
 
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [referenceLinks, setReferenceLinks] = useState<string[]>([""]);
 
   const openNewModal = () => {
     setEditingActivity(null);
     setIsIndependent(false);
+    setReferenceLinks([""]);
     reset({
       title: "",
       description: "",
@@ -199,6 +201,8 @@ export default function ActividadesPage() {
   const openEditModal = (a: Activity) => {
     setEditingActivity(a);
     setIsIndependent(!a.project_id);
+    const existing = a.reference_link ? a.reference_link.split("\n").map(l => l.trim()).filter(Boolean) : [];
+    setReferenceLinks(existing.length > 0 ? existing : [""]);
     reset({
       title: a.title,
       description: a.description || "",
@@ -225,6 +229,7 @@ export default function ActividadesPage() {
       if (isIndependent || !payload.project_id || Number(payload.project_id) === 0) {
         payload.project_id = null;
       }
+      payload.reference_link = referenceLinks.map(l => l.trim()).filter(Boolean).join("\n") || null;
 
       if (editingActivity) {
         await activitiesApi.update(editingActivity.id, payload);
@@ -461,7 +466,10 @@ export default function ActividadesPage() {
                   Enviar a rev.
                 </button>
              )}
-             {a.status === "en_revision" && (currentUser?.role === "administrador" || currentUser?.role === "gerencia") && (
+             {a.status === "en_revision" && (
+               currentUser?.role === "administrador" ||
+               (currentUser?.role === "gerencia" && a.assigned_user_id !== currentUser?.id && a.assigned_user_id !== (currentUser as any)?.user_id)
+             ) && (
                 <>
                   <button onClick={() => handleApprove(a.id)} className="flex-1 text-[10px] uppercase tracking-wider font-bold bg-green-50 text-green-700 hover:bg-green-100 py-1.5 rounded-lg transition-colors" title="Aprobar">
                     Aprobar
@@ -470,6 +478,11 @@ export default function ActividadesPage() {
                     Observar
                   </button>
                 </>
+             )}
+             {a.status === "en_revision" && currentUser?.role === "gerencia" && (a.assigned_user_id === currentUser?.id || a.assigned_user_id === (currentUser as any)?.user_id) && (
+                <span className="flex-1 text-[10px] text-center font-bold text-amber-400/90 bg-amber-500/10 border border-amber-500/20 py-1.5 px-2 rounded-lg">
+                  Pendiente aprobación (Admin)
+                </span>
              )}
              {!["aprobada", "cancelada"].includes(a.status) && canModifyActivity(a) && (
                 <button onClick={() => handleCancel(a.id)} className="w-8 h-8 flex items-center justify-center shrink-0 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Cancelar">
@@ -768,7 +781,10 @@ export default function ActividadesPage() {
                               <Send size={14} />
                             </button>
                           )}
-                          {a.status === "en_revision" && (currentUser?.role === "administrador" || currentUser?.role === "gerencia") && (
+                          {a.status === "en_revision" && (
+                            currentUser?.role === "administrador" ||
+                            (currentUser?.role === "gerencia" && a.assigned_user_id !== currentUser?.id && a.assigned_user_id !== (currentUser as any)?.user_id)
+                          ) && (
                              <>
                                <button onClick={() => handleApprove(a.id)} className="p-1.5 rounded-lg hover:bg-green-100 text-slate-400 hover:text-green-600 transition-colors" title="Aprobar">
                                  <CheckCircle size={14} />
@@ -858,15 +874,45 @@ export default function ActividadesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
-                    🔗 Link Referencial / Materiales (Drive, Figma, Canva, etc.)
-                  </label>
-                  <input
-                    {...register("reference_link")}
-                    type="url"
-                    className="w-full px-3.5 py-2.5 border border-slate-800/80 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#0A101D]/80 text-white"
-                    placeholder="https://drive.google.com/drive/folders/..."
-                  />
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      🔗 Links Referenciales / Materiales (Drive, Figma, Canva, etc.)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setReferenceLinks(prev => [...prev, ""])}
+                      className="text-xs font-extrabold text-[#20CDFE] hover:underline flex items-center gap-1"
+                    >
+                      <Plus size={13} /> Agregar otro link
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {referenceLinks.map((link, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <input
+                          type="url"
+                          value={link}
+                          onChange={e => {
+                            const updated = [...referenceLinks];
+                            updated[idx] = e.target.value;
+                            setReferenceLinks(updated);
+                          }}
+                          className="flex-1 px-3.5 py-2.5 border border-slate-800/80 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#20CDFE] bg-[#0A101D]/80 text-white"
+                          placeholder={idx === 0 ? "https://drive.google.com/..." : "https://otro-enlace.com/..."}
+                        />
+                        {referenceLinks.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setReferenceLinks(prev => prev.filter((_, i) => i !== idx))}
+                            className="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 rounded-xl border border-rose-500/20 transition-colors"
+                            title="Quitar enlace"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

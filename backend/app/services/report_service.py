@@ -108,13 +108,29 @@ def get_analytics_report(
     status: Optional[str] = None,
     date_from: Optional[date] = None,
     date_to: Optional[date] = None,
+    page: int = 1,
+    page_size: int = 20,
+    search: Optional[str] = None,
+    archived: Optional[str] = "exclude",
 ):
     from app.models.financial_transaction import FinancialTransaction
+    from app.services.project_service import auto_archive_expired_projects
+    auto_archive_expired_projects(db)
     today = date.today()
 
     # Query base de actividades
     act_q = db.query(Activity).outerjoin(Project, Project.id == Activity.project_id).outerjoin(Company, Company.id == Project.company_id)
     role_str = current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role)
+
+    # Filtro de archivados
+    if archived == "exclude":
+        act_q = act_q.filter((Project.is_archived == False) | (Activity.project_id == None))
+    elif archived == "only":
+        act_q = act_q.filter(Project.is_archived == True)
+
+    # Filtro de búsqueda textual por título
+    if search:
+        act_q = act_q.filter(Activity.title.ilike(f"%{search}%"))
 
     if role_str == "gerencia":
         user_dept_ids = [d.id for d in current_user.departments]
@@ -234,9 +250,16 @@ def get_analytics_report(
         net_profit = total_income - total_expenses
 
 
-    # Lista formateada de actividades para la tabla del reporte (Top 100)
+    # Paginación de actividades (20 en 20 por defecto)
+    import math
+    total_items = len(activities)
+    total_pages = max(1, math.ceil(total_items / page_size)) if total_items > 0 else 1
+    safe_page = max(1, min(page, total_pages))
+    offset = (safe_page - 1) * page_size
+    paginated_activities = activities[offset : offset + page_size]
+
     activity_list = []
-    for a in activities[:100]:
+    for a in paginated_activities:
         st_val = a.status.value if hasattr(a.status, 'value') else str(a.status)
         tp_val = a.activity_type.value if hasattr(a.activity_type, 'value') else str(a.activity_type)
         pr_val = a.priority.value if hasattr(a.priority, 'value') else str(a.priority)
@@ -256,6 +279,12 @@ def get_analytics_report(
         })
 
     return {
+        "pagination": {
+            "page": safe_page,
+            "page_size": page_size,
+            "total_items": total_items,
+            "total_pages": total_pages,
+        },
         "kpis": {
             "total_activities": total_activities,
             "completed_activities": completed_activities,

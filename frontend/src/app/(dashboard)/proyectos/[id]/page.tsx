@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Plus, Search, Eye, ClipboardList, Calendar,
-  User as UserIcon, Building2, AlertTriangle, Clock
+  User as UserIcon, Building2, AlertTriangle, Clock, Archive, ArchiveRestore
 } from "lucide-react";
 import { projectsApi, activitiesApi, usersApi, departmentsApi } from "@/lib/api";
 import type { Project, Activity, User as UserType } from "@/types";
@@ -34,8 +34,29 @@ type FormData = z.infer<typeof schema>;
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const projectId = Number(id);
+
+  const handleArchive = async () => {
+    if (!confirm("¿Deseas archivar este proyecto?")) return;
+    try {
+      await projectsApi.archive(projectId);
+      showToast("Proyecto archivado 📦");
+      loadData();
+    } catch (e: any) {
+      showToast(e?.response?.data?.detail || "Error al archivar", "error");
+    }
+  };
+
+  const handleUnarchive = async () => {
+    try {
+      await projectsApi.unarchive(projectId);
+      showToast("Proyecto restaurado ✅");
+      loadData();
+    } catch (e: any) {
+      showToast(e?.response?.data?.detail || "Error al desarchivar", "error");
+    }
+  };
 
   const [project, setProject] = useState<Project | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -215,19 +236,45 @@ export default function ProjectDetailPage() {
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="text-xs bg-[#1C2C4D] text-slate-300 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
-                <Building2 size={12} /> {project.company?.name}
+                <Building2 size={12} /> {project.company?.name || "Sin Empresa"}
               </span>
               <span className="text-xs bg-violet-50 text-[#20CDFE] px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
                 <UserIcon size={12} /> Responsable: {project.main_responsible?.name || "Sin asignar"}
               </span>
+              {project.is_archived && (
+                <span className="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-black flex items-center gap-1 uppercase tracking-wider">
+                  <Archive size={12} /> Archivado
+                </span>
+              )}
             </div>
             <h1 className="text-2xl font-bold text-white truncate">{project.name}</h1>
           </div>
-          {isAdmin && (
-            <button onClick={handleOpenCreateModal} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-[#20CDFE]/20 cursor-pointer">
-              <Plus size={16} /> Nueva actividad
-            </button>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {(isAdmin || user?.role === "gerencia") && (
+              project.is_archived ? (
+                <button
+                  type="button"
+                  onClick={handleUnarchive}
+                  className="flex items-center gap-2 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3.5 py-2.5 rounded-xl text-xs font-bold hover:bg-emerald-500/30 transition-all cursor-pointer shadow-sm"
+                >
+                  <ArchiveRestore size={15} /> Desarchivar
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleArchive}
+                  className="flex items-center gap-2 bg-amber-500/10 text-amber-300 border border-amber-500/30 px-3.5 py-2.5 rounded-xl text-xs font-bold hover:bg-amber-500/20 transition-all cursor-pointer shadow-sm"
+                >
+                  <Archive size={15} /> Archivar
+                </button>
+              )
+            )}
+            {isAdmin && !project.is_archived && (
+              <button onClick={handleOpenCreateModal} className="flex items-center gap-2 bg-gradient-to-r from-[#20CDFE] to-[#1ED1B4] text-[#07060B] px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 shadow-lg shadow-[#20CDFE]/20 cursor-pointer">
+                <Plus size={16} /> Nueva actividad
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Resumen e información general */}

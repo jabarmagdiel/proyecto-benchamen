@@ -24,7 +24,11 @@ export default function AprobacionesPage() {
     try {
       // Los clientes solo verán las actividades de su empresa "En revisión"
       const r = await activitiesApi.list({ status: "en_revision" });
-      setActivities(r.data);
+      let items = r.data || [];
+      if (user?.role === "gerencia") {
+        items = items.filter((a: Activity) => a.assigned_user_id !== user.id && a.assigned_user_id !== (user as any).user_id);
+      }
+      setActivities(items);
     } catch (e) {
       console.error(e);
     } finally {

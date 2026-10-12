@@ -523,9 +523,14 @@ async def approve_activity(db: Session, activity_id: int, current_user: User, bg
         raise HTTPException(status_code=403, detail="Solo administradores, gerencia o clientes pueden aprobar actividades")
 
     if current_user.role.value == "gerencia":
+        if activity.assigned_user_id == current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="No puedes aprobar una actividad asignada a ti mismo; debe aprobarla quien la designó o un administrador"
+            )
         user_dept_ids = [d.id for d in current_user.departments]
         from app.models.user import user_departments
-        is_owner_or_creator = activity.created_by_id == current_user.id or activity.assigned_user_id == current_user.id
+        is_creator = activity.created_by_id == current_user.id
         is_dept_user = False
         if activity.assigned_user_id:
             is_dept_user = db.query(user_departments).filter(
@@ -536,7 +541,7 @@ async def approve_activity(db: Session, activity_id: int, current_user: User, bg
         if activity.project and activity.project.department_id:
             is_dept_proj = activity.project.department_id in user_dept_ids
 
-        if not (is_owner_or_creator or is_dept_user or is_dept_proj):
+        if not (is_creator or is_dept_user or is_dept_proj):
             raise HTTPException(status_code=403, detail="No tienes permiso para aprobar actividades fuera de tu departamento")
         
     if current_user.role.value == "cliente" and activity.status != ActivityStatus.IN_REVIEW:
@@ -590,9 +595,14 @@ async def observe_activity(
         raise HTTPException(status_code=403, detail="Solo administradores, gerencia o clientes pueden observar actividades")
 
     if current_user.role.value == "gerencia":
+        if activity.assigned_user_id == current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="No puedes observar una actividad asignada a ti mismo; solo quien te la designó o un administrador puede evaluarla"
+            )
         user_dept_ids = [d.id for d in current_user.departments]
         from app.models.user import user_departments
-        is_owner_or_creator = activity.created_by_id == current_user.id or activity.assigned_user_id == current_user.id
+        is_creator = activity.created_by_id == current_user.id
         is_dept_user = False
         if activity.assigned_user_id:
             is_dept_user = db.query(user_departments).filter(
@@ -603,7 +613,7 @@ async def observe_activity(
         if activity.project and activity.project.department_id:
             is_dept_proj = activity.project.department_id in user_dept_ids
 
-        if not (is_owner_or_creator or is_dept_user or is_dept_proj):
+        if not (is_creator or is_dept_user or is_dept_proj):
             raise HTTPException(status_code=403, detail="No tienes permiso para observar actividades fuera de tu departamento")
         
     if current_user.role.value == "cliente" and activity.status != ActivityStatus.IN_REVIEW:

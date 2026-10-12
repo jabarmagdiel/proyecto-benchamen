@@ -15,6 +15,7 @@ def list_projects(
     company_id: Optional[int] = Query(None),
     status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    archived: Optional[bool] = Query(False),
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
@@ -22,7 +23,23 @@ def list_projects(
 ):
     if current_user.role.value == "cliente":
         company_id = current_user.company_id
-    return project_svc.get_all(db, company_id=company_id, status=status, search=search, skip=skip, limit=limit)
+    return project_svc.get_all(db, company_id=company_id, status=status, search=search, archived=archived, skip=skip, limit=limit)
+
+
+@router.patch("/{project_id}/archive", response_model=ProjectResponse)
+def archive_project(project_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role.value not in ["administrador", "gerencia"]:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Solo administradores o gerencia pueden archivar proyectos")
+    return project_svc.archive_project(db, project_id)
+
+
+@router.patch("/{project_id}/unarchive", response_model=ProjectResponse)
+def unarchive_project(project_id: int, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+    if current_user.role.value not in ["administrador", "gerencia"]:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Solo administradores o gerencia pueden desarchivar proyectos")
+    return project_svc.unarchive_project(db, project_id)
 
 
 @router.post("", response_model=ProjectResponse, status_code=201)

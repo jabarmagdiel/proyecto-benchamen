@@ -28,6 +28,8 @@ class Project(Base):
         default=Priority.MEDIUM,
         nullable=False,
     )
+    is_archived: Mapped[bool] = mapped_column(default=False, nullable=False)
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )

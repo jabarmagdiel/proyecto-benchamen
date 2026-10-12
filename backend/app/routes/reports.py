@@ -18,6 +18,10 @@ def get_analytics(
     status: Optional[str] = Query(None),
     date_from: Optional[date] = Query(None),
     date_to: Optional[date] = Query(None),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    search: Optional[str] = Query(None),
+    archived: Optional[str] = Query("exclude"),
     db: Session = Depends(get_db),
     current_user=Depends(require_admin_or_gerencia),
 ):
@@ -30,6 +34,10 @@ def get_analytics(
         status=status,
         date_from=date_from,
         date_to=date_to,
+        page=page,
+        page_size=page_size,
+        search=search,
+        archived=archived,
     )
 
 

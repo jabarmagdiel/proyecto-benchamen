@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import {
   BarChart2, Download, FileSpreadsheet, FileText, Filter,
   Calendar, Users, Building2, FolderKanban, CheckCircle2,
-  Clock, AlertTriangle, TrendingUp, DollarSign, RefreshCw, Printer, Search
+  Clock, AlertTriangle, TrendingUp, DollarSign, RefreshCw, Printer, Search,
+  ChevronLeft, ChevronRight
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -46,6 +47,23 @@ export default function ReportesPage() {
   const [activePreset, setActivePreset] = useState<string>("all");
 
   const [tableSearch, setTableSearch] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [archivedFilter, setArchivedFilter] = useState<"exclude" | "include" | "only">("exclude");
+
+  const getPageNumbers = (current: number, total: number) => {
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const pages: (number | string)[] = [];
+    if (current <= 4) {
+      pages.push(1, 2, 3, 4, 5, "...", total);
+    } else if (current >= total - 3) {
+      pages.push(1, "...", total - 4, total - 3, total - 2, total - 1, total);
+    } else {
+      pages.push(1, "...", current - 1, current, current + 1, "...", total);
+    }
+    return pages;
+  };
   const [loading, setLoading] = useState<boolean>(true);
 
   // Cargar listas de opciones al montar
@@ -62,16 +80,21 @@ export default function ReportesPage() {
   }, []);
 
   // Cargar estadísticas reportadas dinámicamente cuando cambien los filtros
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (targetPage = page) => {
     setLoading(true);
     try {
-      const params: any = {};
+      const params: any = {
+        page: targetPage,
+        page_size: 20,
+        archived: archivedFilter,
+      };
       if (dateFrom) params.date_from = dateFrom;
       if (dateTo) params.date_to = dateTo;
       if (selectedUser) params.user_id = selectedUser;
       if (selectedCompany) params.company_id = selectedCompany;
       if (selectedProject) params.project_id = selectedProject;
       if (selectedStatus) params.status = selectedStatus;
+      if (tableSearch) params.search = tableSearch;
 
       const res = await reportsApi.getAnalytics(params);
       setData(res.data);
@@ -83,8 +106,14 @@ export default function ReportesPage() {
   };
 
   useEffect(() => {
-    fetchAnalytics();
-  }, [dateFrom, dateTo, selectedUser, selectedCompany, selectedProject, selectedStatus]);
+    setPage(1);
+    fetchAnalytics(1);
+  }, [dateFrom, dateTo, selectedUser, selectedCompany, selectedProject, selectedStatus, archivedFilter, tableSearch]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchAnalytics(newPage);
+  };
 
   // Presets rápidos de fechas
   const applyPreset = (preset: string) => {
@@ -149,11 +178,8 @@ export default function ReportesPage() {
   const statusChartData = data?.activity_by_status || [];
   const typeChartData = data?.activity_by_type || [];
   const userPerformanceData = data?.user_performance || [];
-  const activitiesList = (data?.activities || []).filter((a: any) => 
-    !tableSearch || a.title.toLowerCase().includes(tableSearch.toLowerCase()) ||
-    a.assigned_user.toLowerCase().includes(tableSearch.toLowerCase()) ||
-    a.project_name.toLowerCase().includes(tableSearch.toLowerCase())
-  );
+  const activitiesList = data?.activities || [];
+  const pagination = data?.pagination || { page: 1, page_size: 20, total_items: activitiesList.length, total_pages: 1 };
 
   return (
     <div className="space-y-6 animate-fade-in pb-12">
@@ -318,6 +344,20 @@ export default function ReportesPage() {
                   {v}
                 </option>
               ))}
+            </select>
+          </div>
+
+          {/* Filtrar por Proyectos Archivados */}
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Proyectos Archivados</label>
+            <select
+              value={archivedFilter}
+              onChange={(e) => setArchivedFilter(e.target.value as any)}
+              className="w-full bg-[#15233D] border border-slate-800/60 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:ring-2 focus:ring-[#20CDFE]"
+            >
+              <option value="exclude">Ocultar archivados</option>
+              <option value="include">Incluir archivados</option>
+              <option value="only">Solo archivados</option>
             </select>
           </div>
         </div>
@@ -561,7 +601,7 @@ export default function ReportesPage() {
               <div>
                 <h3 className="font-bold text-white text-base">Detalle de Actividades del Reporte</h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Mostrando {activitiesList.length} actividades filtradas
+                  Mostrando {activitiesList.length} de {pagination.total_items} actividades (Página {pagination.page} de {pagination.total_pages})
                 </p>
               </div>
 
@@ -623,6 +663,56 @@ export default function ReportesPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Paginación estilo Google */}
+            {pagination.total_pages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-800/60 select-none">
+                <p className="text-xs text-slate-400">
+                  Mostrando <span className="font-bold text-white">{(pagination.page - 1) * pagination.page_size + 1}</span> a{" "}
+                  <span className="font-bold text-white">{Math.min(pagination.page * pagination.page_size, pagination.total_items)}</span> de{" "}
+                  <span className="font-bold text-[#20CDFE]">{pagination.total_items}</span> actividades
+                </p>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(pagination.page - 1)}
+                    disabled={pagination.page <= 1}
+                    className="px-3 py-1.5 rounded-xl border border-slate-800 bg-[#15233D] text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    <ChevronLeft size={14} /> Anterior
+                  </button>
+
+                  {getPageNumbers(pagination.page, pagination.total_pages).map((pNum, idx) => (
+                    pNum === "..." ? (
+                      <span key={idx} className="px-2 py-1 text-slate-500 font-bold text-xs">...</span>
+                    ) : (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handlePageChange(Number(pNum))}
+                        className={`min-w-[32px] h-8 px-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                          pagination.page === pNum
+                            ? "bg-[#20CDFE] text-[#07060B] shadow-md shadow-[#20CDFE]/20"
+                            : "border border-slate-800/80 bg-[#15233D]/60 text-slate-400 hover:text-white hover:bg-[#15233D]"
+                        }`}
+                      >
+                        {pNum}
+                      </button>
+                    )
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => handlePageChange(pagination.page + 1)}
+                    disabled={pagination.page >= pagination.total_pages}
+                    className="px-3 py-1.5 rounded-xl border border-slate-800 bg-[#15233D] text-xs font-bold text-slate-300 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    Siguiente <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}

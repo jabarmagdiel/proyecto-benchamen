@@ -102,6 +102,8 @@ export interface Project {
   department?: Department;
   activity_count?: number;
   progress?: number;
+  is_archived?: boolean;
+  archived_at?: string;
 }
 
 // ─── Activity ─────────────────────────────────────────────────────────────────

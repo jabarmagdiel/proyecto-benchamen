@@ -72,5 +72,7 @@ class ProjectResponse(BaseModel):
     package_request_id: Optional[int] = None
     activity_count: Optional[int] = 0
     progress: Optional[float] = 0.0  # porcentaje de actividades aprobadas
+    is_archived: bool = False
+    archived_at: Optional[datetime] = None
 
     model_config = {"from_attributes": True}

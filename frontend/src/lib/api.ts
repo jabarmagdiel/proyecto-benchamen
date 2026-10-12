@@ -81,6 +81,8 @@ export const projectsApi = {
   getEvidences: (id: number) => api.get(`/api/projects/${id}/evidences`),
   create: (data: object) => api.post("/api/projects", data),
   update: (id: number, data: object) => api.put(`/api/projects/${id}`, data),
+  archive: (id: number) => api.patch(`/api/projects/${id}/archive`),
+  unarchive: (id: number) => api.patch(`/api/projects/${id}/unarchive`),
   delete: (id: number) => api.delete(`/api/projects/${id}`),
 };
 
