@@ -678,44 +678,9 @@ export default function ReportesPage() {
               </table>
             </div>
 
-            {/* Paginación Goooooooooogle interactiva */}
-            <div className="flex flex-col items-center justify-center pt-8 pb-4 border-t border-slate-800/60 select-none">
-              {/* Goooooooooogle header con colores icónicos */}
-              <div className="flex items-center justify-center text-3xl font-black font-sans tracking-tight mb-2 select-none">
-                <span className="text-[#4285F4]">G</span>
-                {visiblePages.map((pNum, idx) => (
-                  <span
-                    key={pNum}
-                    onClick={() => handlePageChange(pNum)}
-                    className={`cursor-pointer transition-transform duration-150 hover:scale-125 inline-block ${
-                      currentPage === pNum
-                        ? "text-[#EA4335] font-black scale-110 drop-shadow-[0_2px_10px_rgba(234,67,53,0.6)]"
-                        : idx % 3 === 0
-                        ? "text-[#FBBC05]"
-                        : idx % 3 === 1
-                        ? "text-[#4285F4]"
-                        : "text-[#34A853]"
-                    }`}
-                    title={`Ir a página ${pNum}`}
-                  >
-                    o
-                  </span>
-                ))}
-                <span className="text-[#4285F4]">g</span>
-                <span className="text-[#34A853]">l</span>
-                <span className="text-[#EA4335]">e</span>
-                {currentPage < totalPages && (
-                  <span
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    className="text-[#8ab4f8] text-2xl font-black ml-2 cursor-pointer hover:translate-x-1 transition-transform"
-                    title="Página siguiente"
-                  >
-                    &gt;
-                  </span>
-                )}
-              </div>
-
-              {/* Fila de números y navegación estilo Google */}
+            {/* Paginación de páginas */}
+            <div className="flex flex-col items-center justify-center pt-6 pb-2 border-t border-slate-800/60 select-none">
+              {/* Fila de números y navegación */}
               <div className="flex items-center justify-center gap-2 text-sm font-semibold">
                 {currentPage > 1 && (
                   <button
@@ -733,10 +698,10 @@ export default function ReportesPage() {
                       key={pNum}
                       type="button"
                       onClick={() => handlePageChange(pNum)}
-                      className={`min-w-[28px] h-7 px-1.5 flex items-center justify-center rounded-md text-xs font-bold transition-all cursor-pointer ${
+                      className={`min-w-[32px] h-8 px-2 flex items-center justify-center rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         currentPage === pNum
                           ? "text-white font-black bg-[#20CDFE]/20 border border-[#20CDFE] shadow-sm shadow-[#20CDFE]/30"
-                          : "text-[#8ab4f8] hover:text-white hover:underline"
+                          : "text-[#8ab4f8] hover:text-white hover:bg-[#15233D]/60"
                       }`}
                     >
                       {pNum}
@@ -755,7 +720,7 @@ export default function ReportesPage() {
                 )}
               </div>
 
-              <p className="text-[11px] text-slate-500 mt-3 font-medium">
+              <p className="text-xs text-slate-400 mt-2.5 font-medium">
                 Mostrando {totalItems > 0 ? ((currentPage - 1) * 20) + 1 : 0} – {Math.min(currentPage * 20, totalItems)} de {totalItems} actividades
               </p>
             </div>
