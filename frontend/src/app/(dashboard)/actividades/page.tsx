@@ -930,7 +930,13 @@ export default function ActividadesPage() {
                     className="w-full px-3 py-2.5 border border-slate-800/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-200 bg-[#0A101D]/80 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <option value="">(Sin Proyecto / Trabajo Independiente)</option>
-                    {projects.map(p => <option key={p.id} value={p.id}>{p.name} ({p.company?.name || "Cliente Externo"})</option>)}
+                    {projects
+                      .filter(p => !p.is_archived || editingActivity?.project_id === p.id)
+                      .map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.company?.name || "Cliente Externo"})
+                        </option>
+                      ))}
                   </select>
                 </div>
 
